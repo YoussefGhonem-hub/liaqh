@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "201679939264",
+    "project_id": "liaqh-d553c",
+    "storage_bucket": "liaqh-d553c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:201679939264:android:3577ff74b84592de112f25",
+        "android_client_info": {
+          "package_name": "com.hypeteq.fitnessapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyColhQxmZSUYzjAxZz_T_0diIdmpcm5zug"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

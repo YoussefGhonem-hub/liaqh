@@ -1,0 +1,42 @@
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+rootProject.buildDir = "../build"
+subprojects {
+    project.buildDir = "${rootProject.buildDir}/${project.name}"
+}
+
+// Compatibility shim for old plugins that declare `package` in their
+// AndroidManifest instead of a `namespace` (required by AGP 8).
+// Registered before evaluationDependsOn so it runs for every subproject.
+subprojects {
+    afterEvaluate { project ->
+        if (project.hasProperty("android")) {
+            project.android {
+                if (namespace == null) {
+                    def manifestFile = project.android.sourceSets.main.manifest.srcFile
+                    if (manifestFile.exists()) {
+                        def pkg = new groovy.xml.XmlSlurper()
+                                .parse(manifestFile)
+                                .@package.text()
+                        if (pkg) {
+                            namespace = pkg
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+subprojects {
+    project.evaluationDependsOn(":app")
+}
+
+tasks.register("clean", Delete) {
+    delete rootProject.buildDir
+}

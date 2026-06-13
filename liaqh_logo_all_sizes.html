@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #FAF6F3; font-family: Arial, sans-serif; padding: 24px; }
+  h2 { color: #1C1714; font-size: 13px; letter-spacing: 3px; text-transform: uppercase; margin: 28px 0 14px; opacity: 0.5; }
+  .row { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; margin-bottom: 8px; }
+  .item { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .label { font-size: 10px; color: #6B5E57; letter-spacing: 1.5px; text-transform: uppercase; }
+  .dark-bg { background: #16110E; border-radius: 12px; padding: 16px; }
+  .divider { width: 100%; height: 1px; background: #ECE3DD; margin: 20px 0 4px; }
+  .download-btn {
+    display: inline-block; margin-top: 28px; padding: 12px 28px;
+    background: #D97757; color: white; border-radius: 24px;
+    font-size: 12px; letter-spacing: 2px; cursor: pointer; border: none;
+    font-family: Arial, sans-serif;
+  }
+  canvas { display: none; }
+</style>
+</head>
+<body>
+
+<h2>With Wordmark</h2>
+<div class="row" id="row-wordmark"></div>
+
+<div class="divider"></div>
+<h2>Icon Only (No Words)</h2>
+<div class="row" id="row-icon"></div>
+
+<div class="divider"></div>
+<h2>On Dark Background</h2>
+<div class="row dark-bg" id="row-dark"></div>
+
+<div class="divider"></div>
+<h2>App Icon Sizes</h2>
+<div class="row" id="row-appicon"></div>
+
+<br>
+<button class="download-btn" onclick="downloadAll()">⬇ Download All as PNG</button>
+
+<canvas id="exportCanvas"></canvas>
+
+<script>
+function drawMuscularAvatar(ctx, cx, cy, size, bgColor, avatarColor, glowColor) {
+  const s = size / 160;
+
+  ctx.save();
+  ctx.translate(cx, cy);
+
+  // Hexagon
+  ctx.beginPath();
+  const pts = [[0,-80],[69,-40],[69,40],[0,80],[-69,40],[-69,-40]];
+  pts.forEach((p,i) => i===0 ? ctx.moveTo(p[0]*s, p[1]*s) : ctx.lineTo(p[0]*s, p[1]*s));
+  ctx.closePath();
+  ctx.fillStyle = bgColor;
+  ctx.fill();
+
+  // Glow ring
+  ctx.beginPath();
+  pts.forEach((p,i) => i===0 ? ctx.moveTo(p[0]*s*1.12, p[1]*s*1.12) : ctx.lineTo(p[0]*s*1.12, p[1]*s*1.12));
+  ctx.closePath();
+  ctx.strokeStyle = glowColor;
+  ctx.lineWidth = 1.5*s;
+  ctx.globalAlpha = 0.2;
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+
+  ctx.fillStyle = avatarColor;
+
+  // HEAD
+  ctx.beginPath();
+  ctx.arc(0, -52*s, 13*s, 0, Math.PI*2);
+  ctx.fill();
+
+  // NECK
+  ctx.fillRect(-6*s, -40*s, 12*s, 9*s);
+
+  // TRAPS
+  ctx.beginPath();
+  ctx.moveTo(-18*s, -33*s);
+  ctx.quadraticCurveTo(-10*s, -39*s, 0, -40*s);
+  ctx.quadraticCurveTo(10*s, -39*s, 18*s, -33*s);
+  ctx.lineTo(22*s, -21*s);
+  ctx.quadraticCurveTo(10*s, -27*s, 0, -28*s);
+  ctx.quadraticCurveTo(-10*s, -27*s, -22*s, -21*s);
+  ctx.closePath();
+  ctx.fill();
+
+  // LEFT SHOULDER
+  ctx.beginPath();
+  ctx.ellipse(-26*s, -20*s, 13*s, 11*s, 0, 0, Math.PI*2);
+  ctx.fill();
+
+  // RIGHT SHOULDER
+  ctx.beginPath();
+  ctx.ellipse(26*s, -20*s, 13*s, 11*s, 0, 0, Math.PI*2);
+  ctx.fill();
+
+  // CHEST
+  ctx.beginPath();
+  ctx.moveTo(-18*s, -28*s);
+  ctx.quadraticCurveTo(-10*s, -33*s, 0, -32*s);
+  ctx.quadraticCurveTo(10*s, -33*s, 18*s, -28*s);
+  ctx.lineTo(20*s, -5*s);
+  ctx.quadraticCurveTo(10*s, 1*s, 0, 0);
+  ctx.quadraticCurveTo(-10*s, 1*s, -20*s, -5*s);
+  ctx.closePath();
+  ctx.fill();
+
+  // LEFT UPPER ARM
+  ctx.beginPath();
+  ctx.moveTo(-28*s, -30*s);
+  ctx.quadraticCurveTo(-40*s, -25*s, -42*s, -10*s);
+  ctx.quadraticCurveTo(-40*s, 2*s, -32*s, 5*s);
+  ctx.lineTo(-26*s, -5*s);
+  ctx.quadraticCurveTo(-30*s, -15*s, -28*s, -22*s);
+  ctx.closePath();
+  ctx.fill();
+
+  // RIGHT UPPER ARM
+  ctx.beginPath();
+  ctx.moveTo(28*s, -30*s);
+  ctx.quadraticCurveTo(40*s, -25*s, 42*s, -10*s);
+  ctx.quadraticCurveTo(40*s, 2*s, 32*s, 5*s);
+  ctx.lineTo(26*s, -5*s);
+  ctx.quadraticCurveTo(30*s, -15*s, 28*s, -22*s);
+  ctx.closePath();
+  ctx.fill();
+
+  // LEFT FOREARM
+  ctx.beginPath();
+  ctx.moveTo(-32*s, 5*s);
+  ctx.quadraticCurveTo(-38*s, 14*s, -36*s, 24*s);
+  ctx.lineTo(-28*s, 24*s);
+  ctx.quadraticCurveTo(-28*s, 14*s, -26*s, 5*s);
+  ctx.closePath();
+  ctx.fill();
+
+  // RIGHT FOREARM
+  ctx.beginPath();
+  ctx.moveTo(32*s, 5*s);
+  ctx.quadraticCurveTo(38*s, 14*s, 36*s, 24*s);
+  ctx.lineTo(28*s, 24*s);
+  ctx.quadraticCurveTo(28*s, 14*s, 26*s, 5*s);
+  ctx.closePath();
+  ctx.fill();
+
+  // LEFT FIST
+  ctx.beginPath();
+  ctx.roundRect(-44*s, 22*s, 16*s, 12*s, 4*s);
+  ctx.fill();
+
+  // RIGHT FIST
+  ctx.beginPath();
+  ctx.roundRect(28*s, 22*s, 16*s, 12*s, 4*s);
+  ctx.fill();
+
+  // ABS 6 pack
+  const abPairs = [[-14,-1],[0,-1],[14,-1],[-14,11],[0,11],[14,11]];
+  abPairs.forEach(([ax,ay]) => {
+    ctx.beginPath();
+    ctx.roundRect((ax-6)*s, (ay-2)*s, 11*s, 11*s, 2*s);
+    ctx.globalAlpha = 0.82;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  });
+
+  // OBLIQUES
+  ctx.beginPath();
+  ctx.moveTo(-15*s, 22*s);
+  ctx.quadraticCurveTo(-20*s, 28*s, -18*s, 36*s);
+  ctx.lineTo(-12*s, 36*s);
+  ctx.quadraticCurveTo(-12*s, 28*s, -10*s, 22*s);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(15*s, 22*s);
+  ctx.quadraticCurveTo(20*s, 28*s, 18*s, 36*s);
+  ctx.lineTo(12*s, 36*s);
+  ctx.quadraticCurveTo(12*s, 28*s, 10*s, 22*s);
+  ctx.closePath();
+  ctx.fill();
+
+  // LEFT QUAD
+  ctx.beginPath();
+  ctx.moveTo(-18*s, 34*s);
+  ctx.quadraticCurveTo(-24*s, 42*s, -22*s, 58*s);
+  ctx.lineTo(-12*s, 60*s);
+  ctx.quadraticCurveTo(-10*s, 44*s, -10*s, 34*s);
+  ctx.closePath();
+  ctx.fill();
+
+  // RIGHT QUAD
+  ctx.beginPath();
+  ctx.moveTo(18*s, 34*s);
+  ctx.quadraticCurveTo(24*s, 42*s, 22*s, 58*s);
+  ctx.lineTo(12*s, 60*s);
+  ctx.quadraticCurveTo(10*s, 44*s, 10*s, 34*s);
+  ctx.closePath();
+  ctx.fill();
+
+  // INNER LEGS
+  ctx.beginPath();
+  ctx.moveTo(-8*s, 34*s);
+  ctx.quadraticCurveTo(-4*s, 42*s, -2*s, 60*s);
+  ctx.lineTo(2*s, 60*s);
+  ctx.quadraticCurveTo(4*s, 42*s, 8*s, 34*s);
+  ctx.closePath();
+  ctx.globalAlpha = 0.85;
+  ctx.fill();
+  ctx.globalAlpha = 1;
+
+  // FLAME top right
+  ctx.fillStyle = avatarColor;
+  ctx.globalAlpha = 0.8;
+  ctx.beginPath();
+  ctx.moveTo(55*s, -62*s);
+  ctx.bezierCurveTo(55*s, -70*s, 63*s, -74*s, 61*s, -82*s);
+  ctx.bezierCurveTo(67*s, -77*s, 69*s, -68*s, 64*s, -62*s);
+  ctx.bezierCurveTo(62*s, -58*s, 56*s, -58*s, 55*s, -62*s);
+  ctx.closePath();
+  ctx.fill();
+  ctx.globalAlpha = 1;
+
+  // Energy lines
+  ctx.strokeStyle = bgColor === '#D97757' ? 'white' : '#D97757';
+  ctx.globalAlpha = 0.4;
+  ctx.lineWidth = 2*s;
+  ctx.lineCap = 'round';
+  [[-78,-45,-64,-38],[-82,-20,-66,-18],[-78,8,-64,4]].forEach(([x1,y1,x2,y2]) => {
+    ctx.beginPath(); ctx.moveTo(x1*s,y1*s); ctx.lineTo(x2*s,y2*s); ctx.stroke();
+  });
+  [[78,-45,64,-38],[82,-20,66,-18],[78,8,64,4]].forEach(([x1,y1,x2,y2]) => {
+    ctx.beginPath(); ctx.moveTo(x1*s,y1*s); ctx.lineTo(x2*s,y2*s); ctx.stroke();
+  });
+  ctx.globalAlpha = 1;
+
+  ctx.restore();
+}
+
+function drawWordmark(ctx, cx, y, size, color) {
+  const fs = Math.max(10, size * 0.32);
+  ctx.font = `700 ${fs}px Georgia, serif`;
+  ctx.fillStyle = color;
+  ctx.textAlign = 'center';
+  ctx.letterSpacing = `${fs*0.18}px`;
+  ctx.fillText('LIAQH', cx, y);
+  ctx.letterSpacing = '0px';
+
+  const subFs = Math.max(8, size * 0.14);
+  ctx.font = `400 ${subFs}px Arial, sans-serif`;
+  ctx.fillStyle = '#6B5E57';
+  ctx.fillText('لياقة', cx, y + subFs + 4);
+}
+
+function makeSVGIcon(size, withWords, darkBg) {
+  const pad = withWords ? size * 0.15 : size * 0.05;
+  const hexSize = withWords ? size * 0.55 : size * 0.88;
+  const totalH = withWords ? size * 1.45 : size;
+  const bgFill = darkBg ? '#16110E' : '#FAF6F3';
+  const hexColor = darkBg ? '#D97757' : '#D97757';
+  const avatarCol = 'white';
+  const wordColor = darkBg ? '#F5EFEA' : '#1C1714';
+
+  const canvas = document.getElementById('exportCanvas');
+  canvas.width = size;
+  canvas.height = Math.round(totalH);
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  if (darkBg) {
+    ctx.fillStyle = bgFill;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+
+  drawMuscularAvatar(ctx, size/2, hexSize/2 + pad, hexSize, hexColor, avatarCol, hexColor);
+
+  if (withWords) {
+    drawWordmark(ctx, size/2, hexSize + pad + size*0.14, size, wordColor);
+  }
+
+  return canvas.toDataURL('image/png');
+}
+
+function createItem(size, withWords, darkBg, label) {
+  const item = document.createElement('div');
+  item.className = 'item';
+
+  const img = document.createElement('img');
+  img.src = makeSVGIcon(size, withWords, darkBg);
+  img.width = Math.min(size, 140);
+  img.height = Math.min(withWords ? size*1.45 : size, withWords ? 140*1.45 : 140);
+  img.style.imageRendering = 'auto';
+
+  const lbl = document.createElement('div');
+  lbl.className = 'label';
+  lbl.textContent = label;
+
+  item.appendChild(img);
+  item.appendChild(lbl);
+  return item;
+}
+
+const wordmarkRow = document.getElementById('row-wordmark');
+[[512,'512px'],[256,'256px'],[128,'128px'],[64,'64px']].forEach(([s,l]) => {
+  wordmarkRow.appendChild(createItem(s, true, false, l));
+});
+
+const iconRow = document.getElementById('row-icon');
+[[512,'512px'],[256,'256px'],[128,'128px'],[64,'64px'],[48,'48px'],[32,'32px'],[16,'16px']].forEach(([s,l]) => {
+  iconRow.appendChild(createItem(s, false, false, l));
+});
+
+const darkRow = document.getElementById('row-dark');
+[[256,'256px with text'],[128,'128px with text'],[128,'128px icon'],[64,'64px icon']].forEach(([s,l],i) => {
+  darkRow.appendChild(createItem(s, i<2, true, l));
+});
+
+const appRow = document.getElementById('row-appicon');
+[
+  [1024,'iOS App Store\n1024px'],
+  [512,'Play Store\n512px'],
+  [192,'PWA 192px'],
+  [180,'iOS 180px'],
+  [152,'iPad 152px'],
+  [120,'iPhone 120px'],
+].forEach(([s,l]) => {
+  appRow.appendChild(createItem(s, false, false, l));
+});
+
+function downloadAll() {
+  const specs = [
+    [512,true,false,'liaqh-logo-wordmark-512'],
+    [256,true,false,'liaqh-logo-wordmark-256'],
+    [128,true,false,'liaqh-logo-wordmark-128'],
+    [512,false,false,'liaqh-icon-512'],
+    [256,false,false,'liaqh-icon-256'],
+    [192,false,false,'liaqh-icon-192'],
+    [180,false,false,'liaqh-icon-180'],
+    [152,false,false,'liaqh-icon-152'],
+    [128,false,false,'liaqh-icon-128'],
+    [120,false,false,'liaqh-icon-120'],
+    [64,false,false,'liaqh-icon-64'],
+    [32,false,false,'liaqh-icon-32'],
+    [1024,false,false,'liaqh-icon-appstore-1024'],
+    [512,false,false,'liaqh-icon-playstore-512'],
+    [256,true,true,'liaqh-logo-dark-256'],
+    [128,false,true,'liaqh-icon-dark-128'],
+  ];
+  specs.forEach(([s,w,d,name], i) => {
+    setTimeout(() => {
+      const url = makeSVGIcon(s, w, d);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = name + '.png';
+      a.click();
+    }, i * 120);
+  });
+}
+</script>
+</body>
+</html>
