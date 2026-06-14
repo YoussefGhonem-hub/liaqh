@@ -4,11 +4,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 class LanguageProvider extends ChangeNotifier {
   Locale _locale = const Locale('en');
   static const _prefKey = 'app_locale';
+  static const _chosenKey = 'app_locale_chosen';
 
   Locale get locale => _locale;
   bool get isArabic => _locale.languageCode == 'ar';
   TextDirection get textDirection =>
       isArabic ? TextDirection.rtl : TextDirection.ltr;
+
+  /// Whether the user has explicitly picked a language at least once.
+  bool _chosen = false;
+  bool get hasChosenLanguage => _chosen;
 
   LanguageProvider() {
     _loadSaved();
@@ -18,13 +23,21 @@ class LanguageProvider extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     final code = prefs.getString(_prefKey) ?? 'en';
     _locale = Locale(code);
+    _chosen = prefs.getBool(_chosenKey) ?? false;
     notifyListeners();
   }
 
-  Future<void> setLocale(Locale locale) async {
-    if (_locale == locale) return;
-    _locale = locale;
+  Future<void> setLocale(Locale locale, {bool markChosen = false}) async {
     final prefs = await SharedPreferences.getInstance();
+    if (markChosen && !_chosen) {
+      _chosen = true;
+      await prefs.setBool(_chosenKey, true);
+    }
+    if (_locale == locale) {
+      if (markChosen) notifyListeners();
+      return;
+    }
+    _locale = locale;
     await prefs.setString(_prefKey, locale.languageCode);
     notifyListeners();
   }

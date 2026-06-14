@@ -36,6 +36,9 @@ import 'package:fitnessapp/data/services/notification_service.dart';
 import 'package:fitnessapp/routes.dart';
 import 'package:fitnessapp/utils/app_theme.dart';
 import 'package:fitnessapp/view/login/login_screen.dart';
+import 'package:fitnessapp/view/dashboard/dashboard_screen.dart';
+import 'package:fitnessapp/view/welcome/welcome_landing_screen.dart';
+import 'package:fitnessapp/view/welcome/language_select_screen.dart';
 import 'package:fitnessapp/view/splash/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -187,12 +190,16 @@ class _AuthGateState extends State<_AuthGate> {
         final user = auth.currentUser;
         final chat = context.read<ChatProvider>();
         final notif = context.read<NotificationProvider>();
+        final langChosen = context.read<LanguageProvider>().hasChosenLanguage;
 
-        // Navigate immediately — never block startup on Firestore / FCM.
-        Navigator.pushReplacementNamed(
-          context,
-          loggedIn ? '/DashboardScreen' : LoginScreen.routeName,
-        );
+        // Logged in → dashboard. Otherwise show the language picker on first
+        // launch, then the Welcome landing (Login / register).
+        final String dest = loggedIn
+            ? DashboardScreen.routeName
+            : (langChosen
+                ? WelcomeLandingScreen.routeName
+                : LanguageSelectScreen.routeName);
+        Navigator.pushReplacementNamed(context, dest);
 
         // Background setup (fire-and-forget; failures must not affect the UI).
         if (loggedIn && user != null) {

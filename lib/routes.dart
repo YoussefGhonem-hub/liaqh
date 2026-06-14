@@ -32,6 +32,8 @@ import 'package:fitnessapp/view/platform/send_announcement_screen.dart';
 import 'package:fitnessapp/view/trainees/trainees_screen.dart';
 import 'package:fitnessapp/view/trainees/add_trainee_screen.dart';
 import 'package:fitnessapp/view/welcome/welcome_screen.dart';
+import 'package:fitnessapp/view/welcome/welcome_landing_screen.dart';
+import 'package:fitnessapp/view/welcome/language_select_screen.dart';
 import 'package:fitnessapp/view/workout_schedule_view/workout_schedule_view.dart';
 import 'package:fitnessapp/view/your_goal/your_goal_screen.dart';
 import 'package:flutter/material.dart';
@@ -47,6 +49,8 @@ final Map<String, WidgetBuilder> routes = {
   CompleteProfileScreen.routeName: (_) => const CompleteProfileScreen(),
   YourGoalScreen.routeName: (_) => const YourGoalScreen(),
   WelcomeScreen.routeName: (_) => const WelcomeScreen(),
+  WelcomeLandingScreen.routeName: (_) => const WelcomeLandingScreen(),
+  LanguageSelectScreen.routeName: (_) => const LanguageSelectScreen(),
   DashboardScreen.routeName: (_) => const DashboardScreen(),
   FinishWorkoutScreen.routeName: (_) => const FinishWorkoutScreen(),
   NotificationScreen.routeName: (_) => const NotificationScreen(),
