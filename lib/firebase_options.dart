@@ -38,6 +38,6 @@ class DefaultFirebaseOptions {
     messagingSenderId: '201679939264',
     projectId: 'liaqh-d553c',
     storageBucket: 'liaqh-d553c.firebasestorage.app',
-    iosBundleId: 'com.hypeteq.fitnessapp',
+    iosBundleId: 'com.hypeteq.fitnesstracker',
   );
 }

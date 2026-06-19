@@ -14,7 +14,7 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace 'com.hypeteq.fitnessapp'
+    namespace 'com.hypeteq.fitnesstracker'
     compileSdk flutter.compileSdkVersion
     ndkVersion flutter.ndkVersion
 
@@ -29,7 +29,7 @@ android {
     }
 
     defaultConfig {
-        applicationId 'com.hypeteq.fitnessapp'
+        applicationId 'com.hypeteq.fitnesstracker'
         minSdk flutter.minSdkVersion
         targetSdk flutter.targetSdkVersion
         versionCode flutter.versionCode
