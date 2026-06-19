@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:fitnessapp/common_widgets/liaqh_loaders.dart';
 
 import 'package:fitnessapp/data/models/workout_models.dart';
 import 'package:fitnessapp/l10n/app_localizations.dart';
@@ -32,10 +33,15 @@ class BuildWorkoutDayScreen extends StatefulWidget {
 
 class _BuildWorkoutDayScreenState extends State<BuildWorkoutDayScreen> {
   final _dayNameCtrl = TextEditingController();
-  final _notesCtrl   = TextEditingController();
+  final _notesCtrl = TextEditingController();
   int _dayNumber = 1;
-  String _muscleGroupFocus = 'Chest';
+  final Set<String> _muscleFocus = {'Chest'};
   final List<_ExerciseDraft> _exerciseDrafts = [];
+
+  /// The selected muscles joined in the canonical [_muscles] order, e.g.
+  /// "Chest, Back" — stored on the day's muscleGroupFocus field.
+  String get _muscleFocusValue =>
+      _muscles.where(_muscleFocus.contains).join(', ');
   String? _error;
 
   // Days already saved on the server (lets the coach edit/delete them).
@@ -46,8 +52,18 @@ class _BuildWorkoutDayScreenState extends State<BuildWorkoutDayScreen> {
   String? _editingDayId;
 
   static const _muscles = [
-    'Chest', 'Back', 'Shoulders', 'Biceps', 'Triceps', 'Forearms',
-    'Quads', 'Hamstrings', 'Glutes', 'Calves', 'Abs', 'FullBody',
+    'Chest',
+    'Back',
+    'Shoulders',
+    'Biceps',
+    'Triceps',
+    'Forearms',
+    'Quads',
+    'Hamstrings',
+    'Glutes',
+    'Calves',
+    'Abs',
+    'FullBody',
   ];
 
   @override
@@ -106,7 +122,9 @@ class _BuildWorkoutDayScreenState extends State<BuildWorkoutDayScreen> {
     _dayNameCtrl.clear();
     _notesCtrl.clear();
     _exerciseDrafts.clear();
-    _muscleGroupFocus = 'Chest';
+    _muscleFocus
+      ..clear()
+      ..add('Chest');
   }
 
   /// Load a saved day into the form for editing (PATCH on save).
@@ -115,8 +133,15 @@ class _BuildWorkoutDayScreenState extends State<BuildWorkoutDayScreen> {
       _editingDayId = d.id;
       _error = null;
       _dayNameCtrl.text = d.dayName;
-      _muscleGroupFocus =
-          _muscles.contains(d.muscleGroupFocus) ? d.muscleGroupFocus : 'Chest';
+      // muscleGroupFocus is stored as a comma-separated list of muscles.
+      final parsed = d.muscleGroupFocus
+          .split(',')
+          .map((s) => s.trim())
+          .where((s) => _muscles.contains(s))
+          .toSet();
+      _muscleFocus
+        ..clear()
+        ..addAll(parsed.isEmpty ? {'Chest'} : parsed);
       _notesCtrl.text = d.notes ?? '';
       _exerciseDrafts
         ..clear()
@@ -146,7 +171,8 @@ class _BuildWorkoutDayScreenState extends State<BuildWorkoutDayScreen> {
     setState(() => _error = null);
     final provider = context.read<WorkoutProvider>();
     final name = _dayNameCtrl.text.trim();
-    final notes = _notesCtrl.text.trim().isNotEmpty ? _notesCtrl.text.trim() : null;
+    final notes =
+        _notesCtrl.text.trim().isNotEmpty ? _notesCtrl.text.trim() : null;
 
     bool ok;
     if (_editingDayId != null) {
@@ -154,7 +180,7 @@ class _BuildWorkoutDayScreenState extends State<BuildWorkoutDayScreen> {
       ok = await provider.updateWorkoutDay(
         dayId: _editingDayId!,
         dayName: name,
-        muscleGroupFocus: _muscleGroupFocus,
+        muscleGroupFocus: _muscleFocusValue,
         notes: notes,
         exercises: _exercisePayload(),
       );
@@ -163,7 +189,7 @@ class _BuildWorkoutDayScreenState extends State<BuildWorkoutDayScreen> {
         programId: widget.programId,
         dayNumber: _dayNumber,
         dayName: name,
-        muscleGroupFocus: _muscleGroupFocus,
+        muscleGroupFocus: _muscleFocusValue,
         notes: notes,
         exercises: _exercisePayload(),
       );
@@ -180,7 +206,7 @@ class _BuildWorkoutDayScreenState extends State<BuildWorkoutDayScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(wasEditing ? 'Day updated' : 'Day saved'),
+            content: Text(wasEditing ? AppLocalizations.of(context).dayUpdated : AppLocalizations.of(context).daySaved),
             backgroundColor: AppColors.successColor,
           ),
         );
@@ -190,8 +216,7 @@ class _BuildWorkoutDayScreenState extends State<BuildWorkoutDayScreen> {
 
   void _finishProgram() {
     if (_existingDays.isEmpty) {
-      setState(() => _error =
-          AppLocalizations.of(context).saveAtLeastOneDay);
+      setState(() => _error = AppLocalizations.of(context).saveAtLeastOneDay);
       return;
     }
     Navigator.pop(context, true);
@@ -208,9 +233,7 @@ class _BuildWorkoutDayScreenState extends State<BuildWorkoutDayScreen> {
       appBar: AppBar(
         title: Text(widget.programName,
             style: TextStyle(
-                fontWeight: FontWeight.w700,
-                color: colors.fg,
-                fontSize: 16)),
+                fontWeight: FontWeight.w700, color: colors.fg, fontSize: 16)),
         backgroundColor: colors.bg,
         elevation: 0,
         foregroundColor: colors.fg,
@@ -234,10 +257,10 @@ class _BuildWorkoutDayScreenState extends State<BuildWorkoutDayScreen> {
             if (_loadingDays)
               const Padding(
                 padding: EdgeInsets.only(bottom: 16),
-                child: Center(child: CircularProgressIndicator()),
+                child: const LiaqhPageLoader(),
               )
             else if (_existingDays.isNotEmpty) ...[
-              Text('Saved days',
+              Text(l10n.savedDays,
                   style: TextStyle(
                       fontWeight: FontWeight.w700,
                       fontSize: 14,
@@ -255,7 +278,7 @@ class _BuildWorkoutDayScreenState extends State<BuildWorkoutDayScreen> {
 
             Text(
                 _editingDayId != null
-                    ? 'Edit ${_dayNameCtrl.text.isEmpty ? "day" : _dayNameCtrl.text}'
+                    ? l10n.editDayTitle(_dayNameCtrl.text.isEmpty ? l10n.dayWord : _dayNameCtrl.text)
                     : l10n.dayNumber(_dayNumber),
                 style: TextStyle(
                     fontWeight: FontWeight.w800,
@@ -279,25 +302,41 @@ class _BuildWorkoutDayScreenState extends State<BuildWorkoutDayScreen> {
               spacing: 8,
               runSpacing: 6,
               children: _muscles.map((m) {
-                final selected = _muscleGroupFocus == m;
+                final selected = _muscleFocus.contains(m);
                 return GestureDetector(
-                  onTap: () => setState(() => _muscleGroupFocus = m),
+                  onTap: () => setState(() {
+                    // Multi-select; keep at least one selected.
+                    if (selected) {
+                      if (_muscleFocus.length > 1) _muscleFocus.remove(m);
+                    } else {
+                      _muscleFocus.add(m);
+                    }
+                  }),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 7),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
                     decoration: BoxDecoration(
-                      color: selected
-                          ? AppColors.primaryColor1
-                          : colors.listTile,
+                      color:
+                          selected ? AppColors.primaryColor1 : colors.listTile,
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: Text(m,
-                        style: TextStyle(
-                            color: selected ? Colors.white : colors.subFg,
-                            fontWeight: selected
-                                ? FontWeight.w700
-                                : FontWeight.w400,
-                            fontSize: 12)),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (selected) ...[
+                          const Icon(Icons.check_rounded,
+                              color: Colors.white, size: 14),
+                          const SizedBox(width: 4),
+                        ],
+                        Text(m,
+                            style: TextStyle(
+                                color: selected ? Colors.white : colors.subFg,
+                                fontWeight: selected
+                                    ? FontWeight.w700
+                                    : FontWeight.w400,
+                                fontSize: 12)),
+                      ],
+                    ),
                   ),
                 );
               }).toList(),
@@ -329,13 +368,11 @@ class _BuildWorkoutDayScreenState extends State<BuildWorkoutDayScreen> {
                   color: colors.listTile,
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
-                      color: colors.divider,
-                      style: BorderStyle.solid),
+                      color: colors.divider, style: BorderStyle.solid),
                 ),
                 child: Center(
                   child: Text(l10n.noExercisesYet,
-                      style: TextStyle(
-                          color: colors.subFg, fontSize: 13),
+                      style: TextStyle(color: colors.subFg, fontSize: 13),
                       textAlign: TextAlign.center),
                 ),
               )
@@ -344,7 +381,7 @@ class _BuildWorkoutDayScreenState extends State<BuildWorkoutDayScreen> {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: _exerciseDrafts.length,
-                onReorderItem: (old, next) {
+                onReorder: (old, next) {
                   setState(() {
                     final item = _exerciseDrafts.removeAt(old);
                     _exerciseDrafts.insert(next, item);
@@ -374,12 +411,12 @@ class _BuildWorkoutDayScreenState extends State<BuildWorkoutDayScreen> {
             ],
             const SizedBox(height: 24),
             provider.loading
-                ? const Center(child: CircularProgressIndicator())
+                ? const LiaqhPageLoader()
                 : Column(
                     children: [
                       RoundGradientButton(
                         title: _editingDayId != null
-                            ? 'Update Day'
+                            ? l10n.updateDay
                             : l10n.saveDayAddAnother,
                         onPressed: _saveDay,
                       ),
@@ -394,7 +431,7 @@ class _BuildWorkoutDayScreenState extends State<BuildWorkoutDayScreen> {
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(14)),
                           ),
-                          child: const Text('Cancel edit'),
+                          child: Text(l10n.cancelEdit),
                         ),
                       ] else if (_existingDays.isNotEmpty) ...[
                         const SizedBox(height: 12),
@@ -438,6 +475,7 @@ class _SavedDayTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
@@ -463,7 +501,7 @@ class _SavedDayTile extends StatelessWidget {
             style: TextStyle(
                 color: colors.fg, fontWeight: FontWeight.w700, fontSize: 14)),
         subtitle: Text(
-            '${day.muscleGroupFocus} · ${day.exercises.length} exercise(s)',
+            '${day.muscleGroupFocus} · ${l10n.exercisesCountLabel(day.exercises.length)}',
             style: TextStyle(color: colors.subFg, fontSize: 12)),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
@@ -499,12 +537,17 @@ class _ExerciseDraft {
     required this.exerciseId,
     required this.nameEn,
     required this.muscleGroup,
-  }) : sets = 3, repsTarget = '8-12', restSeconds = 90, weightKg = null;
+  })  : sets = 3,
+        repsTarget = '8-12',
+        restSeconds = 90,
+        weightKg = null;
 
   /// Build a draft from an already-saved exercise (when editing a day).
   factory _ExerciseDraft.fromItem(WorkoutExerciseItem e) {
     final d = _ExerciseDraft(
-        exerciseId: e.exerciseId, nameEn: e.exerciseNameEn, muscleGroup: e.muscleGroup);
+        exerciseId: e.exerciseId,
+        nameEn: e.exerciseNameEn,
+        muscleGroup: e.muscleGroup);
     d.sets = e.sets;
     d.repsTarget = e.repsTarget;
     d.restSeconds = e.restSeconds;
@@ -545,7 +588,8 @@ class _ExerciseDraftTile extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 24, height: 24,
+                width: 24,
+                height: 24,
                 decoration: BoxDecoration(
                   color: AppColors.primaryColor1,
                   borderRadius: BorderRadius.circular(6),
@@ -569,8 +613,7 @@ class _ExerciseDraftTile extends StatelessWidget {
                             fontSize: 14,
                             color: colors.fg)),
                     Text(draft.muscleGroup,
-                        style: TextStyle(
-                            fontSize: 11, color: colors.subFg)),
+                        style: TextStyle(fontSize: 11, color: colors.subFg)),
                   ],
                 ),
               ),
@@ -580,8 +623,7 @@ class _ExerciseDraftTile extends StatelessWidget {
                 onPressed: onRemove,
                 padding: EdgeInsets.zero,
               ),
-              Icon(Icons.drag_handle,
-                  color: colors.subFg, size: 18),
+              Icon(Icons.drag_handle, color: colors.subFg, size: 18),
             ],
           ),
           const SizedBox(height: 10),
@@ -652,38 +694,38 @@ class _NumberField extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
     return Expanded(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label,
-                style: TextStyle(
-                    fontSize: 10,
-                    color: colors.subFg,
-                    fontWeight: FontWeight.w600)),
-            const SizedBox(height: 4),
-            TextFormField(
-              initialValue: value,
-              onChanged: onChanged,
-              keyboardType: isDecimal
-                  ? const TextInputType.numberWithOptions(decimal: true)
-                  : TextInputType.number,
-              decoration: InputDecoration(
-                isDense: true,
-                hintText: hint,
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                filled: true,
-                fillColor: colors.card,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label,
+              style: TextStyle(
+                  fontSize: 10,
+                  color: colors.subFg,
+                  fontWeight: FontWeight.w600)),
+          const SizedBox(height: 4),
+          TextFormField(
+            initialValue: value,
+            onChanged: onChanged,
+            keyboardType: isDecimal
+                ? const TextInputType.numberWithOptions(decimal: true)
+                : TextInputType.number,
+            decoration: InputDecoration(
+              isDense: true,
+              hintText: hint,
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              filled: true,
+              fillColor: colors.card,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide.none,
               ),
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
             ),
-          ],
-        ),
-      );
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -704,35 +746,35 @@ class _TextField extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
     return Expanded(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label,
-                style: TextStyle(
-                    fontSize: 10,
-                    color: colors.subFg,
-                    fontWeight: FontWeight.w600)),
-            const SizedBox(height: 4),
-            TextFormField(
-              initialValue: value,
-              onChanged: onChanged,
-              keyboardType: TextInputType.text,
-              decoration: InputDecoration(
-                isDense: true,
-                hintText: hint,
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                filled: true,
-                fillColor: colors.card,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label,
+              style: TextStyle(
+                  fontSize: 10,
+                  color: colors.subFg,
+                  fontWeight: FontWeight.w600)),
+          const SizedBox(height: 4),
+          TextFormField(
+            initialValue: value,
+            onChanged: onChanged,
+            keyboardType: TextInputType.text,
+            decoration: InputDecoration(
+              isDense: true,
+              hintText: hint,
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              filled: true,
+              fillColor: colors.card,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide.none,
               ),
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
             ),
-          ],
-        ),
-      );
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+          ),
+        ],
+      ),
+    );
   }
 }

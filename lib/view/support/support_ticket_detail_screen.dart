@@ -1,4 +1,6 @@
 import 'package:fitnessapp/data/models/support_ticket_models.dart';
+import 'package:fitnessapp/common_widgets/liaqh_loaders.dart';
+import 'package:fitnessapp/l10n/app_localizations.dart';
 import 'package:fitnessapp/providers/auth_provider.dart';
 import 'package:fitnessapp/providers/support_ticket_provider.dart';
 import 'package:fitnessapp/utils/app_colors.dart';
@@ -52,6 +54,52 @@ class _SupportTicketDetailScreenState extends State<SupportTicketDetailScreen> {
     if (ok) _ctrl.clear();
   }
 
+  Future<void> _editMessage(SupportMessageModel msg) async {
+    final l10n = AppLocalizations.of(context);
+    final colors = context.colors;
+    final ctrl = TextEditingController(text: msg.body);
+    final newText = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: colors.card,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(l10n.editMessage,
+            style: TextStyle(
+                color: colors.fg, fontSize: 17, fontWeight: FontWeight.w800)),
+        content: TextField(
+          controller: ctrl,
+          autofocus: true,
+          maxLines: 6,
+          minLines: 1,
+          style: TextStyle(color: colors.fg),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: colors.inputFill,
+            border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide.none),
+          ),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: Text(l10n.cancel)),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, ctrl.text.trim()),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryColor1,
+                foregroundColor: Colors.white),
+            child: Text(l10n.save),
+          ),
+        ],
+      ),
+    );
+    if (newText != null && newText.isNotEmpty && newText != msg.body && mounted) {
+      await context
+          .read<SupportTicketProvider>()
+          .editMessage(widget.ticketId, msg.id, newText);
+    }
+  }
+
   Future<void> _close() async {
     final ok = await context.read<SupportTicketProvider>().close(widget.ticketId);
     if (mounted && ok) {
@@ -95,15 +143,24 @@ class _SupportTicketDetailScreenState extends State<SupportTicketDetailScreen> {
         children: [
           Expanded(
             child: !loadedThis
-                ? const Center(child: CircularProgressIndicator())
+                ? const LiaqhPageLoader()
                 : ListView.builder(
                     padding: const EdgeInsets.all(16),
                     itemCount: detail.messages.length,
-                    itemBuilder: (_, i) => _Bubble(
-                      msg: detail.messages[i],
-                      mine: detail.messages[i].senderUserId == myId,
-                      colors: colors,
-                    ),
+                    itemBuilder: (_, i) {
+                      final m = detail.messages[i];
+                      // Owner may edit their own replies.
+                      final canEdit = isOwner && m.isFromOwner && m.senderUserId == myId;
+                      return GestureDetector(
+                        onTap: canEdit ? () => _editMessage(m) : null,
+                        onLongPress: canEdit ? () => _editMessage(m) : null,
+                        child: _Bubble(
+                          msg: m,
+                          mine: m.senderUserId == myId,
+                          colors: colors,
+                        ),
+                      );
+                    },
                   ),
           ),
           if (loadedThis && !detail.isOpen)

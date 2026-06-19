@@ -1,4 +1,5 @@
 import 'package:fitnessapp/data/models/payment_method_models.dart';
+import 'package:fitnessapp/l10n/app_localizations.dart';
 import 'package:fitnessapp/providers/payment_methods_provider.dart';
 import 'package:fitnessapp/utils/app_colors.dart';
 import 'package:fitnessapp/utils/app_theme.dart';
@@ -35,6 +36,7 @@ class _ManualPaymentScreenState extends State<ManualPaymentScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+    final l10n = AppLocalizations.of(context);
     final provider = context.read<PaymentMethodsProvider>();
     final messenger = ScaffoldMessenger.of(context);
     final nav = Navigator.of(context);
@@ -48,8 +50,8 @@ class _ManualPaymentScreenState extends State<ManualPaymentScreen> {
     if (!mounted) return;
     if (ok) {
       await provider.loadMyRequests();
-      messenger.showSnackBar(const SnackBar(
-          content: Text('Payment submitted. We\'ll confirm within 24 hours.'),
+      messenger.showSnackBar(SnackBar(
+          content: Text(l10n.paymentSubmitted24h),
           backgroundColor: AppColors.successColor));
       nav.pop(true);
     } else {
@@ -61,6 +63,7 @@ class _ManualPaymentScreenState extends State<ManualPaymentScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final colors = context.colors;
     final submitting = context.watch<PaymentMethodsProvider>().submitting;
     final accountLabel =
@@ -72,7 +75,7 @@ class _ManualPaymentScreenState extends State<ManualPaymentScreen> {
         backgroundColor: colors.bg,
         foregroundColor: colors.fg,
         elevation: 0,
-        title: Text('Pay with ${widget.method.name}',
+        title: Text(l10n.payWithMethod(widget.method.name),
             style: TextStyle(color: colors.fg, fontWeight: FontWeight.w700)),
       ),
       body: SingleChildScrollView(
@@ -93,7 +96,7 @@ class _ManualPaymentScreenState extends State<ManualPaymentScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Send the payment to this ${widget.method.name} number',
+                    Text(l10n.sendPaymentToNumber(widget.method.name),
                         style: const TextStyle(
                             color: Colors.white70, fontSize: 13)),
                     const SizedBox(height: 8),
@@ -113,7 +116,7 @@ class _ManualPaymentScreenState extends State<ManualPaymentScreen> {
                             Clipboard.setData(ClipboardData(
                                 text: widget.method.receiverNumber ?? ''));
                             ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Number copied')));
+                                SnackBar(content: Text(l10n.numberCopied)));
                           },
                           icon: const Icon(Icons.copy_rounded,
                               color: Colors.white),
@@ -139,8 +142,7 @@ class _ManualPaymentScreenState extends State<ManualPaymentScreen> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        widget.method.instructions ??
-                            'Acceptance of payment may take up to 24 hours.',
+                        widget.method.instructions ?? l10n.acceptance24h,
                         style: const TextStyle(
                             color: AppColors.warningColor, fontSize: 12.5),
                       ),
@@ -150,14 +152,14 @@ class _ManualPaymentScreenState extends State<ManualPaymentScreen> {
               ),
               const SizedBox(height: 20),
 
-              Text('After sending the money, fill in your details below:',
+              Text(l10n.afterSendingFillDetails,
                   style: TextStyle(color: colors.subFg, fontSize: 13)),
               const SizedBox(height: 16),
 
-              _field(colors, _nameCtrl, 'Full account name',
-                  'Name on your account',
+              _field(colors, _nameCtrl, l10n.fullAccountName,
+                  l10n.nameOnAccountHint,
                   validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Required' : null),
+                      (v == null || v.trim().isEmpty) ? l10n.required : null),
               const SizedBox(height: 12),
               _field(colors, _accountCtrl, accountLabel,
                   _isInstaPay ? 'name@instapay' : '01xxxxxxxxx',
@@ -165,13 +167,13 @@ class _ManualPaymentScreenState extends State<ManualPaymentScreen> {
                       ? TextInputType.emailAddress
                       : TextInputType.phone,
                   validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Required' : null),
+                      (v == null || v.trim().isEmpty) ? l10n.required : null),
               const SizedBox(height: 12),
               _field(colors, _refCtrl,
-                  _isInstaPay ? 'Reference number' : 'Reference number (if found)',
-                  'Transaction reference',
+                  _isInstaPay ? l10n.referenceNumber : l10n.referenceNumberOptional,
+                  l10n.transactionReferenceHint,
                   validator: (v) => (_isInstaPay && (v == null || v.trim().isEmpty))
-                      ? 'Required'
+                      ? l10n.required
                       : null),
               const SizedBox(height: 28),
 
@@ -192,8 +194,8 @@ class _ManualPaymentScreenState extends State<ManualPaymentScreen> {
                           height: 22,
                           child: CircularProgressIndicator(
                               strokeWidth: 2, color: Colors.white))
-                      : const Text('Submit Payment',
-                          style: TextStyle(
+                      : Text(l10n.submitPayment,
+                          style: const TextStyle(
                               fontSize: 15, fontWeight: FontWeight.w800)),
                 ),
               ),

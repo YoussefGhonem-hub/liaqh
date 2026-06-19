@@ -85,6 +85,10 @@ class WorkoutRepository {
     await _api.delete('/workout-programs/days/$dayId');
   }
 
+  Future<void> deleteProgram(String programId) async {
+    await _api.delete('/workout-programs/$programId');
+  }
+
   Future<List<Exercise>> getExercises({String? search, String? muscleGroup, int page = 1}) async {
     final res = await _api.get('/exercises', params: {
       if (search != null && search.isNotEmpty) 'search': search,

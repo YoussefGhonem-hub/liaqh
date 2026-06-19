@@ -3,6 +3,11 @@ class CoachDashboard {
   final int onTrack;
   final int atRisk;
   final int offTrack;
+  final int activeTrainees;
+  final int retentionRate;
+  final int newThisMonth;
+  final double revenueThisMonth;
+  final int workoutsThisWeek;
   final List<TraineeStatus> trainees;
 
   CoachDashboard({
@@ -10,6 +15,11 @@ class CoachDashboard {
     required this.onTrack,
     required this.atRisk,
     required this.offTrack,
+    this.activeTrainees = 0,
+    this.retentionRate = 0,
+    this.newThisMonth = 0,
+    this.revenueThisMonth = 0,
+    this.workoutsThisWeek = 0,
     required this.trainees,
   });
 
@@ -18,6 +28,11 @@ class CoachDashboard {
         onTrack: j['onTrack'] ?? 0,
         atRisk: j['atRisk'] ?? 0,
         offTrack: j['offTrack'] ?? 0,
+        activeTrainees: j['activeTrainees'] ?? 0,
+        retentionRate: j['retentionRate'] ?? 0,
+        newThisMonth: j['newThisMonth'] ?? 0,
+        revenueThisMonth: (j['revenueThisMonth'] as num?)?.toDouble() ?? 0,
+        workoutsThisWeek: j['workoutsThisWeek'] ?? 0,
         trainees: (j['trainees'] as List? ?? [])
             .map((t) => TraineeStatus.fromJson(t))
             .toList(),

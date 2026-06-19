@@ -127,6 +127,21 @@ class PlatformProvider extends ChangeNotifier {
     }
   }
 
+  /// Soft-delete a user account (Platform Owner). Returns true on success.
+  Future<bool> deleteUser(String id) async {
+    try {
+      await _repo.deleteUser(id);
+      if (users != null) {
+        await loadUsers(role: usersRoleFilter, search: usersSearch);
+      }
+      return true;
+    } catch (e) {
+      usersError = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
   // ── User detail ──
   UserDetail? userDetail;
   bool userDetailLoading = false;
@@ -243,18 +258,46 @@ class PlatformProvider extends ChangeNotifier {
   // ── Coaches ──
   List<PlatformCoach> coaches = [];
   bool coachesLoading = false;
+  bool coachesLoadingMore = false;
+  bool _coachesHasMore = false;
+  int _coachesPage = 1;
+  String? _coachesSearch;
   String? coachesError;
+  static const _coachesPageSize = 20;
+  bool get coachesHasMore => _coachesHasMore;
 
   Future<void> loadCoaches({String? search}) async {
     coachesLoading = true;
     coachesError = null;
+    _coachesPage = 1;
+    _coachesSearch = search;
     notifyListeners();
     try {
-      coaches = await _repo.getCoaches(search: search);
+      final res = await _repo.getCoaches(
+          search: search, page: 1, pageSize: _coachesPageSize);
+      coaches = res.items;
+      _coachesHasMore = res.hasNextPage;
     } catch (e) {
       coachesError = e.toString();
     }
     coachesLoading = false;
+    notifyListeners();
+  }
+
+  Future<void> loadMoreCoaches() async {
+    if (coachesLoadingMore || !_coachesHasMore || coachesLoading) return;
+    coachesLoadingMore = true;
+    notifyListeners();
+    try {
+      final res = await _repo.getCoaches(
+          search: _coachesSearch,
+          page: _coachesPage + 1,
+          pageSize: _coachesPageSize);
+      coaches = [...coaches, ...res.items];
+      _coachesPage += 1;
+      _coachesHasMore = res.hasNextPage;
+    } catch (_) {}
+    coachesLoadingMore = false;
     notifyListeners();
   }
 }

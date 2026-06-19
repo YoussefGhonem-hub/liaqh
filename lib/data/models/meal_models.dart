@@ -7,6 +7,8 @@ class MealPlan {
   final int targetProteinGrams;
   final int targetCarbsGrams;
   final int targetFatGrams;
+  final int durationMonths;
+  final String? attachmentUrl;
   final List<MealPlanDay> days;
 
   MealPlan({
@@ -18,8 +20,12 @@ class MealPlan {
     required this.targetProteinGrams,
     required this.targetCarbsGrams,
     required this.targetFatGrams,
+    this.durationMonths = 1,
+    this.attachmentUrl,
     required this.days,
   });
+
+  bool get isFile => attachmentUrl != null && attachmentUrl!.isNotEmpty;
 
   factory MealPlan.fromJson(Map<String, dynamic> j) => MealPlan(
         id: j['id'].toString(),
@@ -30,6 +36,8 @@ class MealPlan {
         targetProteinGrams: j['targetProteinGrams'] ?? 0,
         targetCarbsGrams: j['targetCarbsGrams'] ?? 0,
         targetFatGrams: j['targetFatGrams'] ?? 0,
+        durationMonths: j['durationMonths'] ?? 1,
+        attachmentUrl: j['attachmentUrl'],
         days: (j['days'] as List? ?? [])
             .map((d) => MealPlanDay.fromJson(d))
             .toList(),
@@ -90,6 +98,8 @@ class Meal {
   final String? timeOfDay;
   final int? durationMinutes;
   final String? notes;
+  final bool isRejected;
+  final String? rejectionReason;
   final List<MealFoodItem> foodItems;
 
   Meal({
@@ -98,6 +108,8 @@ class Meal {
     this.timeOfDay,
     this.durationMinutes,
     this.notes,
+    this.isRejected = false,
+    this.rejectionReason,
     required this.foodItems,
   });
 
@@ -107,6 +119,8 @@ class Meal {
         timeOfDay: j['timeOfDay'],
         durationMinutes: j['durationMinutes'],
         notes: j['notes'],
+        isRejected: j['isRejected'] ?? false,
+        rejectionReason: j['rejectionReason'],
         foodItems: (j['foodItems'] as List? ?? [])
             .map((f) => MealFoodItem.fromJson(f))
             .toList(),
@@ -171,6 +185,11 @@ class Food {
   final String category;
   final String? imageUrl;
 
+  /// When set (>0), the food is measured by count: grams = count × gramsPerUnit.
+  final double? gramsPerUnit;
+  final String? unitNameEn;
+  final String? unitNameAr;
+
   Food({
     required this.id,
     required this.nameEn,
@@ -181,7 +200,12 @@ class Food {
     required this.fatPer100g,
     required this.category,
     this.imageUrl,
+    this.gramsPerUnit,
+    this.unitNameEn,
+    this.unitNameAr,
   });
+
+  bool get isCountBased => gramsPerUnit != null && gramsPerUnit! > 0;
 
   factory Food.fromJson(Map<String, dynamic> j) => Food(
         id: j['id'].toString(),
@@ -193,6 +217,9 @@ class Food {
         fatPer100g:      (j['fatPer100g']      as num?)?.toDouble() ?? 0,
         category: j['category'] ?? '',
         imageUrl: j['imageUrl'],
+        gramsPerUnit: (j['gramsPerUnit'] as num?)?.toDouble(),
+        unitNameEn: j['unitNameEn'],
+        unitNameAr: j['unitNameAr'],
       );
 
   double caloriesFor(double grams) => caloriesPer100g * grams / 100;

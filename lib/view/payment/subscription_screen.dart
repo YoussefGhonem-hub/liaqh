@@ -1,7 +1,10 @@
 import 'package:fitnessapp/data/models/payment_models.dart';
+import 'package:fitnessapp/common_widgets/liaqh_loaders.dart';
+import 'package:fitnessapp/l10n/app_localizations.dart';
 import 'package:fitnessapp/providers/payment_provider.dart';
 import 'package:fitnessapp/utils/app_colors.dart';
 import 'package:fitnessapp/utils/app_theme.dart';
+import 'package:fitnessapp/utils/status_l10n.dart';
 import 'package:fitnessapp/view/payment/checkout_launcher_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -25,6 +28,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final colors = context.colors;
     final pp = context.watch<PaymentProvider>();
     final activeSub = pp.subscriptions.where((s) => s.isActive).firstOrNull;
@@ -33,13 +37,13 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       backgroundColor: colors.bg,
       appBar: AppBar(
         backgroundColor: colors.bg,
-        title: Text('My Subscription',
+        title: Text(l10n.drawerMySubscription,
             style: TextStyle(color: colors.fg, fontWeight: FontWeight.w700)),
         iconTheme: IconThemeData(color: colors.fg),
         elevation: 0,
       ),
       body: pp.loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const LiaqhPageLoader()
           : RefreshIndicator(
               onRefresh: () =>
                   context.read<PaymentProvider>().loadSubscriptions(),
@@ -77,6 +81,7 @@ class _PlanCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final isActive = activeSub?.isActive ?? false;
 
     return Container(
@@ -99,7 +104,9 @@ class _PlanCard extends StatelessWidget {
                   color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(20)),
               child: Text(
-                isActive ? 'ACTIVE' : 'STANDARD PLAN',
+                isActive
+                    ? subStatusLabel(l10n, 'active')
+                    : l10n.standardPlan,
                 style: const TextStyle(
                     color: Colors.white,
                     fontSize: 11,
@@ -111,8 +118,8 @@ class _PlanCard extends StatelessWidget {
             const Icon(Icons.star_rounded, color: Colors.amber, size: 20),
           ]),
           const SizedBox(height: 16),
-          const Text('Standard',
-              style: TextStyle(
+          Text(l10n.planStandard,
+              style: const TextStyle(
                   color: Colors.white,
                   fontSize: 26,
                   fontWeight: FontWeight.w900)),
@@ -127,7 +134,7 @@ class _PlanCard extends StatelessWidget {
             const SizedBox(width: 4),
             Padding(
               padding: const EdgeInsets.only(bottom: 6),
-              child: Text('EGP / month',
+              child: Text(l10n.egpPerMonth,
                   style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.8),
                       fontSize: 14,
@@ -173,6 +180,7 @@ class _SubscribeButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final pp = context.watch<PaymentProvider>();
 
     return SizedBox(
@@ -192,8 +200,9 @@ class _SubscribeButton extends StatelessWidget {
                 width: 20,
                 height: 20,
                 child: CircularProgressIndicator(strokeWidth: 2))
-            : const Text('Subscribe Now',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+            : Text(l10n.subscribeNow,
+                style: const TextStyle(
+                    fontSize: 15, fontWeight: FontWeight.w800)),
       ),
     );
   }
@@ -264,6 +273,7 @@ class _ActiveSubDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final fmt = DateFormat('MMM d, yyyy');
 
     return Container(
@@ -281,7 +291,7 @@ class _ActiveSubDetails extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Subscription Details',
+          Text(l10n.subscriptionDetails,
               style: TextStyle(
                   color: colors.fg, fontSize: 15, fontWeight: FontWeight.w700)),
           const SizedBox(height: 12),
@@ -310,7 +320,7 @@ class _ActiveSubDetails extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10)),
               ),
               onPressed: () => _confirmCancel(context),
-              child: const Text('Cancel Subscription'),
+              child: Text(l10n.cancelSubscription),
             ),
           ),
         ],
@@ -319,16 +329,17 @@ class _ActiveSubDetails extends StatelessWidget {
   }
 
   void _confirmCancel(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Cancel Subscription'),
+        title: Text(l10n.cancelSubscription),
         content: const Text(
             'Your subscription will be cancelled at the end of the current billing period.'),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Keep it')),
+              child: Text(l10n.keepIt)),
           TextButton(
             style:
                 TextButton.styleFrom(foregroundColor: const Color(0xFFEF4444)),
@@ -338,7 +349,7 @@ class _ActiveSubDetails extends StatelessWidget {
                   .read<PaymentProvider>()
                   .cancelSubscription(sub.paddleSubscriptionId);
             },
-            child: const Text('Cancel Subscription'),
+            child: Text(l10n.cancelSubscription),
           ),
         ],
       ),
@@ -355,6 +366,7 @@ class _PaymentHistory extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final transactions = subs.expand((s) => s.recentTransactions).toList()
       ..sort((a, b) =>
           (b.billedAt ?? DateTime(0)).compareTo(a.billedAt ?? DateTime(0)));
@@ -364,7 +376,7 @@ class _PaymentHistory extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Payment History',
+        Text(l10n.paymentHistory,
             style: TextStyle(
                 color: colors.fg, fontSize: 15, fontWeight: FontWeight.w700)),
         const SizedBox(height: 12),
@@ -390,7 +402,7 @@ class _PaymentHistory extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Standard Plan',
+                      Text(l10n.standardPlan,
                           style: TextStyle(
                               color: colors.fg,
                               fontSize: 13,

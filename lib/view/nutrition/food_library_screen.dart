@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'package:fitnessapp/common_widgets/liaqh_loaders.dart';
 
 import 'package:fitnessapp/data/models/meal_models.dart';
 import 'package:fitnessapp/l10n/app_localizations.dart';
 import 'package:fitnessapp/providers/meal_provider.dart';
 import 'package:fitnessapp/utils/app_colors.dart';
 import 'package:fitnessapp/utils/app_theme.dart';
+import 'package:fitnessapp/utils/nutrition_l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -69,74 +71,148 @@ class _FoodLibraryScreenState extends State<FoodLibraryScreen> {
     if (!widget.selectionMode) return;
 
     final l10n = AppLocalizations.of(context);
-    final gramsCtrl = TextEditingController(text: '100');
+    final colors = context.colors;
+    final isAr = Localizations.localeOf(context).languageCode == 'ar';
+    final countBased = food.isCountBased;
+    final unitLabel = countBased
+        ? (isAr
+                ? (food.unitNameAr ?? food.unitNameEn)
+                : (food.unitNameEn ?? food.unitNameAr)) ??
+            l10n.pieceUnit
+        : '';
+
+    // Default: 1 unit for count foods, 100 g otherwise.
+    final ctrl = TextEditingController(text: countBased ? '1' : '100');
+
+    double gramsFromInput() {
+      final v = double.tryParse(ctrl.text) ?? 0;
+      return countBased ? v * (food.gramsPerUnit ?? 0) : v;
+    }
+
     final draft = await showDialog<FoodItemDraft>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: Text(
-          l10n.howManyGrams,
-          style: TextStyle(
-              fontWeight: FontWeight.w700,
-              fontSize: 16,
-              color: context.colors.fg),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              food.nameEn,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setLocal) {
+          final grams = gramsFromInput();
+          return AlertDialog(
+            backgroundColor: colors.bg,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+            title: Text(
+              countBased ? l10n.howManyUnit(unitLabel) : l10n.howManyGrams,
               style: TextStyle(
-                  fontSize: 14,
-                  color: context.colors.subFg,
-                  fontWeight: FontWeight.w500),
+                  fontWeight: FontWeight.w700, fontSize: 16, color: colors.fg),
             ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: gramsCtrl,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
-              autofocus: true,
-              decoration: InputDecoration(
-                hintText: l10n.grams,
-                suffixText: 'g',
-                filled: true,
-                fillColor: context.colors.listTile,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(isAr ? food.nameAr : food.nameEn,
+                    style: TextStyle(
+                        fontSize: 14,
+                        color: colors.subFg,
+                        fontWeight: FontWeight.w500)),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: ctrl,
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  autofocus: true,
+                  onChanged: (_) => setLocal(() {}),
+                  decoration: InputDecoration(
+                    hintText: countBased ? l10n.countLabel : l10n.grams,
+                    suffixText: countBased ? unitLabel : 'g',
+                    filled: true,
+                    fillColor: colors.listTile,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
                 ),
+                if (countBased) ...[
+                  const SizedBox(height: 8),
+                  Text(l10n.approxGrams(grams.toStringAsFixed(0)),
+                      style: TextStyle(fontSize: 12, color: colors.subFg)),
+                ],
+                const SizedBox(height: 14),
+                // Live macro preview
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 6,
+                  children: [
+                    _previewChip('🔥 ${food.caloriesFor(grams).toStringAsFixed(0)}',
+                        AppColors.primaryColor1),
+                    _previewChip(
+                        'P ${food.proteinFor(grams).toStringAsFixed(1)}g',
+                        const Color(0xFFE53935)),
+                    _previewChip('C ${food.carbsFor(grams).toStringAsFixed(1)}g',
+                        const Color(0xFF2196F3)),
+                    _previewChip('F ${food.fatFor(grams).toStringAsFixed(1)}g',
+                        const Color(0xFFFFC107)),
+                  ],
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(l10n.cancel,
+                    style: TextStyle(color: colors.subFg)),
               ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(l10n.cancel,
-                style: TextStyle(color: context.colors.subFg)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryColor1,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-            ),
-            onPressed: () {
-              final grams = double.tryParse(gramsCtrl.text) ?? 100.0;
-              Navigator.pop(
-                  ctx, FoodItemDraft(food: food, grams: grams));
-            },
-            child: Text(l10n.ok),
-          ),
-        ],
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryColor1,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                ),
+                onPressed: () {
+                  final g = gramsFromInput();
+                  if (g <= 0) return;
+                  Navigator.pop(ctx, FoodItemDraft(food: food, grams: g));
+                },
+                child: Text(l10n.ok),
+              ),
+            ],
+          );
+        },
       ),
     );
 
     if (draft != null && mounted) {
       Navigator.pop(context, draft);
+    }
+  }
+
+  Widget _previewChip(String text, Color color) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(text,
+            style: TextStyle(
+                fontSize: 11, color: color, fontWeight: FontWeight.w600)),
+      );
+
+  Future<void> _addCustomFood() async {
+    final created = await showModalBottomSheet<Food>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const _CustomFoodSheet(),
+    );
+    if (created != null && mounted) {
+      final l10n = AppLocalizations.of(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.foodAdded),
+          backgroundColor: AppColors.successColor,
+        ),
+      );
+      // In selection mode, jump straight to picking grams for the new food.
+      if (widget.selectionMode) _handleFoodTap(created);
     }
   }
 
@@ -159,6 +235,13 @@ class _FoodLibraryScreenState extends State<FoodLibraryScreen> {
         backgroundColor: colors.bg,
         elevation: 0,
         foregroundColor: colors.fg,
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _addCustomFood,
+        backgroundColor: AppColors.primaryColor1,
+        foregroundColor: Colors.white,
+        icon: const Icon(Icons.add),
+        label: Text(l10n.addCustomFood),
       ),
       body: Column(
         children: [
@@ -195,7 +278,7 @@ class _FoodLibraryScreenState extends State<FoodLibraryScreen> {
                 final selected = _selectedCategory == cat;
                 return FilterChip(
                   label: Text(
-                    cat,
+                    foodCategoryLabel(l10n, cat),
                     style: TextStyle(
                       fontSize: 12,
                       color: selected
@@ -220,12 +303,16 @@ class _FoodLibraryScreenState extends State<FoodLibraryScreen> {
           // Food list
           Expanded(
             child: provider.loading
-                ? const Center(child: CircularProgressIndicator())
+                ? const LiaqhPageLoader()
                 : provider.foods.isEmpty
                     ? Center(
-                        child: Text(
-                          l10n.noFoodsFound,
-                          style: TextStyle(color: colors.subFg),
+                        child: Padding(
+                          padding: const EdgeInsets.all(32),
+                          child: Text(
+                            l10n.noFoodAddYours,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: colors.subFg),
+                          ),
                         ),
                       )
                     : ListView.separated(
@@ -407,4 +494,266 @@ class _MacroChip extends StatelessWidget {
       ),
     );
   }
+}
+
+// ── Custom food creation sheet ──────────────────────────────────────────────
+
+class _CustomFoodSheet extends StatefulWidget {
+  const _CustomFoodSheet();
+
+  @override
+  State<_CustomFoodSheet> createState() => _CustomFoodSheetState();
+}
+
+class _CustomFoodSheetState extends State<_CustomFoodSheet> {
+  final _nameEnCtrl = TextEditingController();
+  final _nameArCtrl = TextEditingController();
+  final _calCtrl = TextEditingController();
+  final _proteinCtrl = TextEditingController();
+  final _carbsCtrl = TextEditingController();
+  final _fatCtrl = TextEditingController();
+  final _gramsPerUnitCtrl = TextEditingController();
+  final _unitEnCtrl = TextEditingController();
+  final _unitArCtrl = TextEditingController();
+  bool _byCount = false;
+  String _category = 'Protein';
+  String? _error;
+  bool _busy = false;
+
+  static const _categories = [
+    'Protein', 'Carbs', 'Fat', 'Vegetable', 'Fruit', 'Dairy', 'Other',
+  ];
+
+  @override
+  void dispose() {
+    _nameEnCtrl.dispose();
+    _nameArCtrl.dispose();
+    _calCtrl.dispose();
+    _proteinCtrl.dispose();
+    _carbsCtrl.dispose();
+    _fatCtrl.dispose();
+    _gramsPerUnitCtrl.dispose();
+    _unitEnCtrl.dispose();
+    _unitArCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    final l10n = AppLocalizations.of(context);
+    if (_nameEnCtrl.text.trim().isEmpty) {
+      setState(() => _error = l10n.foodNameRequired);
+      return;
+    }
+    setState(() {
+      _error = null;
+      _busy = true;
+    });
+    final food = await context.read<MealProvider>().createFood(
+          nameEn: _nameEnCtrl.text.trim(),
+          nameAr: _nameArCtrl.text.trim(),
+          category: _category,
+          caloriesPer100g: double.tryParse(_calCtrl.text) ?? 0,
+          proteinPer100g: double.tryParse(_proteinCtrl.text) ?? 0,
+          carbsPer100g: double.tryParse(_carbsCtrl.text) ?? 0,
+          fatPer100g: double.tryParse(_fatCtrl.text) ?? 0,
+          gramsPerUnit:
+              _byCount ? double.tryParse(_gramsPerUnitCtrl.text) : null,
+          unitNameEn: _byCount ? _unitEnCtrl.text.trim() : null,
+          unitNameAr: _byCount ? _unitArCtrl.text.trim() : null,
+        );
+    if (!mounted) return;
+    setState(() => _busy = false);
+    if (food != null) {
+      Navigator.pop(context, food);
+    } else {
+      setState(() => _error = l10n.somethingWentWrong);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final l10n = AppLocalizations.of(context);
+    return Container(
+      decoration: BoxDecoration(
+        color: colors.bg,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
+      ),
+      padding: EdgeInsets.fromLTRB(
+          20, 14, 20, MediaQuery.of(context).viewInsets.bottom + 24),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                    color: colors.divider,
+                    borderRadius: BorderRadius.circular(2)),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                const Icon(Icons.restaurant_menu,
+                    color: AppColors.primaryColor1, size: 20),
+                const SizedBox(width: 8),
+                Text(l10n.newCustomFood,
+                    style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 16,
+                        color: colors.fg)),
+              ],
+            ),
+            const SizedBox(height: 16),
+            _field(colors, _nameEnCtrl, l10n.foodNameEnLabel,
+                TextInputType.text),
+            const SizedBox(height: 10),
+            _field(colors, _nameArCtrl, l10n.foodNameArLabel,
+                TextInputType.text),
+            const SizedBox(height: 14),
+            Text(l10n.categoryLabel,
+                style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: colors.subFg)),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _categories.map((c) {
+                final sel = _category == c;
+                return GestureDetector(
+                  onTap: () => setState(() => _category = c),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: sel
+                          ? AppColors.primaryColor1
+                          : colors.listTile,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(foodCategoryLabel(l10n, c),
+                        style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: sel ? Colors.white : colors.subFg)),
+                  ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 16),
+            Text(l10n.per100gNote,
+                style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: colors.fg)),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                    child: _numField(colors, _calCtrl, l10n.caloriesPer100)),
+                const SizedBox(width: 10),
+                Expanded(
+                    child: _numField(colors, _proteinCtrl, l10n.proteinPer100)),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(child: _numField(colors, _carbsCtrl, l10n.carbsPer100)),
+                const SizedBox(width: 10),
+                Expanded(child: _numField(colors, _fatCtrl, l10n.fatPer100)),
+              ],
+            ),
+            const SizedBox(height: 14),
+            // Measure by count (e.g. eggs)
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              activeThumbColor: AppColors.primaryColor1,
+              value: _byCount,
+              onChanged: (v) => setState(() => _byCount = v),
+              title: Text(l10n.measureByCount,
+                  style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                      color: colors.fg)),
+            ),
+            if (_byCount) ...[
+              _field(colors, _gramsPerUnitCtrl, l10n.gramsPerUnitLabel,
+                  const TextInputType.numberWithOptions(decimal: true)),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                      child: _field(colors, _unitEnCtrl, l10n.unitNameLabel,
+                          TextInputType.text)),
+                  const SizedBox(width: 10),
+                  Expanded(
+                      child: _field(colors, _unitArCtrl, l10n.foodNameArLabel,
+                          TextInputType.text)),
+                ],
+              ),
+            ],
+            if (_error != null) ...[
+              const SizedBox(height: 12),
+              Text(_error!,
+                  style: const TextStyle(
+                      color: AppColors.errorColor, fontSize: 13)),
+            ],
+            const SizedBox(height: 18),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _busy ? null : _save,
+                icon: _busy
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white))
+                    : const Icon(Icons.check, size: 18),
+                label: Text(l10n.saveFood),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryColor1,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                  minimumSize: const Size(0, 50),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _field(AppThemeColors colors, TextEditingController ctrl, String label,
+          TextInputType type) =>
+      TextField(
+        controller: ctrl,
+        keyboardType: type,
+        style: TextStyle(color: colors.fg, fontSize: 14),
+        decoration: InputDecoration(
+          hintText: label,
+          hintStyle: TextStyle(color: colors.subFg, fontSize: 13),
+          filled: true,
+          fillColor: colors.listTile,
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+          border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none),
+        ),
+      );
+
+  Widget _numField(
+          AppThemeColors colors, TextEditingController ctrl, String label) =>
+      _field(colors, ctrl,
+          label, const TextInputType.numberWithOptions(decimal: true));
 }

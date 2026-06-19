@@ -1,4 +1,5 @@
 import 'package:fitnessapp/data/models/platform_models.dart';
+import 'package:fitnessapp/common_widgets/liaqh_loaders.dart';
 import 'package:fitnessapp/providers/platform_provider.dart';
 import 'package:fitnessapp/utils/app_colors.dart';
 import 'package:fitnessapp/utils/app_theme.dart';
@@ -79,7 +80,7 @@ class _GymsListScreenState extends State<GymsListScreen> {
             if (p.gymsLoading && p.gyms.isEmpty)
               const SliverFillRemaining(
                 hasScrollBody: false,
-                child: Center(child: CircularProgressIndicator()),
+                child: const LiaqhPageLoader(),
               )
             else if (p.gymsError != null && p.gyms.isEmpty)
               SliverFillRemaining(

@@ -1,4 +1,5 @@
 import 'package:fitnessapp/data/models/support_ticket_models.dart';
+import 'package:fitnessapp/common_widgets/liaqh_loaders.dart';
 import 'package:fitnessapp/providers/support_ticket_provider.dart';
 import 'package:fitnessapp/utils/app_colors.dart';
 import 'package:fitnessapp/utils/app_theme.dart';
@@ -17,11 +18,27 @@ class MySupportTicketsScreen extends StatefulWidget {
 }
 
 class _MySupportTicketsScreenState extends State<MySupportTicketsScreen> {
+  final _scrollCtrl = ScrollController();
+
   @override
   void initState() {
     super.initState();
+    _scrollCtrl.addListener(_onScroll);
     WidgetsBinding.instance
         .addPostFrameCallback((_) => context.read<SupportTicketProvider>().loadMine());
+  }
+
+  @override
+  void dispose() {
+    _scrollCtrl.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollCtrl.position.pixels >=
+        _scrollCtrl.position.maxScrollExtent - 300) {
+      context.read<SupportTicketProvider>().loadMoreMine();
+    }
   }
 
   Future<void> _create() async {
@@ -96,7 +113,7 @@ class _MySupportTicketsScreenState extends State<MySupportTicketsScreen> {
         label: const Text('New ticket', style: TextStyle(color: Colors.white)),
       ),
       body: provider.loading && provider.myTickets.isEmpty
-          ? const Center(child: CircularProgressIndicator())
+          ? const LiaqhPageLoader()
           : provider.myTickets.isEmpty
               ? Center(
                   child: Text('No tickets yet. Tap "New ticket" to ask for help.',
@@ -105,10 +122,20 @@ class _MySupportTicketsScreenState extends State<MySupportTicketsScreen> {
                   onRefresh: () =>
                       context.read<SupportTicketProvider>().loadMine(),
                   child: ListView.builder(
+                    controller: _scrollCtrl,
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 90),
-                    itemCount: provider.myTickets.length,
-                    itemBuilder: (_, i) =>
-                        _MyTicketCard(t: provider.myTickets[i], colors: colors),
+                    itemCount: provider.myTickets.length +
+                        (provider.mineHasMore ? 1 : 0),
+                    itemBuilder: (_, i) {
+                      if (i >= provider.myTickets.length) {
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          child: const LiaqhPageLoader(),
+                        );
+                      }
+                      return _MyTicketCard(
+                          t: provider.myTickets[i], colors: colors);
+                    },
                   ),
                 ),
     );

@@ -45,6 +45,21 @@ class AppLocalizationsAr extends AppLocalizations {
   String get phoneNumber => 'رقم الهاتف';
 
   @override
+  String get emailOrPhone => 'البريد الإلكتروني أو الهاتف';
+
+  @override
+  String get invalidCredentials => 'اسم المستخدم أو كلمة المرور غير صحيحة';
+
+  @override
+  String get phoneRequiredField => 'رقم الهاتف';
+
+  @override
+  String get phoneRequiredError => 'رقم الهاتف مطلوب';
+
+  @override
+  String get phoneInvalidError => 'أدخل رقم هاتف صحيح';
+
+  @override
   String get forgotPassword => 'نسيت كلمة المرور؟';
 
   @override
@@ -77,6 +92,231 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get delete => 'حذف';
+
+  @override
+  String get message => 'مراسلة';
+
+  @override
+  String get deleteProgramTitle => 'حذف البرنامج؟';
+
+  @override
+  String deleteProgramConfirm(String name) {
+    return 'سيؤدي هذا إلى حذف \"$name\" وكل أيامه وتمارينه نهائيًا.';
+  }
+
+  @override
+  String get programDeleted => 'تم حذف البرنامج.';
+
+  @override
+  String get dailyLog => 'السجل اليومي';
+
+  @override
+  String get thisWeekLabel => 'هذا الأسبوع';
+
+  @override
+  String get didYouWorkoutToday => 'هل تمرّنت اليوم؟';
+
+  @override
+  String get workedOut => 'تمرّنت';
+
+  @override
+  String get restDay => 'يوم راحة';
+
+  @override
+  String get loggedWorkedOut => 'تم ✅';
+
+  @override
+  String get loggedRest => 'راحة';
+
+  @override
+  String get notLoggedYet => 'لم يُسجّل';
+
+  @override
+  String get logHistory => 'السجل';
+
+  @override
+  String get noLogsYet => 'لا توجد تسجيلات بعد.';
+
+  @override
+  String get yes => 'نعم';
+
+  @override
+  String get no => 'لا';
+
+  @override
+  String get analyticsTitle => 'التحليلات';
+
+  @override
+  String get activeTraineesLabel => 'نشِط';
+
+  @override
+  String get retentionLabel => 'الاحتفاظ';
+
+  @override
+  String get newThisMonthLabel => 'جديد هذا الشهر';
+
+  @override
+  String get revenueThisMonthLabel => 'الإيراد (الشهر)';
+
+  @override
+  String get workoutsThisWeekLabel => 'تمارين (الأسبوع)';
+
+  @override
+  String get needsAttention => 'يحتاج متابعة';
+
+  @override
+  String get needsAttentionSub => 'متدربون قد يحتاجون تحفيزًا';
+
+  @override
+  String get everyoneOnTrack => 'الجميع على المسار 🎉';
+
+  @override
+  String get leaderboard => 'لوحة المتصدّرين';
+
+  @override
+  String get byStreak => 'التتابع';
+
+  @override
+  String get byMonth => 'هذا الشهر';
+
+  @override
+  String get broadcast => 'إرسال جماعي';
+
+  @override
+  String get broadcastSub => 'راسل كل متدربيك دفعة واحدة';
+
+  @override
+  String get broadcastTitleHint => 'العنوان (اختياري)';
+
+  @override
+  String get broadcastBodyHint => 'اكتب رسالتك…';
+
+  @override
+  String get send => 'إرسال';
+
+  @override
+  String broadcastSent(int count) {
+    return 'تم الإرسال إلى $count متدرب.';
+  }
+
+  @override
+  String get flagNoPlan => 'لا توجد خطة';
+
+  @override
+  String get flagInactive => 'غير نشط';
+
+  @override
+  String flagInactiveDays(int days) {
+    return 'غير نشط $days يوم';
+  }
+
+  @override
+  String get flagRejectedMeal => 'رفض وجبة';
+
+  @override
+  String get flagExpiring => 'الاشتراك ينتهي قريبًا';
+
+  @override
+  String get dayStreak => 'أيام متتابعة';
+
+  @override
+  String get bestStreak => 'أفضل سلسلة';
+
+  @override
+  String get totalWorkouts => 'إجمالي التمارين';
+
+  @override
+  String get weeklyGoalLabel => 'الهدف الأسبوعي';
+
+  @override
+  String get setWeeklyGoal => 'تحديد الهدف الأسبوعي';
+
+  @override
+  String daysPerWeek(int n) {
+    return '$n أيام / أسبوع';
+  }
+
+  @override
+  String streakMilestone(int days) {
+    return '🔥 $days أيام متتابعة!';
+  }
+
+  @override
+  String get weeklyGoalReached => 'تحقق الهدف الأسبوعي! 🎉';
+
+  @override
+  String get badge7 => 'تتابع ٧ أيام';
+
+  @override
+  String get badge30 => 'تتابع ٣٠ يومًا';
+
+  @override
+  String get badge100 => 'تتابع ١٠٠ يوم';
+
+  @override
+  String get badgeTotal10 => '١٠ تمارين';
+
+  @override
+  String get badgeTotal50 => '٥٠ تمرينًا';
+
+  @override
+  String get badgeTotal100 => '١٠٠ تمرين';
+
+  @override
+  String get workoutReminder => 'تذكير التمرين';
+
+  @override
+  String get workoutReminderHint => 'احصل على إشعار يومي للذهاب إلى النادي';
+
+  @override
+  String get reminderTime => 'وقت التذكير';
+
+  @override
+  String get setTime => 'تحديد الوقت';
+
+  @override
+  String reminderSetFor(String time) {
+    return 'سيتم تذكيرك يوميًا الساعة $time';
+  }
+
+  @override
+  String get reply => 'رد';
+
+  @override
+  String get typing => 'يكتب…';
+
+  @override
+  String get restTimer => 'مؤقّت الراحة';
+
+  @override
+  String get customSeconds => 'ثوانٍ مخصصة';
+
+  @override
+  String get customLabel => 'مخصص';
+
+  @override
+  String get reset => 'إعادة';
+
+  @override
+  String get pause => 'إيقاف';
+
+  @override
+  String get start => 'بدء';
+
+  @override
+  String get chatYou => 'أنت';
+
+  @override
+  String get editMessage => 'تعديل الرسالة';
+
+  @override
+  String get deleteMessage => 'حذف الرسالة';
+
+  @override
+  String get deleteMessageConfirm => 'سيتم حذف هذه الرسالة للجميع.';
+
+  @override
+  String get edited => 'تم التعديل';
 
   @override
   String get ok => 'موافق';
@@ -767,9 +1007,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gymLogoDesc => 'اختياري — يُعرض على لوحة المتدرّب';
 
   @override
-  String get leaderboard => 'لوحة المتصدّرين';
-
-  @override
   String get points => 'النقاط';
 
   @override
@@ -960,13 +1197,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get noProgressHint => 'أكمل التمارين لرؤية مخططات تقدّمك.';
 
   @override
-  String get totalWorkouts => 'إجمالي التمارين';
-
-  @override
   String get avgEffort => 'متوسط المجهود';
-
-  @override
-  String get bestStreak => 'أفضل سلسلة';
 
   @override
   String get contactUsTitle => 'اتصل بنا';
@@ -1602,4 +1833,848 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get assignFromTemplate => 'تعيين من قالب';
+
+  @override
+  String get planBuildInApp => 'إنشاء داخل التطبيق';
+
+  @override
+  String get planUploadFile => 'رفع ملف';
+
+  @override
+  String get chooseFileToUpload => 'الرجاء اختيار ملف للرفع.';
+
+  @override
+  String get fileUploadFailed => 'فشل رفع الملف. حاول مرة أخرى.';
+
+  @override
+  String get planUploadedSuccess => 'تم رفع الخطة الغذائية بنجاح.';
+
+  @override
+  String get somethingWentWrong => 'حدث خطأ ما.';
+
+  @override
+  String get uploadAndAssignPlan => 'رفع وتعيين الخطة';
+
+  @override
+  String get traineeMeasurements => 'قياسات المتدرب';
+
+  @override
+  String get heightCmLabel => 'الطول (سم)';
+
+  @override
+  String get weightKgLabel => 'الوزن (كجم)';
+
+  @override
+  String get ageLabel => 'العمر';
+
+  @override
+  String get planFilePdfImage => 'ملف الخطة (PDF / صورة)';
+
+  @override
+  String get enterMeasurementsHint =>
+      'أدخل الطول والوزن والعمر لحساب الأهداف اليومية تلقائيًا.';
+
+  @override
+  String get recommendedDailyTargets => 'الأهداف اليومية الموصى بها';
+
+  @override
+  String get water => 'الماء';
+
+  @override
+  String get bmrLabel => 'الأيض الأساسي';
+
+  @override
+  String get tdeeLabel => 'إجمالي الحرق اليومي';
+
+  @override
+  String get proteinPerMeal => 'بروتين/وجبة';
+
+  @override
+  String get fiber => 'الألياف';
+
+  @override
+  String get perWeek => 'أسبوعيًا';
+
+  @override
+  String get useTheseTargets => 'استخدم هذه كأهداف للخطة';
+
+  @override
+  String get tapToChooseFile => 'اضغط لاختيار ملف PDF أو صورة';
+
+  @override
+  String get fileTypesHint => 'PDF، JPG، PNG · حتى 50 ميجابايت';
+
+  @override
+  String get monthSingular => 'شهر';
+
+  @override
+  String get monthPlural => 'أشهر';
+
+  @override
+  String get male => 'ذكر';
+
+  @override
+  String get female => 'أنثى';
+
+  @override
+  String get rejectedByTrainee => 'مرفوضة من المتدرب';
+
+  @override
+  String get replaceMeal => 'استبدال الوجبة';
+
+  @override
+  String get mealReplacedNotified => 'تم استبدال الوجبة. تم إشعار المتدرب.';
+
+  @override
+  String copyDayTo(String day) {
+    return 'نسخ $day إلى…';
+  }
+
+  @override
+  String mealsWillBeCopied(int count) {
+    return 'سيتم نسخ $count وجبة إلى الأيام المحددة.';
+  }
+
+  @override
+  String get clearAll => 'إلغاء تحديد الكل';
+
+  @override
+  String get selectAll => 'تحديد الكل';
+
+  @override
+  String currentlyHasMeals(int count) {
+    return 'يحتوي حاليًا على $count وجبة';
+  }
+
+  @override
+  String get replaceExistingMeals => 'استبدال الوجبات الحالية';
+
+  @override
+  String get replaceExistingOn => 'يتم مسح الأيام المستهدفة قبل النسخ';
+
+  @override
+  String get replaceExistingOff => 'تُضاف الوجبات المنسوخة بجانب الموجودة';
+
+  @override
+  String copyToDays(int count) {
+    return 'نسخ إلى $count يوم';
+  }
+
+  @override
+  String copiedMealsToDays(int meals, int days) {
+    return 'تم نسخ $meals وجبة إلى $days يوم.';
+  }
+
+  @override
+  String get couldNotDuplicate => 'تعذّر نسخ اليوم.';
+
+  @override
+  String get copyThisDayToOthers => 'انسخ هذا اليوم إلى أيام أخرى';
+
+  @override
+  String coachProvidedFilePlan(int months) {
+    return 'قدّم مدربك هذه الخطة الغذائية كملف. المدة: $months شهر.';
+  }
+
+  @override
+  String get rejectThisMeal => 'رفض هذه الوجبة؟';
+
+  @override
+  String get rejectReasonHint =>
+      'أخبر مدربك لماذا لا تناسبك هذه الوجبة حتى يتمكن من استبدالها.';
+
+  @override
+  String get rejectReasonPlaceholder => 'مثال: لدي حساسية، لا أحب هذا الطعام…';
+
+  @override
+  String get reject => 'رفض';
+
+  @override
+  String get mealRejectedNotified => 'تم رفض الوجبة. تم إشعار مدربك.';
+
+  @override
+  String get couldNotReject => 'تعذّر رفض الوجبة.';
+
+  @override
+  String get rejectedWaitingCoach => 'مرفوضة — بانتظار المدرب';
+
+  @override
+  String get planFile => 'ملف الخطة';
+
+  @override
+  String get catAll => 'الكل';
+
+  @override
+  String get catVegetable => 'خضروات';
+
+  @override
+  String get catFruit => 'فواكه';
+
+  @override
+  String get catDairy => 'ألبان';
+
+  @override
+  String get catOther => 'أخرى';
+
+  @override
+  String howManyUnit(String unit) {
+    return 'كم عدد ($unit)؟';
+  }
+
+  @override
+  String get pieceUnit => 'حبة';
+
+  @override
+  String approxGrams(String grams) {
+    return '≈ $grams جم';
+  }
+
+  @override
+  String get countLabel => 'العدد';
+
+  @override
+  String get measureByCount => 'القياس بالعدد (مثل البيض)';
+
+  @override
+  String get gramsPerUnitLabel => 'جرامات لكل وحدة';
+
+  @override
+  String get unitNameLabel => 'اسم الوحدة (مثل بيضة)';
+
+  @override
+  String get addCustomFood => 'إضافة طعام مخصص';
+
+  @override
+  String get newCustomFood => 'طعام مخصص جديد';
+
+  @override
+  String get foodNameEnLabel => 'اسم الطعام (إنجليزي)';
+
+  @override
+  String get foodNameArLabel => 'اسم الطعام (عربي)';
+
+  @override
+  String get categoryLabel => 'التصنيف';
+
+  @override
+  String get per100gNote => 'القيم لكل 100 جرام';
+
+  @override
+  String get caloriesPer100 => 'السعرات (سعرة)';
+
+  @override
+  String get proteinPer100 => 'البروتين (جم)';
+
+  @override
+  String get carbsPer100 => 'الكربوهيدرات (جم)';
+
+  @override
+  String get fatPer100 => 'الدهون (جم)';
+
+  @override
+  String get foodNameRequired => 'اسم الطعام مطلوب.';
+
+  @override
+  String get foodAdded => 'تمت إضافة الطعام إلى مكتبتك.';
+
+  @override
+  String get saveFood => 'حفظ الطعام';
+
+  @override
+  String get noFoodAddYours => 'لا توجد أطعمة. أضف طعامك المخصص.';
+
+  @override
+  String get coachGuide => 'دليل المدرب';
+
+  @override
+  String get guideHeaderSubtitle => 'كل ما تحتاجه لإدارة تدريبك — خطوة بخطوة.';
+
+  @override
+  String get guideProcessTitle => 'الرحلة كاملة';
+
+  @override
+  String get guideProcessStep1 => 'أضف متدربًا وعيّنه لك.';
+
+  @override
+  String get guideProcessStep2 => 'سجّل قياساته (InBody) وحدّد هدفه.';
+
+  @override
+  String get guideProcessStep3 => 'أنشئ برنامج تمارين وخطة غذائية.';
+
+  @override
+  String get guideProcessStep4 => 'فعّل اشتراكه ليُفتح له المحتوى.';
+
+  @override
+  String get guideProcessStep5 =>
+      'يتابع ويسجّل ويتحدث معك — وأنت تتابع تقدّمه.';
+
+  @override
+  String get guideNutritionTitle => 'إنشاء خطة غذائية';
+
+  @override
+  String get guideNutritionStep1 =>
+      'افتح متدربًا ← تبويب التغذية ← اضغط خطة جديدة.';
+
+  @override
+  String get guideNutritionStep2 =>
+      'أدخل الطول والوزن والعمر، ثم اختر الجنس والهدف والنشاط — وتُحسب الأهداف تلقائيًا.';
+
+  @override
+  String get guideNutritionStep3 =>
+      'اختر الإنشاء داخل التطبيق أو رفع ملف جاهز (PDF/صورة)، وحدّد المدة بالأشهر.';
+
+  @override
+  String get guideNutritionStep4 =>
+      'أضف الوجبات، اختر الأطعمة (أو أضف طعامك المخصص) وأدخل الجرامات — وتُحسب القيم تلقائيًا.';
+
+  @override
+  String get guideNutritionStep5 =>
+      'استخدم نسخ اليوم لتكرار يوم على باقي الأيام خلال ثوانٍ.';
+
+  @override
+  String get guideNutritionStep6 =>
+      'إذا رفض المتدرب وجبة، يصلك إشعار — استبدلها فيصله إشعار بذلك.';
+
+  @override
+  String get guideWorkoutsTitle => 'إنشاء تمرين';
+
+  @override
+  String get guideWorkoutsStep1 =>
+      'افتح متدربًا ← تبويب التمارين ← أنشئ برنامجًا.';
+
+  @override
+  String get guideWorkoutsStep2 =>
+      'أنشئ قالبًا مرة واحدة وعيّنه لأي متدرب بضغطة.';
+
+  @override
+  String get guideWorkoutsStep3 => 'عدّل يومًا بيوم وأضف تمارين من المكتبة.';
+
+  @override
+  String get guideWorkoutsStep4 =>
+      'يسجّل المتدربون تمارينهم ويعلّقون على التمارين.';
+
+  @override
+  String get guideSubscriptionsTitle => 'إدارة الاشتراكات';
+
+  @override
+  String get guideSubscriptionsStep1 => 'افتح متدربًا وفعّل عضويته/اشتراكه.';
+
+  @override
+  String get guideSubscriptionsStep2 => 'تابع من دفع ومن لم يدفع بنظرة واحدة.';
+
+  @override
+  String get guideSubscriptionsStep3 =>
+      'عند تفعيل الاشتراك يُفتح محتوى المتدرب تلقائيًا.';
+
+  @override
+  String get guideTipsTitle => 'نصائح احترافية';
+
+  @override
+  String get guideTip1 =>
+      'أعد استخدام قوالب التمارين وانسخ أيام التغذية لتوفير الوقت.';
+
+  @override
+  String get guideTip2 => 'أضف أطعمتك المخصصة لتناسب خططك أسلوبك.';
+
+  @override
+  String get guideTip3 => 'تابع الإشعارات لرفض الوجبات والرسائل.';
+
+  @override
+  String get tourSkip => 'تخطٍّ';
+
+  @override
+  String get tourNext => 'التالي';
+
+  @override
+  String get tourDone => 'ابدأ';
+
+  @override
+  String get tourReopenHint => 'يمكنك فتح هذا الدليل في أي وقت من القائمة.';
+
+  @override
+  String get tourWelcomeTitle => 'مرحبًا بك في لياقة 👋';
+
+  @override
+  String get tourWelcomeBody =>
+      'تطبيقك الشامل لتدريب المتدربين: تمارين، تغذية، تقدّم ومدفوعات — بالعربية والإنجليزية.';
+
+  @override
+  String get tourNutritionTitle => 'تغذية ذكية 🍽️';
+
+  @override
+  String get tourNutritionBody =>
+      'أنشئ خططًا بأهداف محسوبة تلقائيًا، ابنِ داخل التطبيق أو ارفع ملفًا، أضف أطعمة مخصصة، وانسخ الأيام بضغطة.';
+
+  @override
+  String get tourWorkoutsTitle => 'تمارين بسهولة 🏋️';
+
+  @override
+  String get tourWorkoutsBody =>
+      'أنشئ قوالب قابلة لإعادة الاستخدام وعيّن برامج كاملة لأي متدرب خلال ثوانٍ.';
+
+  @override
+  String get tourTrackTitle => 'تابِع واحصل على مدفوعاتك 📊';
+
+  @override
+  String get tourTrackBody =>
+      'تابع قياسات الجسم والتقدّم، تحدّث مع المتدربين، وافتح محتواهم عبر الاشتراكات.';
+
+  @override
+  String get tourGuideTitle => 'تحتاج تذكيرًا؟ 📖';
+
+  @override
+  String get tourGuideBody =>
+      'افتح دليل المدرب في أي وقت من القائمة الجانبية للحصول على خطوات تفصيلية.';
+
+  @override
+  String get goalCut => 'تنشيف';
+
+  @override
+  String get goalBulk => 'تضخيم';
+
+  @override
+  String get goalMaintain => 'محافظة';
+
+  @override
+  String get goalRecomp => 'إعادة تكوين';
+
+  @override
+  String get activitySedentary => 'خامل';
+
+  @override
+  String get activityLight => 'نشاط خفيف';
+
+  @override
+  String get activityModerate => 'نشاط متوسط';
+
+  @override
+  String get activityActive => 'نشيط';
+
+  @override
+  String get activityVeryActive => 'نشيط جدًا';
+
+  @override
+  String get activitySedentaryHint => 'تمارين قليلة أو معدومة';
+
+  @override
+  String get activityLightHint => '١–٣ أيام / أسبوع';
+
+  @override
+  String get activityModerateHint => '٣–٥ أيام / أسبوع';
+
+  @override
+  String get activityActiveHint => '٦–٧ أيام / أسبوع';
+
+  @override
+  String get activityVeryActiveHint => 'تمارين شاقة يوميًا / عمل بدني';
+
+  @override
+  String get passwordChangedSuccess => 'تم تغيير كلمة المرور بنجاح.';
+
+  @override
+  String get couldNotChangePassword => 'تعذّر تغيير كلمة المرور.';
+
+  @override
+  String get passwordTip =>
+      'استخدم 8 أحرف على الأقل. اختر كلمة مرور قوية لا تستخدمها في مكان آخر.';
+
+  @override
+  String get currentPassword => 'كلمة المرور الحالية';
+
+  @override
+  String get enterCurrentPassword => 'أدخل كلمة المرور الحالية';
+
+  @override
+  String get newPassword => 'كلمة المرور الجديدة';
+
+  @override
+  String get enterNewPassword => 'أدخل كلمة مرور جديدة';
+
+  @override
+  String get passwordMin8 => 'يجب ألا تقل عن 8 أحرف';
+
+  @override
+  String get newPasswordMustDiffer =>
+      'يجب أن تختلف كلمة المرور الجديدة عن الحالية';
+
+  @override
+  String get confirmNewPassword => 'تأكيد كلمة المرور الجديدة';
+
+  @override
+  String get reenterNewPassword => 'أعد إدخال كلمة المرور الجديدة';
+
+  @override
+  String get passwordsDoNotMatch => 'كلمتا المرور غير متطابقتين';
+
+  @override
+  String get updatePassword => 'تحديث كلمة المرور';
+
+  @override
+  String get completeProfileTitle => 'لنُكمل ملفك الشخصي';
+
+  @override
+  String get completeProfileSubtitle => 'سيساعدنا ذلك في معرفة المزيد عنك!';
+
+  @override
+  String get chooseGender => 'اختر النوع';
+
+  @override
+  String get dateOfBirth => 'تاريخ الميلاد';
+
+  @override
+  String get yourWeight => 'وزنك';
+
+  @override
+  String get yourHeight => 'طولك';
+
+  @override
+  String get couldNotLoadProfile => 'تعذّر تحميل ملفك الشخصي';
+
+  @override
+  String get uploadingImage => 'جارٍ رفع الصورة…';
+
+  @override
+  String get profileImageUpdated => 'تم تحديث صورة الملف الشخصي';
+
+  @override
+  String get uploadFailed => 'فشل الرفع';
+
+  @override
+  String get privacySection1Title => '١. المعلومات التي نجمعها';
+
+  @override
+  String get privacySection2Title => '٢. كيف نستخدم المعلومات';
+
+  @override
+  String get privacySection3Title => '٣. تخزين البيانات';
+
+  @override
+  String get privacySection4Title => '٤. مشاركة المعلومات';
+
+  @override
+  String get privacySection5Title => '٥. حقوقك';
+
+  @override
+  String get privacySection6Title => '٦. التغييرات على هذه السياسة';
+
+  @override
+  String get privacySection7Title => '٧. التواصل';
+
+  @override
+  String get newWorkoutTemplate => 'قالب تمرين جديد';
+
+  @override
+  String get uploadWorkoutFile => 'رفع ملف تمرين';
+
+  @override
+  String get templateName => 'اسم القالب';
+
+  @override
+  String get continueLabel => 'متابعة';
+
+  @override
+  String get buildFromSystem => 'إنشاء من النظام';
+
+  @override
+  String get addDaysExercisesHint => 'أضف الأيام والتمارين من المكتبة';
+
+  @override
+  String get uploadAFile => 'رفع ملف';
+
+  @override
+  String get uploadFileHint => 'ملف PDF أو مستند أو صورة تحتوي على التمرين';
+
+  @override
+  String get templateDeleted => 'تم حذف القالب';
+
+  @override
+  String get noTemplatesYet => 'لا توجد قوالب بعد';
+
+  @override
+  String get templatesEmptyHint =>
+      'أنشئ التمرين مرة واحدة وعيّنه لأي متدرب — دون الحاجة لإعادة بنائه في كل مرة.';
+
+  @override
+  String get editDays => 'تعديل الأيام';
+
+  @override
+  String get fileWorkout => 'تمرين بملف';
+
+  @override
+  String daysCountLabel(int count) {
+    return '$count يوم';
+  }
+
+  @override
+  String exercisesCountLabel(int count) {
+    return '$count تمرين';
+  }
+
+  @override
+  String get dayUpdated => 'تم تحديث اليوم';
+
+  @override
+  String get daySaved => 'تم حفظ اليوم';
+
+  @override
+  String get savedDays => 'الأيام المحفوظة';
+
+  @override
+  String editDayTitle(String name) {
+    return 'تعديل $name';
+  }
+
+  @override
+  String get dayWord => 'يوم';
+
+  @override
+  String get updateDay => 'تحديث اليوم';
+
+  @override
+  String get cancelEdit => 'إلغاء التعديل';
+
+  @override
+  String get failedToDelete => 'فشل الحذف';
+
+  @override
+  String get subStatusActive => 'نشط';
+
+  @override
+  String get subStatusFrozen => 'مجمّد';
+
+  @override
+  String get subStatusExpired => 'منتهٍ';
+
+  @override
+  String get subStatusCancelled => 'ملغى';
+
+  @override
+  String get subStatusPending => 'قيد الانتظار';
+
+  @override
+  String get subStatusNone => 'لا يوجد';
+
+  @override
+  String get payStatusPaid => 'مدفوع';
+
+  @override
+  String get payStatusUnpaid => 'غير مدفوع';
+
+  @override
+  String get payStatusFree => 'مجاني';
+
+  @override
+  String get subscribeNow => 'اشترك الآن';
+
+  @override
+  String get egpPerMonth => 'ج.م / شهريًا';
+
+  @override
+  String get subscriptionDetails => 'تفاصيل الاشتراك';
+
+  @override
+  String get cancelSubscription => 'إلغاء الاشتراك';
+
+  @override
+  String get cancelSubscriptionQ => 'إلغاء الاشتراك؟';
+
+  @override
+  String get keepIt => 'الاحتفاظ به';
+
+  @override
+  String get paymentHistory => 'سجل المدفوعات';
+
+  @override
+  String get standardPlan => 'الخطة القياسية';
+
+  @override
+  String get planStandard => 'قياسي';
+
+  @override
+  String get couldNotLoadSubscription => 'تعذّر تحميل الاشتراك.';
+
+  @override
+  String daysRemainingCount(int days) {
+    return '$days يوم متبقٍ';
+  }
+
+  @override
+  String get started => 'بدأ في';
+
+  @override
+  String get renewsOn => 'يتجدد في';
+
+  @override
+  String get expiresOn => 'ينتهي في';
+
+  @override
+  String get nextBilling => 'الفاتورة القادمة';
+
+  @override
+  String get amount => 'المبلغ';
+
+  @override
+  String get subscribeToUnlock => 'اشترك لفتح كل المزايا';
+
+  @override
+  String get subscribeToUnlockBody =>
+      'احصل على وصول كامل للتمارين وخطط الوجبات وتتبّع InBody والتقدّم ومحادثة المدرب.';
+
+  @override
+  String get subscribeAndPay => 'اشترك وادفع';
+
+  @override
+  String get noCoachAssigned => 'لم يتم تعيين مدرب لحسابك بعد.';
+
+  @override
+  String get couldNotOpenChat => 'تعذّر فتح المحادثة';
+
+  @override
+  String get lockOneStepPayCoach => 'خطوة واحدة متبقية — ادفع لمدربك';
+
+  @override
+  String get lockOneStepSubscribe => 'خطوة واحدة متبقية — اشترك في المنصة';
+
+  @override
+  String get lockPendingMsg =>
+      'دفعتك للمنصة قيد موافقة المسؤول (حتى 24 ساعة). أكمل دفع مدربك بالأسفل في هذه الأثناء.';
+
+  @override
+  String get lockPaidPlatformMsg =>
+      'اشتراكك في المنصة فعّال. ادفع الآن لمدربك لفتح كل المزايا.';
+
+  @override
+  String get lockPaidCoachMsg =>
+      'تم تأكيد دفعتك للمدرب. اشترك الآن في المنصة لفتح كل المزايا.';
+
+  @override
+  String get lockBothMsg =>
+      'لفتح التمارين والوجبات وInBody والتقدّم يجب إكمال كلتا الدفعتين بالأسفل.';
+
+  @override
+  String get closeLabel => 'إغلاق';
+
+  @override
+  String get subscribeToPlatform => 'اشترك في المنصة';
+
+  @override
+  String get payByCardInstaPayWallet => 'ادفع بالبطاقة أو إنستاباي أو المحفظة';
+
+  @override
+  String get pendingAdminApproval => 'بانتظار موافقة المسؤول (حتى 24 ساعة)';
+
+  @override
+  String get payPlatform => 'ادفع للمنصة';
+
+  @override
+  String get payYourCoach => 'ادفع لمدربك';
+
+  @override
+  String get cashToCoachHint => 'نقدًا لمدربك — هو من يؤكدها';
+
+  @override
+  String get pendingApproval => 'قيد الموافقة';
+
+  @override
+  String get paidLabel => 'مدفوع';
+
+  @override
+  String get paymentSubmitted24h => 'تم إرسال الدفعة. سنؤكدها خلال 24 ساعة.';
+
+  @override
+  String payWithMethod(String method) {
+    return 'ادفع عبر $method';
+  }
+
+  @override
+  String sendPaymentToNumber(String method) {
+    return 'أرسل الدفعة إلى رقم $method هذا';
+  }
+
+  @override
+  String get numberCopied => 'تم نسخ الرقم';
+
+  @override
+  String get acceptance24h => 'قد يستغرق قبول الدفع حتى 24 ساعة.';
+
+  @override
+  String get afterSendingFillDetails =>
+      'بعد إرسال المبلغ، أدخل بياناتك بالأسفل:';
+
+  @override
+  String get fullAccountName => 'اسم الحساب كاملًا';
+
+  @override
+  String get nameOnAccountHint => 'الاسم على حسابك';
+
+  @override
+  String get referenceNumber => 'الرقم المرجعي';
+
+  @override
+  String get referenceNumberOptional => 'الرقم المرجعي (إن وُجد)';
+
+  @override
+  String get transactionReferenceHint => 'مرجع المعاملة';
+
+  @override
+  String get submitPayment => 'إرسال الدفعة';
+
+  @override
+  String get choosePaymentMethod => 'اختر طريقة الدفع';
+
+  @override
+  String get noPaymentMethods => 'لا توجد طرق دفع متاحة.';
+
+  @override
+  String get paymentSuccessful => 'تم الدفع بنجاح';
+
+  @override
+  String get membershipNowActive =>
+      'اشتراكك الآن فعّال. استمتع بالوصول الكامل لكل المزايا.';
+
+  @override
+  String get continueToApp => 'المتابعة إلى التطبيق';
+
+  @override
+  String get couldNotOpenBrowser => 'تعذّر فتح المتصفح لإتمام الدفع.';
+
+  @override
+  String get completePayment => 'إتمام الدفع';
+
+  @override
+  String get paymentComplete => 'اكتمل الدفع!';
+
+  @override
+  String get waitingForPayment => 'بانتظار الدفع...';
+
+  @override
+  String get openingCheckout => 'جارٍ فتح صفحة الدفع...';
+
+  @override
+  String get membershipActivated => 'تم تفعيل اشتراكك.';
+
+  @override
+  String get completePaymentInBrowser =>
+      'أكمل الدفع في المتصفح.\nستُحدّث هذه الشاشة تلقائيًا.';
+
+  @override
+  String get openCheckoutAgain => 'افتح صفحة الدفع مجددًا';
+
+  @override
+  String get yourCoach => 'مدربك';
+
+  @override
+  String get couldNotUpdatePaymentStatus => 'تعذّر تحديث حالة الدفع.';
+
+  @override
+  String get coachNoWorkoutYet => 'لم يضِف مدربك برنامج تمرين بعد.';
+
+  @override
+  String get coachNoMealPlanYet => 'لم يضِف مدربك خطة وجبات بعد.';
+
+  @override
+  String get currencyEgp => 'ج.م';
+
+  @override
+  String get currentPeriodSuffix => 'الحالية';
 }

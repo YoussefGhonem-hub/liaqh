@@ -1,4 +1,5 @@
 import 'package:fitnessapp/l10n/app_localizations.dart';
+import 'package:fitnessapp/common_widgets/liaqh_loaders.dart';
 import 'package:fitnessapp/providers/gym_admin_provider.dart';
 import 'package:fitnessapp/utils/app_colors.dart';
 import 'package:fitnessapp/utils/app_theme.dart';
@@ -39,7 +40,7 @@ class _UnpaidTraineesScreenState extends State<UnpaidTraineesScreen> {
             style: TextStyle(color: colors.fg, fontWeight: FontWeight.w700)),
       ),
       body: provider.unpaidLoading && list.isEmpty
-          ? const Center(child: CircularProgressIndicator())
+          ? const LiaqhPageLoader()
           : list.isEmpty
               ? Center(
                   child: Text(l10n.everyonePaid,

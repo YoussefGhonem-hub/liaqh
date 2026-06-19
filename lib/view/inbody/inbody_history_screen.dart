@@ -1,4 +1,5 @@
 import 'package:fitnessapp/common_widgets/attachments_view.dart';
+import 'package:fitnessapp/common_widgets/liaqh_loaders.dart';
 import 'package:fitnessapp/data/models/inbody_models.dart';
 import 'package:fitnessapp/l10n/app_localizations.dart';
 import 'package:fitnessapp/providers/inbody_provider.dart';
@@ -71,7 +72,7 @@ class _InBodyHistoryScreenState extends State<InBodyHistoryScreen> {
         ],
       ),
       body: provider.loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const LiaqhPageLoader()
           : provider.history.isEmpty
               ? _EmptyState(
                   onAdd: () => Navigator.push(

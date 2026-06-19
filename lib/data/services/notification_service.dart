@@ -3,7 +3,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:timezone/data/latest_all.dart' as tzdata;
+import 'package:timezone/timezone.dart' as tz;
 import '../models/notification_model.dart';
 
 /// Top-level FCM background handler.
@@ -22,6 +25,15 @@ class NotificationService {
 
   static const _channelId = 'liaqh_chat';
   static const _channelName = 'Chat Messages';
+
+  // Daily workout reminder (local, scheduled).
+  static const _reminderChannelId = 'liaqh_workout_reminder';
+  static const _reminderChannelName = 'Workout Reminders';
+  static const int _reminderNotifId = 7001;
+  static const _reminderEnabledKey = 'workout_reminder_enabled';
+  static const _reminderHourKey = 'workout_reminder_hour';
+  static const _reminderMinuteKey = 'workout_reminder_minute';
+  static bool _tzReady = false;
 
   /// User preference (Settings → "Pop-up Notification"). When false, foreground
   /// pop-up banners are suppressed. Persisted in SharedPreferences.
@@ -43,6 +55,92 @@ class NotificationService {
     } catch (_) {}
   }
 
+  // ── Daily workout reminder ─────────────────────────────────────────────────
+  static Future<void> _ensureTimezone() async {
+    if (_tzReady) return;
+    try {
+      tzdata.initializeTimeZones();
+      final name = await FlutterTimezone.getLocalTimezone();
+      tz.setLocalLocation(tz.getLocation(name));
+      _tzReady = true;
+    } catch (_) {
+      // Fall back to UTC if the device zone can't be resolved.
+      try {
+        tz.setLocalLocation(tz.getLocation('UTC'));
+        _tzReady = true;
+      } catch (_) {}
+    }
+  }
+
+  /// The saved reminder, if any: (enabled, hour, minute).
+  static Future<({bool enabled, int hour, int minute})>
+      getWorkoutReminder() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return (
+        enabled: prefs.getBool(_reminderEnabledKey) ?? false,
+        hour: prefs.getInt(_reminderHourKey) ?? 18,
+        minute: prefs.getInt(_reminderMinuteKey) ?? 0,
+      );
+    } catch (_) {
+      return (enabled: false, hour: 18, minute: 0);
+    }
+  }
+
+  /// Schedules a daily local notification at [hour]:[minute] reminding the
+  /// trainee to go to the gym. Persists the choice and replaces any existing one.
+  static Future<void> setWorkoutReminder(int hour, int minute) async {
+    await _ensureTimezone();
+    await _local.cancel(_reminderNotifId);
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_reminderEnabledKey, true);
+    await prefs.setInt(_reminderHourKey, hour);
+    await prefs.setInt(_reminderMinuteKey, minute);
+
+    const details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        _reminderChannelId,
+        _reminderChannelName,
+        channelDescription: 'Daily reminders to go to the gym',
+        importance: Importance.high,
+        priority: Priority.high,
+      ),
+      iOS: DarwinNotificationDetails(),
+    );
+
+    await _local.zonedSchedule(
+      _reminderNotifId,
+      'LIAQH 💪',
+      "It's workout time — head to the gym!",
+      _nextInstanceOf(hour, minute),
+      details,
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+      matchDateTimeComponents: DateTimeComponents.time, // repeat daily
+    );
+  }
+
+  /// Cancels the daily workout reminder.
+  static Future<void> cancelWorkoutReminder() async {
+    await _local.cancel(_reminderNotifId);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_reminderEnabledKey, false);
+    } catch (_) {}
+  }
+
+  static tz.TZDateTime _nextInstanceOf(int hour, int minute) {
+    final now = tz.TZDateTime.now(tz.local);
+    var scheduled =
+        tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
+    if (scheduled.isBefore(now)) {
+      scheduled = scheduled.add(const Duration(days: 1));
+    }
+    return scheduled;
+  }
+
   static Future<void> init(
     BuildContext context, {
     GlobalKey<NavigatorState>? navKey,
@@ -58,6 +156,9 @@ class NotificationService {
   }
 
   static Future<void> _init() async {
+    // 0. Timezone database (needed for daily scheduled reminders)
+    await _ensureTimezone();
+
     // 1. Request permissions
     await _fcm.requestPermission(alert: true, badge: true, sound: true);
 
@@ -70,10 +171,17 @@ class NotificationService {
         importance: Importance.high,
         playSound: true,
       );
-      await _local
-          .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>()
-          ?.createNotificationChannel(channel);
+      const reminderChannel = AndroidNotificationChannel(
+        _reminderChannelId,
+        _reminderChannelName,
+        description: 'Daily reminders to go to the gym',
+        importance: Importance.high,
+        playSound: true,
+      );
+      final androidImpl = _local.resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>();
+      await androidImpl?.createNotificationChannel(channel);
+      await androidImpl?.createNotificationChannel(reminderChannel);
     }
 
     // 3. Initialise local notifications plugin
@@ -102,6 +210,14 @@ class NotificationService {
     // 7. Notification tap: app was terminated
     final initial = await _fcm.getInitialMessage();
     if (initial != null) _handleTap(initial);
+
+    // 8. Re-apply a saved workout reminder (keeps it alive across app restarts).
+    final r = await getWorkoutReminder();
+    if (r.enabled) {
+      try {
+        await setWorkoutReminder(r.hour, r.minute);
+      } catch (_) {}
+    }
   }
 
   /// Save / refresh the FCM token for the currently logged-in user.

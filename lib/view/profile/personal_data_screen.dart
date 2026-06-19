@@ -1,4 +1,5 @@
 import 'package:fitnessapp/l10n/app_localizations.dart';
+import 'package:fitnessapp/common_widgets/liaqh_loaders.dart';
 import 'package:fitnessapp/providers/auth_provider.dart';
 import 'package:fitnessapp/utils/app_colors.dart';
 import 'package:fitnessapp/utils/app_theme.dart';
@@ -54,7 +55,7 @@ class _PersonalDataScreenState extends State<PersonalDataScreen> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(auth.error ?? 'Error'),
+          content: Text(auth.error ?? AppLocalizations.of(context).errorGeneric),
           backgroundColor: AppColors.errorColor,
         ),
       );
@@ -96,7 +97,7 @@ class _PersonalDataScreenState extends State<PersonalDataScreen> {
         ],
       ),
       body: user == null
-          ? const Center(child: CircularProgressIndicator())
+          ? const LiaqhPageLoader()
           : SingleChildScrollView(
               padding: const EdgeInsets.all(20),
               child: Form(

@@ -1,4 +1,5 @@
 import 'package:fitnessapp/l10n/app_localizations.dart';
+import 'package:fitnessapp/common_widgets/liaqh_loaders.dart';
 import 'package:fitnessapp/providers/auth_provider.dart';
 import 'package:fitnessapp/providers/dashboard_provider.dart';
 import 'package:fitnessapp/providers/notification_provider.dart';
@@ -153,10 +154,9 @@ class _CoachDashboardContent extends StatelessWidget {
     final dashboard = dp.dashboard;
 
     if (dp.loading && dashboard == null) {
-      return const Center(
-          child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 60),
-              child: CircularProgressIndicator()));
+      return const Padding(
+          padding: EdgeInsets.symmetric(vertical: 60),
+          child: LiaqhPageLoader());
     }
     if (dashboard == null) {
       return Center(
@@ -172,15 +172,14 @@ class _CoachDashboardContent extends StatelessWidget {
       );
     }
 
-    final atRiskTrainees = dashboard.trainees
-        .where((t) =>
-            t.adherenceStatus == 'AtRisk' || t.adherenceStatus == 'OffTrack')
-        .toList();
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Summary pills row
+        // ── Analytics ────────────────────────────────────────────────────
+        Text(l10n.analyticsTitle,
+            style: TextStyle(
+                color: colors.fg, fontSize: 16, fontWeight: FontWeight.w800)),
+        const SizedBox(height: 12),
         Row(
           children: [
             _StatPill(
@@ -190,9 +189,9 @@ class _CoachDashboardContent extends StatelessWidget {
                 color: const Color(0xFF3B82F6)),
             const SizedBox(width: 10),
             _StatPill(
-                label: l10n.onTrack,
-                value: '${dashboard.onTrack}',
-                icon: Icons.check_circle_rounded,
+                label: l10n.activeTraineesLabel,
+                value: '${dashboard.activeTrainees}',
+                icon: Icons.bolt_rounded,
                 color: AppColors.successColor),
           ],
         ),
@@ -200,30 +199,34 @@ class _CoachDashboardContent extends StatelessWidget {
         Row(
           children: [
             _StatPill(
-                label: l10n.atRisk,
-                value: '${dashboard.atRisk}',
-                icon: Icons.warning_rounded,
-                color: AppColors.warningColor),
+                label: l10n.retentionLabel,
+                value: '${dashboard.retentionRate}%',
+                icon: Icons.favorite_rounded,
+                color: const Color(0xFFEC4899)),
             const SizedBox(width: 10),
             _StatPill(
-                label: l10n.offTrack,
-                value: '${dashboard.offTrack}',
-                icon: Icons.cancel_rounded,
-                color: AppColors.errorColor),
+                label: l10n.newThisMonthLabel,
+                value: '${dashboard.newThisMonth}',
+                icon: Icons.person_add_alt_1_rounded,
+                color: const Color(0xFF6366F1)),
           ],
         ),
-
-        if (atRiskTrainees.isNotEmpty) ...[
-          const SizedBox(height: 24),
-          Text(l10n.traineesNeedAttention,
-              style: TextStyle(
-                  color: colors.fg, fontSize: 16, fontWeight: FontWeight.w700)),
-          const SizedBox(height: 12),
-          ...atRiskTrainees.map((t) => _TraineeStatusCard(
-                trainee: t,
-                l10n: l10n,
-              )),
-        ],
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            _StatPill(
+                label: l10n.revenueThisMonthLabel,
+                value: dashboard.revenueThisMonth.toStringAsFixed(0),
+                icon: Icons.payments_rounded,
+                color: const Color(0xFF10B981)),
+            const SizedBox(width: 10),
+            _StatPill(
+                label: l10n.workoutsThisWeekLabel,
+                value: '${dashboard.workoutsThisWeek}',
+                icon: Icons.fitness_center_rounded,
+                color: AppColors.primaryColor1),
+          ],
+        ),
 
         if (dashboard.trainees.any((t) => t.membershipExpiringSoon)) ...[
           const SizedBox(height: 24),
@@ -262,28 +265,6 @@ class _CoachDashboardContent extends StatelessWidget {
                   )),
         ],
 
-        if (atRiskTrainees.isEmpty &&
-            !dashboard.trainees.any((t) => t.membershipExpiringSoon)) ...[
-          const SizedBox(height: 32),
-          Center(
-            child: Column(
-              children: [
-                const Icon(Icons.thumb_up_alt_rounded,
-                    size: 56, color: AppColors.successColor),
-                const SizedBox(height: 12),
-                Text(l10n.allTraineesOnTrack,
-                    style: TextStyle(
-                        color: colors.fg,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700)),
-                const SizedBox(height: 6),
-                Text(l10n.allTraineesOnTrackHint,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: colors.mutedFg, fontSize: 13)),
-              ],
-            ),
-          ),
-        ],
       ],
     );
   }
@@ -328,74 +309,6 @@ class _StatPill extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _TraineeStatusCard extends StatelessWidget {
-  final dynamic trainee;
-  final AppLocalizations l10n;
-  const _TraineeStatusCard({required this.trainee, required this.l10n});
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    final isAtRisk = trainee.adherenceStatus == 'AtRisk';
-    final color = isAtRisk ? AppColors.warningColor : AppColors.errorColor;
-    final statusLabel = isAtRisk ? l10n.atRisk : l10n.offTrack;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: colors.card,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 2))
-        ],
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 20,
-            backgroundColor: color.withValues(alpha: 0.15),
-            child: Text(
-              trainee.fullName.isNotEmpty
-                  ? trainee.fullName[0].toUpperCase()
-                  : '?',
-              style: TextStyle(
-                  color: color, fontSize: 16, fontWeight: FontWeight.w700),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(trainee.fullName,
-                    style: TextStyle(
-                        color: colors.fg,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700)),
-                Text(trainee.goal,
-                    style: TextStyle(color: colors.mutedFg, fontSize: 12)),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(8)),
-            child: Text(statusLabel,
-                style: TextStyle(
-                    color: color, fontSize: 11, fontWeight: FontWeight.w700)),
-          ),
-        ],
       ),
     );
   }

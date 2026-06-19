@@ -14,6 +14,14 @@ class PaymentMethodsProvider extends ChangeNotifier {
   bool submitting = false;
   String? error;
 
+  // Pagination state for the owner requests list.
+  static const _pageSize = 20;
+  bool loadingMore = false;
+  bool _reqHasMore = false;
+  int _reqPage = 1;
+  String? _reqStatus;
+  bool get requestsHasMore => _reqHasMore;
+
   // ── Platform settings (owner) ───────────────────────────────────────────────
   bool requireSystemSubscription = true;
   bool settingsLoading = false;
@@ -50,8 +58,8 @@ class PaymentMethodsProvider extends ChangeNotifier {
   /// Lightweight count of pending requests for the owner's bottom-bar badge.
   Future<void> loadPendingCount() async {
     try {
-      final list = await _repo.list(status: 'Pending');
-      pendingCount = list.length;
+      final res = await _repo.list(status: 'Pending', page: 1, pageSize: 1);
+      pendingCount = res.totalCount;
       notifyListeners();
     } catch (_) {}
   }
@@ -122,15 +130,34 @@ class PaymentMethodsProvider extends ChangeNotifier {
 
   Future<void> loadRequests({String? status}) async {
     loading = true;
+    _reqPage = 1;
+    _reqStatus = status;
     notifyListeners();
     try {
-      requests = await _repo.list(status: status);
+      final res = await _repo.list(status: status, page: 1, pageSize: _pageSize);
+      requests = res.items;
+      _reqHasMore = res.hasNextPage;
     } catch (e) {
       error = e.toString();
     } finally {
       loading = false;
       notifyListeners();
     }
+  }
+
+  Future<void> loadMoreRequests() async {
+    if (loadingMore || !_reqHasMore || loading) return;
+    loadingMore = true;
+    notifyListeners();
+    try {
+      final res = await _repo.list(
+          status: _reqStatus, page: _reqPage + 1, pageSize: _pageSize);
+      requests = [...requests, ...res.items];
+      _reqPage += 1;
+      _reqHasMore = res.hasNextPage;
+    } catch (_) {}
+    loadingMore = false;
+    notifyListeners();
   }
 
   Future<bool> review(String id, bool accept, {String? note, String? status}) async {

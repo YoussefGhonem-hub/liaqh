@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:fitnessapp/common_widgets/liaqh_loaders.dart';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:fitnessapp/common_widgets/attachments_view.dart';
@@ -32,7 +33,8 @@ class _WorkoutTemplatesScreenState extends State<WorkoutTemplatesScreen> {
   static const _periods = ['Week', 'Month', 'Quarter'];
 
   Future<void> _createStructured() async {
-    final result = await _askNameAndPeriod('New workout template');
+    final result = await _askNameAndPeriod(
+        AppLocalizations.of(context).newWorkoutTemplate);
     if (result == null || !mounted) return;
     final provider = context.read<WorkoutProvider>();
     final id = await provider.createTemplate(
@@ -58,16 +60,17 @@ class _WorkoutTemplatesScreenState extends State<WorkoutTemplatesScreen> {
     if (picked == null || picked.files.single.path == null || !mounted) return;
     final file = File(picked.files.single.path!);
 
-    final result = await _askNameAndPeriod('Upload workout file');
+    final l10n = AppLocalizations.of(context);
+    final result = await _askNameAndPeriod(l10n.uploadWorkoutFile);
     if (result == null || !mounted) return;
 
     final provider = context.read<WorkoutProvider>();
     final messenger = ScaffoldMessenger.of(context);
-    messenger.showSnackBar(const SnackBar(
-        content: Text('Uploading…'), duration: Duration(seconds: 1)));
+    messenger.showSnackBar(SnackBar(
+        content: Text(l10n.uploading), duration: const Duration(seconds: 1)));
     final url = await provider.uploadTemplateFile(file);
     if (url == null || !mounted) {
-      messenger.showSnackBar(const SnackBar(content: Text('Upload failed')));
+      messenger.showSnackBar(SnackBar(content: Text(l10n.uploadFailed)));
       return;
     }
     final id = await provider.createTemplate(
@@ -82,6 +85,7 @@ class _WorkoutTemplatesScreenState extends State<WorkoutTemplatesScreen> {
     final nameCtrl = TextEditingController();
     String period = 'Week';
     final colors = context.colors;
+    final l10n = AppLocalizations.of(context);
     return showDialog<(String, String)>(
       context: context,
       builder: (ctx) => StatefulBuilder(
@@ -94,7 +98,7 @@ class _WorkoutTemplatesScreenState extends State<WorkoutTemplatesScreen> {
               TextField(
                 controller: nameCtrl,
                 style: TextStyle(color: colors.fg),
-                decoration: const InputDecoration(labelText: 'Template name'),
+                decoration: InputDecoration(labelText: l10n.templateName),
               ),
               const SizedBox(height: 16),
               Wrap(
@@ -117,13 +121,13 @@ class _WorkoutTemplatesScreenState extends State<WorkoutTemplatesScreen> {
           actions: [
             TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('Cancel')),
+                child: Text(l10n.cancel)),
             ElevatedButton(
               onPressed: () {
                 if (nameCtrl.text.trim().isEmpty) return;
                 Navigator.pop(ctx, (nameCtrl.text.trim(), period));
               },
-              child: const Text('Continue'),
+              child: Text(l10n.continueLabel),
             ),
           ],
         ),
@@ -133,6 +137,7 @@ class _WorkoutTemplatesScreenState extends State<WorkoutTemplatesScreen> {
 
   void _showCreateOptions() {
     final colors = context.colors;
+    final l10n = AppLocalizations.of(context);
     showModalBottomSheet(
       context: context,
       backgroundColor: colors.card,
@@ -145,9 +150,9 @@ class _WorkoutTemplatesScreenState extends State<WorkoutTemplatesScreen> {
             ListTile(
               leading: const Icon(Icons.fitness_center_rounded,
                   color: AppColors.primaryColor1),
-              title: Text('Build from system',
+              title: Text(l10n.buildFromSystem,
                   style: TextStyle(color: colors.fg, fontWeight: FontWeight.w600)),
-              subtitle: Text('Add days & exercises from the library',
+              subtitle: Text(l10n.addDaysExercisesHint,
                   style: TextStyle(color: colors.subFg, fontSize: 12)),
               onTap: () {
                 Navigator.pop(context);
@@ -157,9 +162,9 @@ class _WorkoutTemplatesScreenState extends State<WorkoutTemplatesScreen> {
             ListTile(
               leading: const Icon(Icons.upload_file_rounded,
                   color: AppColors.primaryColor1),
-              title: Text('Upload a file',
+              title: Text(l10n.uploadAFile,
                   style: TextStyle(color: colors.fg, fontWeight: FontWeight.w600)),
-              subtitle: Text('PDF, document or image with the workout',
+              subtitle: Text(l10n.uploadFileHint,
                   style: TextStyle(color: colors.subFg, fontSize: 12)),
               onTap: () {
                 Navigator.pop(context);
@@ -221,9 +226,9 @@ class _WorkoutTemplatesScreenState extends State<WorkoutTemplatesScreen> {
           ),
           Expanded(
             child: provider.templatesLoading && provider.templates.isEmpty
-                ? const Center(child: CircularProgressIndicator())
+                ? const LiaqhPageLoader()
                 : provider.templates.isEmpty
-                    ? _empty(colors)
+                    ? _empty(colors, l10n)
                     : RefreshIndicator(
                   onRefresh: () => context.read<WorkoutProvider>().loadTemplates(),
                   child: ListView.builder(
@@ -254,7 +259,7 @@ class _WorkoutTemplatesScreenState extends State<WorkoutTemplatesScreen> {
                             .deleteTemplate(provider.templates[i].id);
                         if (ok && context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Template deleted')),
+                            SnackBar(content: Text(l10n.templateDeleted)),
                           );
                         }
                       },
@@ -267,21 +272,21 @@ class _WorkoutTemplatesScreenState extends State<WorkoutTemplatesScreen> {
     );
   }
 
-  Widget _empty(AppThemeColors colors) => Center(
+  Widget _empty(AppThemeColors colors, AppLocalizations l10n) => Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.fitness_center_rounded,
                 size: 64, color: AppColors.primaryColor1.withValues(alpha: 0.35)),
             const SizedBox(height: 16),
-            Text('No templates yet',
+            Text(l10n.noTemplatesYet,
                 style: TextStyle(
                     color: colors.fg, fontSize: 16, fontWeight: FontWeight.w600)),
             const SizedBox(height: 6),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 40),
               child: Text(
-                'Create a workout once and assign it to any trainee — no need to rebuild it each time.',
+                l10n.templatesEmptyHint,
                 textAlign: TextAlign.center,
                 style: TextStyle(color: colors.subFg, fontSize: 13),
               ),
@@ -305,6 +310,7 @@ class _TemplateCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -329,8 +335,8 @@ class _TemplateCard extends StatelessWidget {
                 style: TextStyle(color: colors.fg, fontWeight: FontWeight.w700)),
             subtitle: Text(
               template.isFile
-                  ? 'File workout · ${template.periodType}'
-                  : '${template.dayCount} day(s) · ${template.periodType}',
+                  ? '${l10n.fileWorkout} · ${template.periodType}'
+                  : '${l10n.daysCountLabel(template.dayCount)} · ${template.periodType}',
               style: TextStyle(color: colors.subFg, fontSize: 12),
             ),
             trailing: PopupMenuButton<String>(
@@ -341,8 +347,8 @@ class _TemplateCard extends StatelessWidget {
               },
               itemBuilder: (_) => [
                 if (!template.isFile)
-                  const PopupMenuItem(value: 'open', child: Text('Edit days')),
-                const PopupMenuItem(value: 'delete', child: Text('Delete')),
+                  PopupMenuItem(value: 'open', child: Text(l10n.editDays)),
+                PopupMenuItem(value: 'delete', child: Text(l10n.delete)),
               ],
             ),
           ),

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:fitnessapp/l10n/app_localizations.dart';
 import 'package:fitnessapp/providers/payment_provider.dart';
 import 'package:fitnessapp/view/payment/payment_success_screen.dart';
 import 'package:fitnessapp/utils/app_colors.dart';
@@ -71,8 +72,8 @@ class _CheckoutLauncherScreenState extends State<CheckoutLauncherScreen>
       setState(() => _launched = true);
       _startPolling();
     } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Could not open the browser for checkout.'),
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(AppLocalizations.of(context).couldNotOpenBrowser),
       ));
     }
   }
@@ -124,6 +125,7 @@ class _CheckoutLauncherScreenState extends State<CheckoutLauncherScreen>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final colors = context.colors;
     final isCompleted = _status == 'completed';
 
@@ -131,7 +133,7 @@ class _CheckoutLauncherScreenState extends State<CheckoutLauncherScreen>
       backgroundColor: colors.bg,
       appBar: AppBar(
         backgroundColor: colors.bg,
-        title: Text('Complete Payment',
+        title: Text(l10n.completePayment,
             style: TextStyle(color: colors.fg, fontWeight: FontWeight.w700)),
         iconTheme: IconThemeData(color: colors.fg),
         elevation: 0,
@@ -161,10 +163,10 @@ class _CheckoutLauncherScreenState extends State<CheckoutLauncherScreen>
             const SizedBox(height: 28),
             Text(
               isCompleted
-                  ? 'Payment Complete!'
+                  ? l10n.paymentComplete
                   : _launched
-                      ? 'Waiting for payment...'
-                      : 'Opening checkout...',
+                      ? l10n.waitingForPayment
+                      : l10n.openingCheckout,
               style: TextStyle(
                   color: colors.fg,
                   fontSize: 22,
@@ -174,8 +176,8 @@ class _CheckoutLauncherScreenState extends State<CheckoutLauncherScreen>
             const SizedBox(height: 12),
             Text(
               isCompleted
-                  ? 'Your membership has been activated.'
-                  : 'Complete your payment in the browser.\nThis screen will update automatically.',
+                  ? l10n.membershipActivated
+                  : l10n.completePaymentInBrowser,
               style: TextStyle(color: colors.mutedFg, fontSize: 14),
               textAlign: TextAlign.center,
             ),
@@ -196,8 +198,8 @@ class _CheckoutLauncherScreenState extends State<CheckoutLauncherScreen>
                         borderRadius: BorderRadius.circular(12)),
                   ),
                   icon: const Icon(Icons.open_in_browser_rounded),
-                  label: const Text('Open Checkout Again',
-                      style: TextStyle(fontWeight: FontWeight.w700)),
+                  label: Text(l10n.openCheckoutAgain,
+                      style: const TextStyle(fontWeight: FontWeight.w700)),
                   onPressed: _launchUrl,
                 ),
               ),

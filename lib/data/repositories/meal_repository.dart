@@ -1,3 +1,7 @@
+import 'dart:io';
+
+import 'package:dio/dio.dart';
+
 import '../models/meal_models.dart';
 import '../services/api_service.dart';
 
@@ -24,6 +28,8 @@ class MealRepository {
     required int targetProtein,
     required int targetCarbs,
     required int targetFat,
+    int durationMonths = 1,
+    String? attachmentUrl,
   }) async {
     final res = await _api.post('/meal-plans', data: {
       'traineeId': traineeId,
@@ -33,8 +39,39 @@ class MealRepository {
       'targetProteinGrams': targetProtein,
       'targetCarbsGrams': targetCarbs,
       'targetFatGrams': targetFat,
+      'durationMonths': durationMonths,
+      if (attachmentUrl != null) 'attachmentUrl': attachmentUrl,
     });
     return (res.data['id'] ?? res.data).toString();
+  }
+
+  /// Uploads a PDF/image for a file-based plan and returns the stored URL.
+  Future<String> uploadMealPlanFile(File file) async {
+    final fileName = file.path.split(RegExp(r'[\\/]')).last;
+    final form = FormData.fromMap({
+      'file': await MultipartFile.fromFile(file.path, filename: fileName),
+    });
+    final res = await _api.uploadFile('/meal-plans/upload-file', form);
+    return (res.data['url'] ?? res.data).toString();
+  }
+
+  /// Trainee rejects a meal with a reason → coach is notified.
+  Future<void> rejectMeal(String mealId, String reason) async {
+    await _api.post('/meals/$mealId/reject', data: {'reason': reason});
+  }
+
+  /// Coach replaces a rejected meal's food items → trainee is notified.
+  Future<void> replaceMeal({
+    required String mealId,
+    String? timeOfDay,
+    String? notes,
+    required List<Map<String, dynamic>> foodItems,
+  }) async {
+    await _api.put('/meals/$mealId/replace', data: {
+      if (timeOfDay != null) 'timeOfDay': timeOfDay,
+      if (notes != null) 'notes': notes,
+      'foodItems': foodItems,
+    });
   }
 
   Future<String> addMeal({
@@ -56,6 +93,24 @@ class MealRepository {
     return (res.data['id'] ?? res.data).toString();
   }
 
+  /// Copies all meals from [dayId] into [targetDayIds]. Returns how many meals
+  /// were copied.
+  Future<int> duplicateDay({
+    required String planId,
+    required String dayId,
+    required List<String> targetDayIds,
+    bool replaceExisting = false,
+  }) async {
+    final res = await _api.post(
+      '/meal-plans/$planId/days/$dayId/duplicate',
+      data: {
+        'targetDayIds': targetDayIds,
+        'replaceExisting': replaceExisting,
+      },
+    );
+    return (res.data is Map ? res.data['copiedMeals'] : res.data) as int? ?? 0;
+  }
+
   Future<void> removeMeal({
     required String planId,
     required String dayId,
@@ -72,6 +127,34 @@ class MealRepository {
     final data = res.data;
     final list = data is Map ? (data['items'] as List? ?? []) : (data as List? ?? []);
     return list.map((j) => Food.fromJson(j as Map<String, dynamic>)).toList();
+  }
+
+  /// Coach/gym adds a custom food to the library; returns the created food.
+  Future<Food> createFood({
+    required String nameEn,
+    String? nameAr,
+    required String category,
+    required double caloriesPer100g,
+    required double proteinPer100g,
+    required double carbsPer100g,
+    required double fatPer100g,
+    double? gramsPerUnit,
+    String? unitNameEn,
+    String? unitNameAr,
+  }) async {
+    final res = await _api.post('/foods', data: {
+      'nameEn': nameEn,
+      if (nameAr != null && nameAr.isNotEmpty) 'nameAr': nameAr,
+      'category': category,
+      'caloriesPer100g': caloriesPer100g,
+      'proteinPer100g': proteinPer100g,
+      'carbsPer100g': carbsPer100g,
+      'fatPer100g': fatPer100g,
+      if (gramsPerUnit != null && gramsPerUnit > 0) 'gramsPerUnit': gramsPerUnit,
+      if (unitNameEn != null && unitNameEn.isNotEmpty) 'unitNameEn': unitNameEn,
+      if (unitNameAr != null && unitNameAr.isNotEmpty) 'unitNameAr': unitNameAr,
+    });
+    return Food.fromJson(res.data as Map<String, dynamic>);
   }
 
   Future<void> logMeal({

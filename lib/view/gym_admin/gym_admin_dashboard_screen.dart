@@ -1,4 +1,5 @@
 import 'package:fitnessapp/l10n/app_localizations.dart';
+import 'package:fitnessapp/common_widgets/liaqh_loaders.dart';
 import 'package:fitnessapp/providers/auth_provider.dart';
 import 'package:fitnessapp/providers/gym_admin_provider.dart';
 import 'package:fitnessapp/view/gym_admin/unpaid_trainees_screen.dart';
@@ -71,7 +72,7 @@ class _GymAdminDashboardScreenState extends State<GymAdminDashboardScreen> {
             if (provider.dashboardLoading && d == null)
               const Padding(
                 padding: EdgeInsets.only(top: 60),
-                child: Center(child: CircularProgressIndicator()),
+                child: const LiaqhPageLoader(),
               )
             else if (d != null) ...[
               GridView.count(

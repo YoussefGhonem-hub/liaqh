@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:fitnessapp/l10n/app_localizations.dart';
 import 'package:fitnessapp/data/models/chat_models.dart';
 import 'package:fitnessapp/data/repositories/trainee_repository.dart';
 import 'package:fitnessapp/data/services/api_service.dart';
@@ -110,6 +111,7 @@ class _SubscriptionLockViewState extends State<SubscriptionLockView>
   /// Open (or create) the chat with the trainee's coach so they can arrange
   /// payment directly.
   Future<void> _messageCoach(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final auth = context.read<AuthProvider>();
     final chat = context.read<ChatProvider>();
@@ -122,11 +124,11 @@ class _SubscriptionLockViewState extends State<SubscriptionLockView>
           .getMyProfile();
       final coachUserId = me.coachUserId;
       if (coachUserId == null || coachUserId.isEmpty) {
-        messenger.showSnackBar(const SnackBar(
-            content: Text('No coach is assigned to your account yet.')));
+        messenger.showSnackBar(SnackBar(
+            content: Text(l10n.noCoachAssigned)));
         return;
       }
-      final coachName = me.coachName ?? 'Coach';
+      final coachName = me.coachName ?? l10n.chatCoach;
 
       final conv = ChatConversation(
         id: ChatService.convId(coachUserId, user.userId),
@@ -154,7 +156,7 @@ class _SubscriptionLockViewState extends State<SubscriptionLockView>
       nav.pushNamed(ChatRoomScreen.routeName, arguments: conv);
     } catch (e) {
       messenger.showSnackBar(SnackBar(
-          content: Text('Could not open chat: $e'),
+          content: Text('${l10n.couldNotOpenChat}: $e'),
           backgroundColor: AppColors.errorColor));
     }
   }
@@ -169,6 +171,7 @@ class _SubscriptionLockViewState extends State<SubscriptionLockView>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final colors = context.colors;
     final pp = context.watch<PaymentProvider>();
     final pmProvider = context.watch<PaymentMethodsProvider>();
@@ -179,17 +182,17 @@ class _SubscriptionLockViewState extends State<SubscriptionLockView>
         pmProvider.myRequests.any((r) => r.isPending);
 
     final effectiveTitle = paidPlatform && !paidCoach
-        ? 'One step left — pay your coach'
+        ? l10n.lockOneStepPayCoach
         : paidCoach && !paidPlatform
-            ? 'One step left — subscribe to the platform'
-            : 'Membership payment due';
+            ? l10n.lockOneStepSubscribe
+            : l10n.membershipPaymentDue;
     final effectiveMessage = pendingPlatform
-        ? 'Your platform payment is pending approval by the admin (up to 24 hours). Complete your coach payment below in the meantime.'
+        ? l10n.lockPendingMsg
         : paidPlatform && !paidCoach
-            ? 'Your platform subscription is active. Now pay your coach to unlock everything.'
+            ? l10n.lockPaidPlatformMsg
             : paidCoach && !paidPlatform
-                ? 'Your coach payment is confirmed. Now subscribe to the platform to unlock everything.'
-                : 'To unlock your workouts, meals, InBody and progress you must complete BOTH payments below.';
+                ? l10n.lockPaidCoachMsg
+                : l10n.lockBothMsg;
 
     return Container(
       color: colors.bg,
@@ -207,7 +210,7 @@ class _SubscriptionLockViewState extends State<SubscriptionLockView>
               child: IconButton(
                 onPressed: widget.onClose,
                 icon: Icon(Icons.close_rounded, color: colors.subFg),
-                tooltip: 'Close',
+                tooltip: l10n.closeLabel,
               ),
             ),
           const SizedBox(height: 8),
@@ -249,12 +252,12 @@ class _SubscriptionLockViewState extends State<SubscriptionLockView>
           // Step 1 — Platform subscription (Paddle / InstaPay / Wallet).
           _PaymentStep(
             index: 1,
-            title: 'Subscribe to the platform',
-            subtitle: 'Pay by card, InstaPay or Wallet',
+            title: l10n.subscribeToPlatform,
+            subtitle: l10n.payByCardInstaPayWallet,
             done: paidPlatform,
             pending: pendingPlatform,
-            pendingLabel: 'Pending admin approval (up to 24h)',
-            actionLabel: 'Pay platform',
+            pendingLabel: l10n.pendingAdminApproval,
+            actionLabel: l10n.payPlatform,
             actionIcon: Icons.account_balance_wallet_rounded,
             onAction: () => _payPlatform(context),
             colors: colors,
@@ -263,10 +266,10 @@ class _SubscriptionLockViewState extends State<SubscriptionLockView>
           // Step 2 — Coach payment (approved by the coach).
           _PaymentStep(
             index: 2,
-            title: 'Pay your coach',
-            subtitle: 'Cash to your coach — they confirm it',
+            title: l10n.payYourCoach,
+            subtitle: l10n.cashToCoachHint,
             done: paidCoach,
-            actionLabel: 'Message coach',
+            actionLabel: l10n.messageCoach,
             actionIcon: Icons.chat_bubble_rounded,
             onAction: () => _messageCoach(context),
             colors: colors,
@@ -279,8 +282,8 @@ class _SubscriptionLockViewState extends State<SubscriptionLockView>
                 onPressed: () => _logout(context),
                 icon: const Icon(Icons.logout_rounded,
                     size: 18, color: Color(0xFFEF4444)),
-                label: const Text('Log out',
-                    style: TextStyle(
+                label: Text(l10n.logOut,
+                    style: const TextStyle(
                         color: Color(0xFFEF4444),
                         fontWeight: FontWeight.w600)),
               ),
@@ -300,7 +303,7 @@ class _PaymentStep extends StatelessWidget {
   final String subtitle;
   final bool done;
   final bool pending;
-  final String pendingLabel;
+  final String? pendingLabel;
   final String actionLabel;
   final IconData actionIcon;
   final VoidCallback onAction;
@@ -312,7 +315,7 @@ class _PaymentStep extends StatelessWidget {
     required this.subtitle,
     required this.done,
     this.pending = false,
-    this.pendingLabel = 'Pending approval',
+    this.pendingLabel,
     required this.actionLabel,
     required this.actionIcon,
     required this.onAction,
@@ -321,6 +324,7 @@ class _PaymentStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final AppThemeColors c = colors as AppThemeColors;
     // accent: green when done, amber when pending, orange otherwise.
     final accent = done
@@ -372,9 +376,9 @@ class _PaymentStep extends StatelessWidget {
                             fontWeight: FontWeight.w700)),
                     Text(
                         done
-                            ? 'Paid'
+                            ? l10n.paidLabel
                             : pending
-                                ? pendingLabel
+                                ? (pendingLabel ?? l10n.pendingApproval)
                                 : subtitle,
                         style: TextStyle(
                             color: done || pending ? accent : c.subFg,

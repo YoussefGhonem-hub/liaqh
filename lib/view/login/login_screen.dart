@@ -2,6 +2,7 @@ import 'package:fitnessapp/common_widgets/app_button.dart';
 import 'package:fitnessapp/common_widgets/liaqh_logo.dart';
 import 'package:fitnessapp/providers/auth_provider.dart';
 import 'package:fitnessapp/utils/app_colors.dart';
+import 'package:fitnessapp/common_widgets/liaqh_loaders.dart';
 import 'package:fitnessapp/view/dashboard/dashboard_screen.dart';
 import 'package:fitnessapp/view/signup/account_type_screen.dart';
 import 'package:flutter/material.dart';
@@ -48,9 +49,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _login() async {
     final auth = context.read<AuthProvider>();
-    final success = await auth.login(
-      _emailController.text.trim(),
-      _passwordController.text,
+    final success = await LiaqhLoading.during(
+      context,
+      () => auth.login(
+        _emailController.text.trim(),
+        _passwordController.text,
+      ),
     );
     if (success && mounted) {
       Navigator.pushReplacementNamed(context, DashboardScreen.routeName);
@@ -97,9 +101,9 @@ class _LoginScreenState extends State<LoginScreen> {
               // Email
               _Field(
                 controller: _emailController,
-                hint: l10n.email,
-                icon: Icons.mail_outline_rounded,
-                keyboardType: TextInputType.emailAddress,
+                hint: l10n.emailOrPhone,
+                icon: Icons.alternate_email_rounded,
+                keyboardType: TextInputType.text,
               ),
               const SizedBox(height: 16),
               // Password
@@ -130,7 +134,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
               if (auth.error != null) ...[
                 const SizedBox(height: 4),
-                Text(auth.error!,
+                Text(
+                    auth.error!.toLowerCase().contains('connect')
+                        ? auth.error!
+                        : l10n.invalidCredentials,
                     style: const TextStyle(
                         color: AppColors.errorColor, fontSize: 12)),
               ],

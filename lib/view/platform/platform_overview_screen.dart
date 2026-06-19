@@ -1,4 +1,5 @@
 import 'package:fitnessapp/data/models/platform_models.dart';
+import 'package:fitnessapp/common_widgets/liaqh_loaders.dart';
 import 'package:fitnessapp/l10n/app_localizations.dart';
 import 'package:fitnessapp/providers/platform_provider.dart';
 import 'package:fitnessapp/utils/app_colors.dart';
@@ -53,7 +54,7 @@ class _PlatformOverviewScreenState extends State<PlatformOverviewScreen> {
             if (p.overviewLoading && o == null)
               const SliverFillRemaining(
                 hasScrollBody: false,
-                child: Center(child: CircularProgressIndicator()),
+                child: const LiaqhPageLoader(),
               )
             else if (p.overviewError != null && o == null)
               SliverFillRemaining(

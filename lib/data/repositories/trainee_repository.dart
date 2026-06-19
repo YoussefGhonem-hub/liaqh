@@ -1,3 +1,4 @@
+import '../models/paged_result.dart';
 import '../models/trainee_models.dart';
 import '../services/api_service.dart';
 
@@ -5,10 +6,11 @@ class TraineeRepository {
   final ApiService _api;
   TraineeRepository(this._api);
 
-  Future<List<TraineeSummary>> getMyTrainees({int page = 1, int pageSize = 20}) async {
-    final res = await _api.get('/trainees/my', params: {'page': page, 'pageSize': pageSize});
-    final items = res.data['items'] as List? ?? res.data as List? ?? [];
-    return items.map((j) => TraineeSummary.fromJson(j)).toList();
+  Future<PagedResult<TraineeSummary>> getMyTrainees(
+      {int page = 1, int pageSize = 20}) async {
+    final res = await _api
+        .get('/trainees/my', params: {'page': page, 'pageSize': pageSize});
+    return PagedResult.fromJson(res.data, (j) => TraineeSummary.fromJson(j));
   }
 
   /// Logged-in trainee fetches their own full profile.

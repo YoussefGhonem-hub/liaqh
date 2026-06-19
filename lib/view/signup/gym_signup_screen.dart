@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:fitnessapp/common_widgets/liaqh_loaders.dart';
 import 'package:fitnessapp/l10n/app_localizations.dart';
 import 'package:fitnessapp/providers/auth_provider.dart';
 import 'package:fitnessapp/utils/app_colors.dart';
@@ -70,6 +71,7 @@ class _GymSignupScreenState extends State<GymSignupScreen> {
     if (_lastNameCtrl.text.trim().isEmpty) return l10n.errorRequired;
     if (!_emailCtrl.text.contains('@')) return l10n.errorInvalidEmail;
     if (_passwordCtrl.text.length < 6) return l10n.errorMinPassword;
+    if (_phoneCtrl.text.trim().length < 7) return l10n.phoneInvalidError;
     return null;
   }
 
@@ -89,8 +91,7 @@ class _GymSignupScreenState extends State<GymSignupScreen> {
       adminPassword: _passwordCtrl.text,
       adminFirstName: _firstNameCtrl.text.trim(),
       adminLastName: _lastNameCtrl.text.trim(),
-      adminPhone:
-          _phoneCtrl.text.trim().isEmpty ? null : _phoneCtrl.text.trim(),
+      adminPhone: _phoneCtrl.text.trim(),
       logo: _logoFile,
     );
     if (ok && mounted) {
@@ -333,7 +334,7 @@ class _GymSignupScreenState extends State<GymSignupScreen> {
         ],
         SizedBox(height: media.width * 0.06),
         auth.loading
-            ? const Center(child: CircularProgressIndicator())
+            ? const LiaqhPageLoader()
             : RoundGradientButton(
                 title: l10n.createGym,
                 onPressed: _submit,

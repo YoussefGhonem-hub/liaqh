@@ -1,4 +1,5 @@
 import 'package:fitnessapp/data/models/platform_models.dart';
+import 'package:fitnessapp/common_widgets/liaqh_loaders.dart';
 import 'package:fitnessapp/providers/platform_provider.dart';
 import 'package:fitnessapp/utils/app_colors.dart';
 import 'package:fitnessapp/utils/app_theme.dart';
@@ -17,11 +18,26 @@ class PlatformCoachesScreen extends StatefulWidget {
 
 class _PlatformCoachesScreenState extends State<PlatformCoachesScreen> {
   String _search = '';
+  final _scrollCtrl = ScrollController();
 
   @override
   void initState() {
     super.initState();
+    _scrollCtrl.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) => _load());
+  }
+
+  @override
+  void dispose() {
+    _scrollCtrl.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollCtrl.position.pixels >=
+        _scrollCtrl.position.maxScrollExtent - 300) {
+      context.read<PlatformProvider>().loadMoreCoaches();
+    }
   }
 
   void _load() {
@@ -38,6 +54,7 @@ class _PlatformCoachesScreenState extends State<PlatformCoachesScreen> {
       body: RefreshIndicator(
         onRefresh: () async => _load(),
         child: CustomScrollView(
+          controller: _scrollCtrl,
           slivers: [
             const SliverToBoxAdapter(
               child: PlatformGradientHeader(
@@ -62,7 +79,7 @@ class _PlatformCoachesScreenState extends State<PlatformCoachesScreen> {
             if (p.coachesLoading && p.coaches.isEmpty)
               const SliverFillRemaining(
                 hasScrollBody: false,
-                child: Center(child: CircularProgressIndicator()),
+                child: const LiaqhPageLoader(),
               )
             else if (p.coachesError != null && p.coaches.isEmpty)
               SliverFillRemaining(
@@ -81,11 +98,20 @@ class _PlatformCoachesScreenState extends State<PlatformCoachesScreen> {
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
                 sliver: SliverList(
                   delegate: SliverChildBuilderDelegate(
-                    (context, i) => Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: _coachTile(p.coaches[i]),
-                    ),
-                    childCount: p.coaches.length,
+                    (context, i) {
+                      if (i >= p.coaches.length) {
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          child: const LiaqhPageLoader(),
+                        );
+                      }
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: _coachTile(p.coaches[i]),
+                      );
+                    },
+                    childCount:
+                        p.coaches.length + (p.coachesHasMore ? 1 : 0),
                   ),
                 ),
               ),

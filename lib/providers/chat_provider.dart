@@ -6,13 +6,20 @@ import '../data/services/chat_service.dart';
 class ChatProvider extends ChangeNotifier {
   final _service = ChatService();
 
+  static const _msgPageSize = 30;
+
   List<ChatConversation> _conversations = [];
   List<ChatMessage> _messages = [];
   int _totalUnread = 0;
   bool _loading = false;
 
+  int _msgLimit = _msgPageSize;
+  bool _messagesHasMore = false;
+  String? _currentConvId;
+
   List<ChatConversation> get conversations => _conversations;
   List<ChatMessage> get messages => _messages;
+  bool get messagesHasMore => _messagesHasMore;
   int get totalUnread => _totalUnread;
   bool get loading => _loading;
 
@@ -21,11 +28,11 @@ class ChatProvider extends ChangeNotifier {
   StreamSubscription<int>? _unreadSub;
 
   // ── Start listening to all conversations for the logged-in user ──────────
-  void listenConversations(String userId, bool isCoach) {
+  void listenConversations(String userId, [bool _ = false]) {
     _convSub?.cancel();
     _unreadSub?.cancel();
 
-    _convSub = _service.conversationsStream(userId, isCoach).listen(
+    _convSub = _service.conversationsStream(userId).listen(
       (list) {
         _conversations = list;
         notifyListeners();
@@ -33,7 +40,7 @@ class ChatProvider extends ChangeNotifier {
       onError: (e) => debugPrint('conversationsStream error: $e'),
     );
 
-    _unreadSub = _service.totalUnreadStream(userId, isCoach).listen(
+    _unreadSub = _service.totalUnreadStream(userId).listen(
       (count) {
         _totalUnread = count;
         notifyListeners();
@@ -42,11 +49,41 @@ class ChatProvider extends ChangeNotifier {
     );
   }
 
-  // ── Start listening to messages in one conversation ──────────────────────
-  void listenMessages(String conversationId) {
+  bool _otherTyping = false;
+  bool get otherTyping => _otherTyping;
+  StreamSubscription<bool>? _typingSub;
+
+  /// Listen to the other party's typing status for the open conversation.
+  void listenTyping(String conversationId, bool isCoachSlot) {
+    _typingSub?.cancel();
+    _typingSub = _service.typingStream(conversationId, isCoachSlot).listen((t) {
+      if (t != _otherTyping) {
+        _otherTyping = t;
+        notifyListeners();
+      }
+    }, onError: (_) {});
+  }
+
+  void stopTyping(String conversationId, bool isCoachSlot) {
+    _typingSub?.cancel();
+    _otherTyping = false;
+    _service.setTyping(conversationId, isCoachSlot, false);
+  }
+
+  /// Report the current user's typing state (called from the input field).
+  void setTyping(String conversationId, bool isCoachSlot, bool isTyping) {
+    _service.setTyping(conversationId, isCoachSlot, isTyping);
+  }
+
+  // ── Start listening to messages in one conversation (windowed) ───────────
+  void listenMessages(String conversationId, {bool reset = true}) {
+    if (reset) _msgLimit = _msgPageSize;
+    _currentConvId = conversationId;
     _msgSub?.cancel();
-    _msgSub = _service.messagesStream(conversationId).listen(
+    _msgSub = _service.messagesStream(conversationId, limit: _msgLimit).listen(
       (list) {
+        // If the window is full, there are likely older messages to fetch.
+        _messagesHasMore = list.length >= _msgLimit;
         _messages = list;
         notifyListeners();
       },
@@ -54,9 +91,19 @@ class ChatProvider extends ChangeNotifier {
     );
   }
 
+  /// Grows the message window to load older messages.
+  void loadMoreMessages() {
+    if (!_messagesHasMore || _currentConvId == null) return;
+    _msgLimit += _msgPageSize;
+    listenMessages(_currentConvId!, reset: false);
+  }
+
   void clearMessages() {
     _msgSub?.cancel();
     _messages = [];
+    _msgLimit = _msgPageSize;
+    _messagesHasMore = false;
+    _currentConvId = null;
     notifyListeners();
   }
 
@@ -106,6 +153,9 @@ class ChatProvider extends ChangeNotifier {
     String? contextType,
     String? contextId,
     String? contextLabel,
+    String? replyToId,
+    String? replyToText,
+    String? replyToSender,
   }) async {
     if (text.trim().isEmpty) return;
     await _service.sendMessage(
@@ -118,15 +168,48 @@ class ChatProvider extends ChangeNotifier {
       contextType: contextType,
       contextId: contextId,
       contextLabel: contextLabel,
+      replyToId: replyToId,
+      replyToText: replyToText,
+      replyToSender: replyToSender,
+    );
+  }
+
+  /// Add/replace/remove an emoji reaction on a message.
+  Future<void> reactToMessage(
+      String conversationId, String messageId, String userId, String emoji) {
+    return _service.setReaction(
+      conversationId: conversationId,
+      messageId: messageId,
+      userId: userId,
+      emoji: emoji,
+    );
+  }
+
+  /// Edit a message's text (sender only — enforced in the UI).
+  Future<void> editMessage(
+      String conversationId, String messageId, String newText) async {
+    if (newText.trim().isEmpty) return;
+    await _service.editMessage(
+      conversationId: conversationId,
+      messageId: messageId,
+      newText: newText.trim(),
+    );
+  }
+
+  /// Delete a message (sender only — enforced in the UI).
+  Future<void> deleteMessage(String conversationId, String messageId) async {
+    await _service.deleteMessage(
+      conversationId: conversationId,
+      messageId: messageId,
     );
   }
 
   // ── Mark conversation as read ────────────────────────────────────────────
   Future<void> markRead(
-      String conversationId, bool isCoach, String currentUserId) async {
+      String conversationId, bool isCoachSlot, String currentUserId) async {
     await _service.markRead(
         conversationId: conversationId,
-        isCoach: isCoach,
+        isCoachSlot: isCoachSlot,
         currentUserId: currentUserId);
   }
 
@@ -135,6 +218,7 @@ class ChatProvider extends ChangeNotifier {
     _convSub?.cancel();
     _msgSub?.cancel();
     _unreadSub?.cancel();
+    _typingSub?.cancel();
     super.dispose();
   }
 }

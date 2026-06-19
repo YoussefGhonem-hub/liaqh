@@ -28,6 +28,12 @@ class GymAdminProvider extends ChangeNotifier {
 
   List<GymCoach> coaches = [];
   bool coachesLoading = false;
+  bool coachesLoadingMore = false;
+  bool _coachesHasMore = false;
+  int _coachesPage = 1;
+  String? _coachesSearch;
+  static const _coachesPageSize = 20;
+  bool get coachesHasMore => _coachesHasMore;
 
   // trainees per coach (by coachUserId)
   final Map<String, List<TraineeSummary>> _coachTrainees = {};
@@ -52,15 +58,37 @@ class GymAdminProvider extends ChangeNotifier {
 
   Future<void> loadCoaches({String? search}) async {
     coachesLoading = true;
+    _coachesPage = 1;
+    _coachesSearch = search;
     notifyListeners();
     try {
-      coaches = await _repo.getCoaches(search: search);
+      final res = await _repo.getCoaches(
+          search: search, page: 1, pageSize: _coachesPageSize);
+      coaches = res.items;
+      _coachesHasMore = res.hasNextPage;
     } catch (e) {
       error = e.toString();
     } finally {
       coachesLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<void> loadMoreCoaches() async {
+    if (coachesLoadingMore || !_coachesHasMore || coachesLoading) return;
+    coachesLoadingMore = true;
+    notifyListeners();
+    try {
+      final res = await _repo.getCoaches(
+          search: _coachesSearch,
+          page: _coachesPage + 1,
+          pageSize: _coachesPageSize);
+      coaches = [...coaches, ...res.items];
+      _coachesPage += 1;
+      _coachesHasMore = res.hasNextPage;
+    } catch (_) {}
+    coachesLoadingMore = false;
+    notifyListeners();
   }
 
   Future<void> loadCoachTrainees(String coachUserId) async {
@@ -108,6 +136,7 @@ class GymAdminProvider extends ChangeNotifier {
     required String goal,
     required double heightCm,
     required double currentWeightKg,
+    String? phoneNumber,
   }) async {
     busy = true;
     error = null;
@@ -117,6 +146,7 @@ class GymAdminProvider extends ChangeNotifier {
         coachUserId: coachUserId, email: email, password: password,
         firstName: firstName, lastName: lastName, goal: goal,
         heightCm: heightCm, currentWeightKg: currentWeightKg,
+        phoneNumber: phoneNumber,
       );
       await loadCoachTrainees(coachUserId);
       await loadCoaches();

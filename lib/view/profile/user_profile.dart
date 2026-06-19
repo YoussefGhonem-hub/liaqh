@@ -6,13 +6,10 @@ import 'package:fitnessapp/providers/auth_provider.dart';
 import 'package:fitnessapp/utils/app_colors.dart';
 import 'package:fitnessapp/utils/app_theme.dart';
 import 'package:fitnessapp/view/login/login_screen.dart';
-import 'package:fitnessapp/view/profile/achievements_screen.dart';
-import 'package:fitnessapp/view/profile/activity_history_screen.dart';
 import 'package:fitnessapp/view/profile/contact_us_screen.dart';
 import 'package:fitnessapp/view/profile/personal_data_screen.dart';
 import 'package:fitnessapp/view/profile/privacy_policy_screen.dart';
 import 'package:fitnessapp/view/profile/settings_screen.dart';
-import 'package:fitnessapp/view/profile/workout_progress_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -101,27 +98,6 @@ class _UserProfileState extends State<UserProfile> {
                         title: l10n.personalData,
                         onTap: () => Navigator.pushNamed(
                             context, PersonalDataScreen.routeName),
-                      ),
-                      _MenuItem(
-                        icon: Icons.emoji_events_rounded,
-                        iconColor: const Color(0xFFF59E0B),
-                        title: l10n.achievement,
-                        onTap: () => Navigator.pushNamed(
-                            context, AchievementsScreen.routeName),
-                      ),
-                      _MenuItem(
-                        icon: Icons.history_rounded,
-                        iconColor: const Color(0xFF10B981),
-                        title: l10n.activityHistory,
-                        onTap: () => Navigator.pushNamed(
-                            context, ActivityHistoryScreen.routeName),
-                      ),
-                      _MenuItem(
-                        icon: Icons.fitness_center_rounded,
-                        iconColor: AppColors.primaryColor1,
-                        title: l10n.workoutProgressTitle,
-                        onTap: () => Navigator.pushNamed(
-                            context, WorkoutProgressScreen.routeName),
                       ),
                     ],
                   ),
@@ -318,6 +294,7 @@ class _HeroCard extends StatelessWidget {
   Future<void> _changeProfileImage(BuildContext context) async {
     final auth = context.read<AuthProvider>();
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = AppLocalizations.of(context);
     final picker = ImagePicker();
     final picked = await picker.pickImage(
       source: ImageSource.gallery,
@@ -326,11 +303,12 @@ class _HeroCard extends StatelessWidget {
     );
     if (picked == null) return;
 
-    messenger.showSnackBar(const SnackBar(
-        content: Text('Uploading image…'), duration: Duration(seconds: 1)));
+    messenger.showSnackBar(SnackBar(
+        content: Text(l10n.uploadingImage),
+        duration: const Duration(seconds: 1)));
     final ok = await auth.uploadProfileImage(File(picked.path));
     messenger.showSnackBar(SnackBar(
-      content: Text(ok ? 'Profile image updated' : 'Upload failed'),
+      content: Text(ok ? l10n.profileImageUpdated : l10n.uploadFailed),
       duration: const Duration(seconds: 2),
     ));
   }
@@ -633,6 +611,7 @@ class _LogoutDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final l10n = AppLocalizations.of(context);
     return Dialog(
       backgroundColor: colors.card,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
@@ -652,13 +631,13 @@ class _LogoutDialog extends StatelessWidget {
                   color: Color(0xFFEF4444), size: 30),
             ),
             const SizedBox(height: 16),
-            Text('Log Out?',
+            Text(l10n.logOutTitle,
                 style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                     color: colors.fg)),
             const SizedBox(height: 8),
-            Text('Are you sure you want to log out?',
+            Text(l10n.logOutMessage,
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 13, color: colors.subFg)),
             const SizedBox(height: 24),
@@ -673,7 +652,7 @@ class _LogoutDialog extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12)),
                       padding: const EdgeInsets.symmetric(vertical: 13),
                     ),
-                    child: Text('Cancel',
+                    child: Text(l10n.cancel,
                         style: TextStyle(
                             color: colors.subFg, fontWeight: FontWeight.w600)),
                   ),
@@ -690,8 +669,8 @@ class _LogoutDialog extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(vertical: 13),
                       elevation: 0,
                     ),
-                    child: const Text('Log Out',
-                        style: TextStyle(fontWeight: FontWeight.w700)),
+                    child: Text(l10n.logOut,
+                        style: const TextStyle(fontWeight: FontWeight.w700)),
                   ),
                 ),
               ],

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:fitnessapp/common_widgets/liaqh_loaders.dart';
 import 'package:fitnessapp/data/models/workout_models.dart';
 import 'package:fitnessapp/l10n/app_localizations.dart';
 import 'package:fitnessapp/providers/workout_provider.dart';
@@ -149,7 +150,7 @@ class _ExerciseLibraryScreenState extends State<ExerciseLibraryScreen> {
           const SizedBox(height: 4),
           Expanded(
             child: provider.loading
-                ? const Center(child: CircularProgressIndicator())
+                ? const LiaqhPageLoader()
                 : provider.exercises.isEmpty
                     ? Center(
                         child: Text(l10n.noExercisesFound,
@@ -211,12 +212,14 @@ class _ExerciseTile extends StatelessWidget {
                 ),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: exercise.imageUrl != null
+              child: exercise.listImage != null
                   ? ClipRRect(
                       borderRadius: BorderRadius.circular(12),
                       child: Image.network(
-                        exercise.imageUrl!,
+                        exercise.listImage!,
                         fit: BoxFit.cover,
+                        width: 52,
+                        height: 52,
                         errorBuilder: (_, __, ___) => Icon(
                             style.icon,
                             color: Colors.white,

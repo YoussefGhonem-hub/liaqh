@@ -1,3 +1,4 @@
+import 'package:fitnessapp/data/services/notification_service.dart';
 import 'package:fitnessapp/l10n/app_localizations.dart';
 import 'package:fitnessapp/providers/language_provider.dart';
 import 'package:fitnessapp/providers/theme_provider.dart';
@@ -16,7 +17,7 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  bool _pushNotifications = true;
+  bool _pushNotifications = NotificationService.popupEnabled;
 
   @override
   Widget build(BuildContext context) {
@@ -236,7 +237,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   Switch(
                     value: _pushNotifications,
-                    onChanged: (v) => setState(() => _pushNotifications = v),
+                    onChanged: (v) {
+                      setState(() => _pushNotifications = v);
+                      NotificationService.setPopupEnabled(v);
+                    },
                   ),
                 ],
               ),

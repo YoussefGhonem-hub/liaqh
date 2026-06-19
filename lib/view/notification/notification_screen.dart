@@ -1,4 +1,5 @@
 import 'package:fitnessapp/data/models/notification_model.dart';
+import 'package:fitnessapp/common_widgets/liaqh_loaders.dart';
 import 'package:fitnessapp/l10n/app_localizations.dart';
 import 'package:fitnessapp/providers/auth_provider.dart';
 import 'package:fitnessapp/providers/notification_provider.dart';
@@ -68,7 +69,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 color: colors.listTile,
                 borderRadius: BorderRadius.circular(10)),
             child: Image.asset('assets/icons/back_icon.png',
-                width: 15, height: 15, fit: BoxFit.contain),
+                width: 15,
+                height: 15,
+                fit: BoxFit.contain,
+                color: colors.fg),
           ),
         ),
         title: Text(l10n.notificationsTitle,
@@ -96,8 +100,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
         ],
       ),
       body: notif.loading
-          ? const Center(
-              child: CircularProgressIndicator(color: AppColors.primaryColor1))
+          ? const LiaqhPageLoader()
           : notif.items.isEmpty
               ? _EmptyState(colors: colors)
               : ListView.separated(
@@ -114,9 +117,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         child: Center(
                           child: notif.loadingMore
-                              ? const CircularProgressIndicator(
-                                  color: AppColors.primaryColor1,
-                                  strokeWidth: 2)
+                              ? const LiaqhMarkLoader(size: 32)
                               : const SizedBox.shrink(),
                         ),
                       );

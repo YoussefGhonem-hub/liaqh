@@ -1,4 +1,5 @@
 import 'package:fitnessapp/common_widgets/user_avatar.dart';
+import 'package:fitnessapp/common_widgets/liaqh_loaders.dart';
 import 'package:fitnessapp/data/repositories/trainee_repository.dart';
 import 'package:fitnessapp/data/repositories/gym_admin_repository.dart';
 import 'package:fitnessapp/data/services/api_service.dart';
@@ -86,7 +87,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
     try {
       if (auth.isCoach) {
         // Coach: every trainee is a chat contact.
-        final trainees = await repo.getMyTrainees(pageSize: 100);
+        final trainees = (await repo.getMyTrainees(pageSize: 100)).items;
         for (final t in trainees) {
           if (t.userId.isEmpty) continue;
           contacts.add(_Contact(
@@ -103,7 +104,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
         // Gym admin: chat with every coach they manage (admin sits on the
         // "trainee" side of the conversation key — it's just two user ids).
         final coaches =
-            await GymAdminRepository(context.read<ApiService>()).getCoaches();
+            (await GymAdminRepository(context.read<ApiService>())
+                    .getCoaches(pageSize: 100))
+                .items;
         for (final c in coaches) {
           contacts.add(_Contact(
             coachUserId: c.userId,
@@ -258,7 +261,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
         ],
       ),
       body: !_contactsLoaded
-          ? const Center(child: CircularProgressIndicator())
+          ? const LiaqhPageLoader()
           : items.isEmpty
               ? _EmptyState(
                   colors: colors,

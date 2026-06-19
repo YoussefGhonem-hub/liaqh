@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:fitnessapp/common_widgets/liaqh_loaders.dart';
 import 'package:fitnessapp/data/models/progress_models.dart';
 import 'package:fitnessapp/data/services/api_service.dart';
 import 'package:fitnessapp/l10n/app_localizations.dart';
@@ -107,7 +108,7 @@ class _ProgressBodyScreenState extends State<ProgressBodyScreen> {
             style: const TextStyle(color: Colors.white)),
       ),
       body: provider.loading && provider.history.isEmpty
-          ? const Center(child: CircularProgressIndicator())
+          ? const LiaqhPageLoader()
           : provider.history.isEmpty
               ? _EmptyState(l10n: l10n, colors: colors)
               : RefreshIndicator(

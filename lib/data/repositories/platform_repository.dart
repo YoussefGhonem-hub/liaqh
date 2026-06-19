@@ -1,3 +1,4 @@
+import '../models/paged_result.dart';
 import '../models/platform_models.dart';
 import '../services/api_service.dart';
 
@@ -54,6 +55,10 @@ class PlatformRepository {
 
   Future<void> setUserStatus(String id, bool isActive) async {
     await _api.patch('/platform/users/$id/status', data: {'isActive': isActive});
+  }
+
+  Future<void> deleteUser(String id) async {
+    await _api.delete('/platform/users/$id');
   }
 
   Future<UserDetail> getUserDetail(String id) async {
@@ -127,13 +132,14 @@ class PlatformRepository {
     return (data?['sent'] as num?)?.toInt() ?? 0;
   }
 
-  Future<List<PlatformCoach>> getCoaches({String? search}) async {
+  Future<PagedResult<PlatformCoach>> getCoaches(
+      {String? search, int page = 1, int pageSize = 20}) async {
     final res = await _api.get('/platform/coaches', params: {
       if (search != null && search.isNotEmpty) 'search': search,
+      'page': page,
+      'pageSize': pageSize,
     });
-    final items = res.data as List? ?? [];
-    return items
-        .map((j) => PlatformCoach.fromJson(j as Map<String, dynamic>))
-        .toList();
+    return PagedResult.fromJson(
+        res.data, (j) => PlatformCoach.fromJson(j));
   }
 }

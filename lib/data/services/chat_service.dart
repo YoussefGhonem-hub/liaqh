@@ -47,6 +47,9 @@ class ChatService {
     String? contextType,
     String? contextId,
     String? contextLabel,
+    String? replyToId,
+    String? replyToText,
+    String? replyToSender,
   }) async {
     final batch = _db.batch();
     final convRef = _db.collection('conversations').doc(conversationId);
@@ -61,6 +64,9 @@ class ChatService {
       if (contextType != null) 'contextType': contextType,
       if (contextId != null) 'contextId': contextId,
       if (contextLabel != null) 'contextLabel': contextLabel,
+      if (replyToId != null) 'replyToId': replyToId,
+      if (replyToText != null) 'replyToText': replyToText,
+      if (replyToSender != null) 'replyToSender': replyToSender,
     });
 
     final unreadField = senderIsCoach ? 'unreadTrainee' : 'unreadCoach';
@@ -96,25 +102,126 @@ class ChatService {
     );
   }
 
-  /// Real-time stream of messages in a conversation
-  Stream<List<ChatMessage>> messagesStream(String conversationId) {
+  /// Toggles a user's emoji reaction on a message. Passing the same emoji the
+  /// user already set removes it; a different emoji replaces it.
+  Future<void> setReaction({
+    required String conversationId,
+    required String messageId,
+    required String userId,
+    required String emoji,
+  }) async {
+    final ref = _db
+        .collection('conversations')
+        .doc(conversationId)
+        .collection('messages')
+        .doc(messageId);
+    final snap = await ref.get();
+    final current =
+        (snap.data()?['reactions'] as Map?)?[userId]?.toString();
+    if (current == emoji) {
+      await ref.update({'reactions.$userId': FieldValue.delete()});
+    } else {
+      await ref.update({'reactions.$userId': emoji});
+    }
+  }
+
+  /// Edits a message's text. Also refreshes the conversation's lastMessage when
+  /// the edited message is the latest one.
+  Future<void> editMessage({
+    required String conversationId,
+    required String messageId,
+    required String newText,
+  }) async {
+    final convRef = _db.collection('conversations').doc(conversationId);
+    await convRef.collection('messages').doc(messageId).update({
+      'text': newText,
+      'isEdited': true,
+    });
+
+    // If this was the most recent message, update the conversation preview.
+    final latest = await convRef
+        .collection('messages')
+        .orderBy('sentAt', descending: true)
+        .limit(1)
+        .get();
+    if (latest.docs.isNotEmpty && latest.docs.first.id == messageId) {
+      await convRef.update({'lastMessage': newText});
+    }
+  }
+
+  /// Deletes a message. Refreshes the conversation's lastMessage preview to the
+  /// new most-recent message (or empty).
+  Future<void> deleteMessage({
+    required String conversationId,
+    required String messageId,
+  }) async {
+    final convRef = _db.collection('conversations').doc(conversationId);
+    await convRef.collection('messages').doc(messageId).delete();
+
+    final latest = await convRef
+        .collection('messages')
+        .orderBy('sentAt', descending: true)
+        .limit(1)
+        .get();
+    await convRef.update({
+      'lastMessage':
+          latest.docs.isNotEmpty ? (latest.docs.first.data()['text'] ?? '') : '',
+    });
+  }
+
+  /// Sets the current user's typing flag (by slot) on the conversation doc.
+  Future<void> setTyping(
+      String conversationId, bool isCoachSlot, bool isTyping) async {
+    final field = isCoachSlot ? 'typingCoachAt' : 'typingTraineeAt';
+    await _db.collection('conversations').doc(conversationId).set(
+      {field: isTyping ? FieldValue.serverTimestamp() : null},
+      SetOptions(merge: true),
+    );
+  }
+
+  /// Streams whether the OTHER party is currently typing (active within ~6s).
+  Stream<bool> typingStream(String conversationId, bool isCoachSlot) {
+    // The current user is [isCoachSlot]; watch the other slot's field.
+    final field = isCoachSlot ? 'typingTraineeAt' : 'typingCoachAt';
+    return _db
+        .collection('conversations')
+        .doc(conversationId)
+        .snapshots()
+        .map((snap) {
+      final ts = snap.data()?[field];
+      if (ts is! Timestamp) return false;
+      return DateTime.now().difference(ts.toDate()).inSeconds.abs() <= 6;
+    });
+  }
+
+  /// Real-time stream of the most recent [limit] messages in a conversation,
+  /// returned in ascending (oldest→newest) order for display. Increasing
+  /// [limit] loads older messages (server-side window).
+  Stream<List<ChatMessage>> messagesStream(String conversationId,
+      {int limit = 30}) {
     return _db
         .collection('conversations')
         .doc(conversationId)
         .collection('messages')
-        .orderBy('sentAt', descending: false)
+        .orderBy('sentAt', descending: true)
+        .limit(limit)
         .snapshots()
-        .map((snap) => snap.docs.map(ChatMessage.fromDoc).toList());
+        .map((snap) =>
+            snap.docs.map(ChatMessage.fromDoc).toList().reversed.toList());
   }
 
   /// Real-time stream of all conversations for a user.
   /// No orderBy → avoids needing a composite Firestore index; the UI sorts
   /// by lastMessageAt client-side.
-  Stream<List<ChatConversation>> conversationsStream(
-      String userId, bool isCoach) {
+  /// A user's conversations — matched by identity (either slot), so it works
+  /// for coaches, trainees, gym admins and the platform owner alike.
+  Stream<List<ChatConversation>> conversationsStream(String userId) {
     return _db
         .collection('conversations')
-        .where(isCoach ? 'coachId' : 'traineeId', isEqualTo: userId)
+        .where(Filter.or(
+          Filter('coachId', isEqualTo: userId),
+          Filter('traineeId', isEqualTo: userId),
+        ))
         .snapshots()
         .map((snap) {
       final list = snap.docs.map(ChatConversation.fromDoc).toList();
@@ -124,16 +231,16 @@ class ChatService {
   }
 
   /// Mark the OTHER party's messages as read (seen) and reset unread counter.
-  /// Only messages NOT sent by [currentUserId] are flagged — so a sender never
-  /// marks their own message as "seen". Stamps readAt for real-time receipts.
+  /// [isCoachSlot] = whether the current user occupies the conversation's coach
+  /// slot (by identity, not global role) — so it's correct for any user pair.
   Future<void> markRead({
     required String conversationId,
-    required bool isCoach,
+    required bool isCoachSlot,
     required String currentUserId,
   }) async {
     final convRef = _db.collection('conversations').doc(conversationId);
     await convRef.set(
-        {isCoach ? 'unreadCoach' : 'unreadTrainee': 0},
+        {isCoachSlot ? 'unreadCoach' : 'unreadTrainee': 0},
         SetOptions(merge: true));
 
     final unread = await convRef
@@ -157,17 +264,22 @@ class ChatService {
     await batch.commit();
   }
 
-  /// Real-time total unread count across all conversations for a user
-  Stream<int> totalUnreadStream(String userId, bool isCoach) {
-    final field = isCoach ? 'unreadCoach' : 'unreadTrainee';
+  /// Real-time total unread count across all conversations for a user.
+  /// Reads the correct unread counter per conversation based on which slot the
+  /// user occupies (coach vs trainee), matched by identity.
+  Stream<int> totalUnreadStream(String userId) {
     return _db
         .collection('conversations')
-        .where(isCoach ? 'coachId' : 'traineeId', isEqualTo: userId)
+        .where(Filter.or(
+          Filter('coachId', isEqualTo: userId),
+          Filter('traineeId', isEqualTo: userId),
+        ))
         .snapshots()
-        .map((snap) => snap.docs.fold<int>(
-              0,
-              (acc, doc) =>
-                  acc + ((doc.data()[field] ?? 0) as int),
-            ));
+        .map((snap) => snap.docs.fold<int>(0, (acc, doc) {
+              final d = doc.data();
+              final isCoachSlot = (d['coachId'] ?? '') == userId;
+              final field = isCoachSlot ? 'unreadCoach' : 'unreadTrainee';
+              return acc + ((d[field] ?? 0) as int);
+            }));
   }
 }

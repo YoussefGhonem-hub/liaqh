@@ -1,4 +1,6 @@
+import 'package:fitnessapp/l10n/app_localizations.dart';
 import 'package:fitnessapp/data/models/trainee_models.dart';
+import 'package:fitnessapp/common_widgets/liaqh_loaders.dart';
 import 'package:fitnessapp/data/repositories/trainee_repository.dart';
 import 'package:fitnessapp/data/services/api_service.dart';
 import 'package:fitnessapp/utils/app_colors.dart';
@@ -40,6 +42,7 @@ class _MyDetailsScreenState extends State<MyDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final l10n = AppLocalizations.of(context);
 
     return FutureBuilder<TraineeDetail>(
       future: _future,
@@ -47,7 +50,7 @@ class _MyDetailsScreenState extends State<MyDetailsScreen> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Scaffold(
             backgroundColor: colors.bg,
-            body: const Center(child: CircularProgressIndicator()),
+            body: const LiaqhPageLoader(),
           );
         }
 
@@ -61,13 +64,13 @@ class _MyDetailsScreenState extends State<MyDetailsScreen> {
                   Icon(Icons.error_outline_rounded,
                       size: 56, color: colors.mutedFg),
                   const SizedBox(height: 12),
-                  Text('Could not load your profile',
+                  Text(l10n.couldNotLoadProfile,
                       style: TextStyle(color: colors.fg, fontSize: 16)),
                   const SizedBox(height: 16),
                   ElevatedButton.icon(
                     onPressed: _retry,
                     icon: const Icon(Icons.refresh),
-                    label: const Text('Retry'),
+                    label: Text(l10n.retry),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primaryColor1,
                       foregroundColor: Colors.white,

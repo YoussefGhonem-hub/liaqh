@@ -1,9 +1,11 @@
 import 'package:fitnessapp/data/models/meal_models.dart';
+import 'package:fitnessapp/common_widgets/liaqh_loaders.dart';
 import 'package:fitnessapp/l10n/app_localizations.dart';
 import 'package:fitnessapp/providers/meal_provider.dart';
 import 'package:fitnessapp/utils/app_colors.dart';
 import 'package:fitnessapp/utils/app_theme.dart';
 import 'package:fitnessapp/common_widgets/round_gradient_button.dart';
+import 'package:fitnessapp/utils/nutrition_l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -14,11 +16,18 @@ class AddMealScreen extends StatefulWidget {
   final String dayId;
   final String traineeName;
 
+  /// When set, this screen replaces an existing (rejected) meal's contents
+  /// instead of adding a new meal — the trainee is then notified.
+  final String? replaceMealId;
+  final String? initialMealType;
+
   const AddMealScreen({
     Key? key,
     required this.planId,
     required this.dayId,
     required this.traineeName,
+    this.replaceMealId,
+    this.initialMealType,
   }) : super(key: key);
 
   @override
@@ -26,11 +35,22 @@ class AddMealScreen extends StatefulWidget {
 }
 
 class _AddMealScreenState extends State<AddMealScreen> {
-  String _mealType = 'Breakfast';
+  late String _mealType;
   TimeOfDay _time = const TimeOfDay(hour: 8, minute: 0);
   final _notesCtrl = TextEditingController();
   final List<FoodItemDraft> _items = [];
   String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _mealType = widget.initialMealType != null &&
+            _mealTypes.contains(widget.initialMealType)
+        ? widget.initialMealType!
+        : 'Breakfast';
+  }
+
+  bool get _isReplace => widget.replaceMealId != null;
 
   static const _mealTypes = [
     'Breakfast',
@@ -99,14 +119,25 @@ class _AddMealScreenState extends State<AddMealScreen> {
     setState(() => _error = null);
 
     final provider = context.read<MealProvider>();
-    final ok = await provider.addMeal(
-      planId: widget.planId,
-      dayId: widget.dayId,
-      mealType: _mealType,
-      timeOfDay: _formatTime(_time),
-      notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
-      foodItems: _items.map((d) => d.toJson()).toList(),
-    );
+    final bool ok;
+    if (_isReplace) {
+      ok = await provider.replaceMeal(
+        mealId: widget.replaceMealId!,
+        planId: widget.planId,
+        timeOfDay: _formatTime(_time),
+        notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
+        foodItems: _items.map((d) => d.toJson()).toList(),
+      );
+    } else {
+      ok = await provider.addMeal(
+        planId: widget.planId,
+        dayId: widget.dayId,
+        mealType: _mealType,
+        timeOfDay: _formatTime(_time),
+        notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
+        foodItems: _items.map((d) => d.toJson()).toList(),
+      );
+    }
 
     if (ok && mounted) {
       Navigator.pop(context, true);
@@ -123,7 +154,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
       backgroundColor: colors.bg,
       appBar: AppBar(
         title: Text(
-          l10n.addMealTitle(widget.traineeName),
+          _isReplace ? l10n.replaceMeal : l10n.addMealTitle(widget.traineeName),
           style: TextStyle(
               fontWeight: FontWeight.w700,
               color: colors.fg,
@@ -171,7 +202,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
-                              type,
+                              mealTypeLabel(l10n, type),
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
@@ -352,9 +383,9 @@ class _AddMealScreenState extends State<AddMealScreen> {
                   const SizedBox(height: 12),
                 ],
                 provider.loading
-                    ? const Center(child: CircularProgressIndicator())
+                    ? const LiaqhPageLoader()
                     : RoundGradientButton(
-                        title: l10n.saveMeal,
+                        title: _isReplace ? l10n.replaceMeal : l10n.saveMeal,
                         onPressed: _submit,
                       ),
               ],

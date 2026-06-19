@@ -25,6 +25,7 @@ class _AddTraineeAdminScreenState extends State<AddTraineeAdminScreen> {
   final _last = TextEditingController();
   final _email = TextEditingController();
   final _password = TextEditingController();
+  final _phone = TextEditingController();
   final _height = TextEditingController();
   final _weight = TextEditingController();
   String _goal = 'Cut';
@@ -37,6 +38,7 @@ class _AddTraineeAdminScreenState extends State<AddTraineeAdminScreen> {
     _last.dispose();
     _email.dispose();
     _password.dispose();
+    _phone.dispose();
     _height.dispose();
     _weight.dispose();
     super.dispose();
@@ -57,6 +59,7 @@ class _AddTraineeAdminScreenState extends State<AddTraineeAdminScreen> {
       goal: _goal,
       heightCm: double.parse(_height.text.trim()),
       currentWeightKg: double.parse(_weight.text.trim()),
+      phoneNumber: _phone.text.trim(),
     );
     if (!mounted) return;
     if (ok) {
@@ -123,6 +126,9 @@ class _AddTraineeAdminScreenState extends State<AddTraineeAdminScreen> {
                 keyboardType: TextInputType.emailAddress, required: true),
             const SizedBox(height: 12),
             _field(colors, _password, l10n.tempPasswordField, required: true),
+            const SizedBox(height: 12),
+            _field(colors, _phone, l10n.phoneRequiredField,
+                keyboardType: TextInputType.phone, required: true),
             const SizedBox(height: 12),
             Row(children: [
               Expanded(

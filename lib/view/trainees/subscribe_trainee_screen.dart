@@ -1,4 +1,5 @@
 import 'package:fitnessapp/data/models/membership_models.dart';
+import 'package:fitnessapp/common_widgets/liaqh_loaders.dart';
 import 'package:fitnessapp/l10n/app_localizations.dart';
 import 'package:fitnessapp/providers/membership_provider.dart';
 import 'package:fitnessapp/utils/app_colors.dart';
@@ -79,7 +80,7 @@ class _SubscribeTraineeScreenState extends State<SubscribeTraineeScreen> {
         foregroundColor: colors.fg,
       ),
       body: provider.loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const LiaqhPageLoader()
           : SingleChildScrollView(
               padding: const EdgeInsets.all(20),
               child: Column(

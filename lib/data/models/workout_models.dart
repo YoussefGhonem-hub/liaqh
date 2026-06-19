@@ -108,6 +108,8 @@ class WorkoutExerciseItem {
   final int orderIndex;
   final String? notes;
   final String? videoUrl;
+  final String? imageUrl; // featured (large) — used for full-screen view
+  final String? thumbnailUrl; // small — used inline in the day list
   final List<WorkoutComment> comments;
 
   WorkoutExerciseItem({
@@ -123,8 +125,13 @@ class WorkoutExerciseItem {
     required this.orderIndex,
     this.notes,
     this.videoUrl,
+    this.imageUrl,
+    this.thumbnailUrl,
     this.comments = const [],
   });
+
+  String? get listImage => thumbnailUrl ?? imageUrl;
+  String? get fullImage => imageUrl ?? thumbnailUrl;
 
   factory WorkoutExerciseItem.fromJson(Map<String, dynamic> j) => WorkoutExerciseItem(
         id: j['id'],
@@ -141,6 +148,8 @@ class WorkoutExerciseItem {
         orderIndex: j['orderIndex'],
         notes: j['notes'],
         videoUrl: j['videoUrl'],
+        imageUrl: j['imageUrl'],
+        thumbnailUrl: j['thumbnailUrl'],
         comments: (j['comments'] as List? ?? [])
             .map((c) => WorkoutComment.fromJson(c))
             .toList(),
@@ -178,7 +187,8 @@ class Exercise {
   final String muscleGroup;
   final String? equipment;
   final String? descriptionEn;
-  final String? imageUrl;
+  final String? imageUrl; // featured (large) — used in detail/preview
+  final String? thumbnailUrl; // small — used in list rows
   final String? videoUrl;
   final bool isCustom;
 
@@ -190,9 +200,13 @@ class Exercise {
     this.equipment,
     this.descriptionEn,
     this.imageUrl,
+    this.thumbnailUrl,
     this.videoUrl,
     this.isCustom = false,
   });
+
+  /// Best image for a compact list row (falls back to the featured image).
+  String? get listImage => thumbnailUrl ?? imageUrl;
 
   factory Exercise.fromJson(Map<String, dynamic> j) => Exercise(
         id: j['id'],
@@ -202,6 +216,7 @@ class Exercise {
         equipment: j['equipment'],
         descriptionEn: j['descriptionEn'],
         imageUrl: j['imageUrl'],
+        thumbnailUrl: j['thumbnailUrl'],
         videoUrl: j['videoUrl'],
         isCustom: j['isCustom'] ?? false,
       );

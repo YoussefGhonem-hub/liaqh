@@ -1,3 +1,4 @@
+import '../models/paged_result.dart';
 import '../models/payment_method_models.dart';
 import '../services/api_service.dart';
 
@@ -52,10 +53,14 @@ class PaymentMethodsRepository {
     return (res.data as List).map((j) => ManualPaymentModel.fromJson(j)).toList();
   }
 
-  Future<List<ManualPaymentModel>> list({String? status}) async {
-    final res = await _api.get('/payment-requests',
-        params: status != null ? {'status': status} : null);
-    return (res.data as List).map((j) => ManualPaymentModel.fromJson(j)).toList();
+  Future<PagedResult<ManualPaymentModel>> list(
+      {String? status, int page = 1, int pageSize = 20}) async {
+    final res = await _api.get('/payment-requests', params: {
+      if (status != null) 'status': status,
+      'page': page,
+      'pageSize': pageSize,
+    });
+    return PagedResult.fromJson(res.data, (j) => ManualPaymentModel.fromJson(j));
   }
 
   Future<void> review(String id, bool accept, {String? note}) =>

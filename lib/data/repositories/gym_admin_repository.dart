@@ -1,4 +1,5 @@
 import '../models/gym_admin_models.dart';
+import '../models/paged_result.dart';
 import '../models/trainee_models.dart';
 import '../services/api_service.dart';
 
@@ -16,10 +17,14 @@ class GymAdminRepository {
     return (res.data as List).map((j) => UnpaidTrainee.fromJson(j)).toList();
   }
 
-  Future<List<GymCoach>> getCoaches({String? search}) async {
-    final res = await _api.get('/gym-admin/coaches',
-        params: search != null && search.isNotEmpty ? {'search': search} : null);
-    return (res.data as List).map((j) => GymCoach.fromJson(j)).toList();
+  Future<PagedResult<GymCoach>> getCoaches(
+      {String? search, int page = 1, int pageSize = 20}) async {
+    final res = await _api.get('/gym-admin/coaches', params: {
+      if (search != null && search.isNotEmpty) 'search': search,
+      'page': page,
+      'pageSize': pageSize,
+    });
+    return PagedResult.fromJson(res.data, (j) => GymCoach.fromJson(j));
   }
 
   Future<String> createCoach({
@@ -58,6 +63,7 @@ class GymAdminRepository {
     required String goal,
     required double heightCm,
     required double currentWeightKg,
+    String? phoneNumber,
   }) async {
     final res = await _api.post('/gym-admin/trainees', data: {
       'coachUserId': coachUserId,
@@ -68,6 +74,7 @@ class GymAdminRepository {
       'goal': goal,
       'heightCm': heightCm,
       'currentWeightKg': currentWeightKg,
+      if (phoneNumber != null) 'phoneNumber': phoneNumber,
     });
     return res.data['id'].toString();
   }

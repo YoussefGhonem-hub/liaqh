@@ -1,4 +1,6 @@
 import 'package:fitnessapp/data/models/payment_method_models.dart';
+import 'package:fitnessapp/l10n/app_localizations.dart';
+import 'package:fitnessapp/common_widgets/liaqh_loaders.dart';
 import 'package:fitnessapp/providers/payment_methods_provider.dart';
 import 'package:fitnessapp/providers/payment_provider.dart';
 import 'package:fitnessapp/utils/app_colors.dart';
@@ -77,6 +79,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final colors = context.colors;
     final provider = context.watch<PaymentMethodsProvider>();
 
@@ -86,14 +89,14 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
         backgroundColor: colors.bg,
         foregroundColor: colors.fg,
         elevation: 0,
-        title: Text('Choose payment method',
+        title: Text(l10n.choosePaymentMethod,
             style: TextStyle(color: colors.fg, fontWeight: FontWeight.w700)),
       ),
       body: provider.loading && provider.methods.isEmpty
-          ? const Center(child: CircularProgressIndicator())
+          ? const LiaqhPageLoader()
           : provider.methods.isEmpty
               ? Center(
-                  child: Text('No payment methods available.',
+                  child: Text(l10n.noPaymentMethods,
                       style: TextStyle(color: colors.subFg)))
               : ListView(
                   padding: const EdgeInsets.all(16),

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:fitnessapp/common_widgets/liaqh_loaders.dart';
 import 'package:fitnessapp/data/models/inbody_models.dart';
 import 'package:fitnessapp/l10n/app_localizations.dart';
 import 'package:fitnessapp/providers/inbody_provider.dart';
@@ -289,7 +290,7 @@ class _AddInBodyScreenState extends State<AddInBodyScreen>
           ],
           const SizedBox(height: 24),
           provider.loading || _uploading
-              ? const Center(child: CircularProgressIndicator())
+              ? const LiaqhPageLoader()
               : RoundGradientButton(
                   title: l10n.saveMeasurement,
                   onPressed: _submit,

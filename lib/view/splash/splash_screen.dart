@@ -169,6 +169,19 @@ class _SplashScreenState extends State<SplashScreen>
                 ),
               ),
             ),
+
+            // Developer credit
+            const Positioned(
+              bottom: 28,
+              child: Text(
+                'Developed by Youssef Ghonem',
+                style: TextStyle(
+                    color: Color(0xFF6B5E57),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 0.5),
+              ),
+            ),
           ],
         ),
       ),

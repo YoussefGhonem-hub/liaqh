@@ -1,4 +1,5 @@
 import 'package:fitnessapp/l10n/app_localizations.dart';
+import 'package:fitnessapp/common_widgets/liaqh_loaders.dart';
 import 'package:fitnessapp/providers/workout_provider.dart';
 import 'package:fitnessapp/utils/app_colors.dart';
 import 'package:fitnessapp/utils/app_theme.dart';
@@ -218,7 +219,7 @@ class _CreateProgramScreenState extends State<CreateProgramScreen> {
             ],
             const SizedBox(height: 28),
             provider.loading
-                ? const Center(child: CircularProgressIndicator())
+                ? const LiaqhPageLoader()
                 : RoundGradientButton(
                     title: l10n.createAndAddDays,
                     onPressed: _submit,

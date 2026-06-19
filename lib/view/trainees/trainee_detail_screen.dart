@@ -1,4 +1,5 @@
 import 'package:fitnessapp/common_widgets/attachments_view.dart';
+import 'package:fitnessapp/common_widgets/liaqh_loaders.dart';
 import 'package:fitnessapp/common_widgets/user_avatar.dart';
 import 'package:fitnessapp/view/workout/workout_templates_screen.dart';
 import 'package:fitnessapp/data/models/chat_models.dart';
@@ -12,6 +13,8 @@ import 'package:fitnessapp/providers/auth_provider.dart';
 import 'package:fitnessapp/providers/workout_provider.dart';
 import 'package:fitnessapp/utils/app_colors.dart';
 import 'package:fitnessapp/utils/app_theme.dart';
+import 'package:fitnessapp/utils/nutrition_l10n.dart';
+import 'package:fitnessapp/utils/status_l10n.dart';
 import 'package:fitnessapp/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -27,6 +30,12 @@ import '../nutrition/build_meal_plan_screen.dart';
 import '../nutrition/meal_plan_view_screen.dart';
 import '../nutrition/shopping_list_screen.dart';
 import '../workout/create_program_screen.dart';
+import '../workout/build_workout_day_screen.dart';
+import 'package:fitnessapp/providers/daily_workout_log_provider.dart';
+import 'package:fitnessapp/providers/coaching_provider.dart';
+import 'package:fitnessapp/data/models/coaching_models.dart';
+import 'package:fitnessapp/data/services/notification_service.dart';
+import 'package:confetti/confetti.dart';
 import '../workout/workout_day_session_screen.dart';
 import '../workout/workout_history_screen.dart';
 import 'subscribe_trainee_screen.dart';
@@ -87,6 +96,56 @@ class TraineeDetailScreen extends StatefulWidget {
   State<TraineeDetailScreen> createState() => _TraineeDetailScreenState();
 }
 
+/// Chat icon that gently pulses with a glowing halo to nudge the trainee
+/// to message their coach.
+class _PulsingChatIcon extends StatefulWidget {
+  const _PulsingChatIcon();
+
+  @override
+  State<_PulsingChatIcon> createState() => _PulsingChatIconState();
+}
+
+class _PulsingChatIconState extends State<_PulsingChatIcon>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+      vsync: this, duration: const Duration(milliseconds: 1100))
+    ..repeat(reverse: true);
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _c,
+      builder: (_, child) {
+        final t = Curves.easeInOut.transform(_c.value);
+        return Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFFD97757)
+                    .withValues(alpha: 0.15 + 0.45 * t),
+                blurRadius: 6 + 10 * t,
+                spreadRadius: 1 + 2 * t,
+              ),
+            ],
+          ),
+          child: Transform.scale(
+            scale: 1.0 + 0.12 * t,
+            child: child,
+          ),
+        );
+      },
+      child: const Icon(Icons.chat_bubble_rounded, color: Colors.white),
+    );
+  }
+}
+
 class _TraineeDetailScreenState extends State<TraineeDetailScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabCtrl;
@@ -95,7 +154,7 @@ class _TraineeDetailScreenState extends State<TraineeDetailScreen>
   void initState() {
     super.initState();
     _tabCtrl =
-        TabController(length: 6, vsync: this, initialIndex: widget.initialTab);
+        TabController(length: 7, vsync: this, initialIndex: widget.initialTab);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context
           .read<MembershipProvider>()
@@ -140,6 +199,7 @@ class _TraineeDetailScreenState extends State<TraineeDetailScreen>
             expandedHeight: 270,
             pinned: true,
             backgroundColor: const Color(0xFF1C1714),
+            iconTheme: const IconThemeData(color: Colors.white),
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
                 decoration: const BoxDecoration(
@@ -190,7 +250,8 @@ class _TraineeDetailScreenState extends State<TraineeDetailScreen>
                                     size: 13, color: _goalColor(widget.goal)),
                                 const SizedBox(width: 4),
                                 Text(
-                                  widget.goal,
+                                  goalLabel(
+                                      AppLocalizations.of(context), widget.goal),
                                   style: TextStyle(
                                       color: _goalColor(widget.goal),
                                       fontWeight: FontWeight.w700,
@@ -210,8 +271,7 @@ class _TraineeDetailScreenState extends State<TraineeDetailScreen>
             foregroundColor: Colors.white,
             actions: [
               IconButton(
-                icon:
-                    const Icon(Icons.chat_bubble_rounded, color: Colors.white),
+                icon: const _PulsingChatIcon(),
                 tooltip: 'Open chat',
                 onPressed: () async {
                   final auth = context.read<AuthProvider>();
@@ -302,6 +362,10 @@ class _TraineeDetailScreenState extends State<TraineeDetailScreen>
                             const Icon(Icons.fitness_center_outlined, size: 18),
                         text: l10n.workout),
                     Tab(
+                        icon: const Icon(Icons.event_available_outlined,
+                            size: 18),
+                        text: l10n.dailyLog),
+                    Tab(
                         icon: const Icon(Icons.restaurant_outlined, size: 18),
                         text: l10n.nutrition),
                     Tab(
@@ -333,10 +397,18 @@ class _TraineeDetailScreenState extends State<TraineeDetailScreen>
               traineeName: widget.traineeName,
               readOnly: widget.readOnly,
             ),
+            _DailyLogTab(
+              traineeId: widget.traineeId,
+              readOnly: widget.readOnly,
+            ),
             _NutritionTab(
               traineeId: widget.traineeId,
               traineeName: widget.traineeName,
               readOnly: widget.readOnly,
+              heightCm: widget.heightCm,
+              currentWeightKg: widget.currentWeightKg,
+              goal: widget.goal,
+              traineeUserId: widget.traineeUserId,
             ),
             ProgressBodyScreen(
               traineeId: widget.traineeId,
@@ -430,6 +502,7 @@ class _CoachCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final l10n = AppLocalizations.of(context);
     return Container(
       margin: const EdgeInsets.only(top: 4),
       padding: const EdgeInsets.all(16),
@@ -445,7 +518,7 @@ class _CoachCard extends StatelessWidget {
               const Icon(Icons.sports_gymnastics_rounded,
                   size: 18, color: AppColors.primaryColor1),
               const SizedBox(width: 8),
-              Text('Your Coach',
+              Text(l10n.yourCoach,
                   style: TextStyle(
                       fontWeight: FontWeight.w700,
                       fontSize: 14,
@@ -628,7 +701,7 @@ class _MembershipTab extends StatelessWidget {
     return RefreshIndicator(
       onRefresh: () => provider.loadTraineeMemberships(traineeId),
       child: provider.loadingMemberships
-          ? const Center(child: CircularProgressIndicator())
+          ? const LiaqhPageLoader()
           : CustomScrollView(
               slivers: [
                 // Coach/Admin: assign a plan to the trainee. The trainee pays
@@ -746,7 +819,7 @@ class _MembershipCard extends StatelessWidget {
                   color: statusColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Text(membership.status,
+                child: Text(subStatusLabel(l10n, membership.status),
                     style: TextStyle(
                         color: statusColor,
                         fontWeight: FontWeight.w600,
@@ -759,7 +832,7 @@ class _MembershipCard extends StatelessWidget {
             '${membership.startDate.toString().substring(0, 10)} → ${membership.endDate.toString().substring(0, 10)}',
             style: TextStyle(color: colors.subFg, fontSize: 12),
           ),
-          Text('EGP ${membership.price.toStringAsFixed(0)} ${l10n.perPlan}',
+          Text('${l10n.currencyEgp} ${membership.price.toStringAsFixed(0)} ${l10n.perPlan}',
               style: const TextStyle(
                   color: AppColors.primaryColor1,
                   fontWeight: FontWeight.w600,
@@ -924,18 +997,20 @@ class _PaymentScheduleState extends State<_PaymentSchedule> {
 
   Future<void> _setStatus(BuildContext context, String paymentId, String status) async {
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = AppLocalizations.of(context);
     final ok = await context
         .read<MembershipProvider>()
         .setPaymentStatus(widget.membershipId, paymentId, status);
     if (!ok) {
-      messenger.showSnackBar(const SnackBar(
-          content: Text('Could not update payment status.'),
+      messenger.showSnackBar(SnackBar(
+          content: Text(l10n.couldNotUpdatePaymentStatus),
           backgroundColor: AppColors.errorColor));
     }
   }
 
   Widget _row(BuildContext context, dynamic colors, MembershipPaymentModel p) {
     final color = _statusColor(p.status);
+    final l10n = AppLocalizations.of(context);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -970,41 +1045,46 @@ class _PaymentScheduleState extends State<_PaymentSchedule> {
                         color: colors.fg,
                         fontWeight: FontWeight.w600)),
                 Text(
-                    '${p.isFree ? 'Free' : 'EGP ${p.amount.toStringAsFixed(0)}'}'
-                    '${p.isCurrent ? '  ·  current' : ''}',
+                    '${p.isFree ? l10n.payStatusFree : '${l10n.currencyEgp} ${p.amount.toStringAsFixed(0)}'}'
+                    '${p.isCurrent ? ' · ${l10n.currentPeriodSuffix}' : ''}',
                     style: TextStyle(fontSize: 11, color: colors.subFg)),
               ],
             ),
           ),
           if (widget.readOnly)
-            _chip(p.status, color, false)
+            _chip(p.status, payStatusLabel(l10n, p.status), color, false)
           else
             // Coach: tap to set Paid / Unpaid / Free.
             PopupMenuButton<String>(
               onSelected: (s) => _setStatus(context, p.id, s),
               itemBuilder: (_) => [
-                _menuItem('Paid', Icons.check_circle_rounded, Colors.green),
-                _menuItem('Unpaid', Icons.schedule_rounded, Colors.orange),
-                _menuItem('Free', Icons.card_giftcard_rounded, Colors.blue),
+                _menuItem('Paid', l10n.payStatusPaid, Icons.check_circle_rounded,
+                    Colors.green),
+                _menuItem('Unpaid', l10n.payStatusUnpaid,
+                    Icons.schedule_rounded, Colors.orange),
+                _menuItem('Free', l10n.payStatusFree,
+                    Icons.card_giftcard_rounded, Colors.blue),
               ],
-              child: _chip(p.status, color, true),
+              child: _chip(p.status, payStatusLabel(l10n, p.status), color, true),
             ),
         ],
       ),
     );
   }
 
-  PopupMenuItem<String> _menuItem(String value, IconData icon, Color color) =>
+  PopupMenuItem<String> _menuItem(
+          String value, String label, IconData icon, Color color) =>
       PopupMenuItem<String>(
         value: value,
         child: Row(children: [
           Icon(icon, size: 18, color: color),
           const SizedBox(width: 10),
-          Text(value),
+          Text(label),
         ]),
       );
 
-  Widget _chip(String status, Color color, bool tappable) => Container(
+  Widget _chip(String status, String label, Color color, bool tappable) =>
+      Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.15),
@@ -1016,7 +1096,7 @@ class _PaymentScheduleState extends State<_PaymentSchedule> {
           children: [
             Icon(_statusIcon(status), size: 14, color: color),
             const SizedBox(width: 4),
-            Text(status,
+            Text(label,
                 style: TextStyle(
                     color: color, fontWeight: FontWeight.w700, fontSize: 11)),
             if (tappable) ...[
@@ -1047,7 +1127,7 @@ class _InBodyTab extends StatelessWidget {
     final provider = context.watch<InBodyProvider>();
 
     if (provider.loading) {
-      return const Center(child: CircularProgressIndicator());
+      return const LiaqhPageLoader();
     }
 
     if (provider.history.isEmpty) {
@@ -1298,7 +1378,7 @@ class _WorkoutTab extends StatelessWidget {
     final provider = context.watch<WorkoutProvider>();
 
     if (provider.loading) {
-      return const Center(child: CircularProgressIndicator());
+      return const LiaqhPageLoader();
     }
 
     final program = provider.currentProgram;
@@ -1377,18 +1457,27 @@ class _WorkoutTab extends StatelessWidget {
                 ],
               ),
             ] else ...[
-              // Trainee: just history.
-              _WorkoutActionChip(
-                icon: Icons.history_rounded,
-                label: AppLocalizations.of(context).historyLabel,
-                color: AppColors.primaryColor1,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => WorkoutHistoryScreen(
-                      traineeId: traineeId,
-                      traineeName: traineeName,
+              // Trainee: just history — full-width button.
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => WorkoutHistoryScreen(
+                        traineeId: traineeId,
+                        traineeName: traineeName,
+                      ),
                     ),
+                  ),
+                  icon: const Icon(Icons.history_rounded, size: 18),
+                  label: Text(AppLocalizations.of(context).historyLabel),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.primaryColor1,
+                    side: const BorderSide(color: AppColors.primaryColor1),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14)),
                   ),
                 ),
               ),
@@ -1411,7 +1500,7 @@ class _WorkoutTab extends StatelessWidget {
                     const SizedBox(height: 6),
                     Text(
                         readOnly
-                            ? 'Your coach hasn\'t added a workout program yet.'
+                            ? AppLocalizations.of(context).coachNoWorkoutYet
                             : AppLocalizations.of(context).createWorkoutHint,
                         textAlign: TextAlign.center,
                         style: TextStyle(fontSize: 13, color: colors.subFg)),
@@ -1456,6 +1545,32 @@ class _WorkoutTab extends StatelessWidget {
                         ],
                       ),
                     ),
+                    if (!readOnly) ...[
+                      // Edit program (manage days)
+                      _ProgramIconBtn(
+                        icon: Icons.edit_outlined,
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => BuildWorkoutDayScreen(
+                              programId: program.id,
+                              programName: program.name,
+                              traineeId: traineeId,
+                              traineeName: traineeName,
+                            ),
+                          ),
+                        ).then((_) => context
+                            .read<WorkoutProvider>()
+                            .loadActiveProgram(traineeId)),
+                      ),
+                      const SizedBox(width: 6),
+                      // Delete program
+                      _ProgramIconBtn(
+                        icon: Icons.delete_outline_rounded,
+                        onTap: () => _confirmDeleteProgram(
+                            context, program.id, program.name),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -1496,6 +1611,46 @@ class _WorkoutTab extends StatelessWidget {
     } catch (_) {
       return iso.length > 10 ? iso.substring(0, 10) : iso;
     }
+  }
+
+  /// Confirm + delete the whole program.
+  Future<void> _confirmDeleteProgram(
+      BuildContext context, String programId, String programName) async {
+    final l10n = AppLocalizations.of(context);
+    final colors = context.colors;
+    final messenger = ScaffoldMessenger.of(context);
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: colors.card,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: Text(l10n.deleteProgramTitle,
+            style: TextStyle(
+                color: colors.fg, fontWeight: FontWeight.w800, fontSize: 16)),
+        content: Text(l10n.deleteProgramConfirm(programName),
+            style: TextStyle(color: colors.subFg, fontSize: 13)),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(l10n.cancel)),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.errorColor,
+                foregroundColor: Colors.white),
+            child: Text(l10n.delete),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !context.mounted) return;
+    final done = await context
+        .read<WorkoutProvider>()
+        .deleteProgram(programId, traineeId: traineeId);
+    messenger.showSnackBar(SnackBar(
+      content: Text(done ? l10n.programDeleted : l10n.failedGeneric),
+      backgroundColor: done ? AppColors.successColor : AppColors.errorColor,
+    ));
   }
 
   /// Let the coach pick one of their templates and assign it to this trainee.
@@ -1625,6 +1780,29 @@ class _HeroActionButton extends StatelessWidget {
                       fontWeight: FontWeight.w800)),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Small translucent icon button used on the program header (edit / delete).
+class _ProgramIconBtn extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  const _ProgramIconBtn({required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white.withValues(alpha: 0.18),
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: Icon(icon, color: Colors.white, size: 18),
         ),
       ),
     );
@@ -1841,15 +2019,719 @@ class _WorkoutDayCard extends StatelessWidget {
   }
 }
 
+// ── Daily Log Tab ─────────────────────────────────────────────────────────────
+class _DailyLogTab extends StatefulWidget {
+  final String traineeId;
+  final bool readOnly;
+  const _DailyLogTab({required this.traineeId, this.readOnly = false});
+
+  @override
+  State<_DailyLogTab> createState() => _DailyLogTabState();
+}
+
+class _DailyLogTabState extends State<_DailyLogTab> {
+  bool _reminderEnabled = false;
+  TimeOfDay _reminderTime = const TimeOfDay(hour: 18, minute: 0);
+  late final ConfettiController _confetti =
+      ConfettiController(duration: const Duration(seconds: 2));
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<DailyWorkoutLogProvider>().load(widget.traineeId);
+      context.read<CoachingProvider>().loadStats(widget.traineeId);
+      if (widget.readOnly) _loadReminder();
+    });
+  }
+
+  @override
+  void dispose() {
+    _confetti.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadReminder() async {
+    final r = await NotificationService.getWorkoutReminder();
+    if (!mounted) return;
+    setState(() {
+      _reminderEnabled = r.enabled;
+      _reminderTime = TimeOfDay(hour: r.hour, minute: r.minute);
+    });
+  }
+
+  Future<void> _toggleReminder(bool on) async {
+    if (on) {
+      await NotificationService.setWorkoutReminder(
+          _reminderTime.hour, _reminderTime.minute);
+    } else {
+      await NotificationService.cancelWorkoutReminder();
+    }
+    if (mounted) setState(() => _reminderEnabled = on);
+  }
+
+  Future<void> _pickReminderTime() async {
+    final picked =
+        await showTimePicker(context: context, initialTime: _reminderTime);
+    if (picked == null) return;
+    setState(() {
+      _reminderTime = picked;
+      _reminderEnabled = true;
+    });
+    await NotificationService.setWorkoutReminder(picked.hour, picked.minute);
+  }
+
+  List<DateTime> _currentWeek() {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    // Week starts on Saturday (common in the region): find last Saturday.
+    final diff = (today.weekday + 1) % 7; // Sat=6→0, Sun=7→1...
+    final start = today.subtract(Duration(days: diff));
+    return List.generate(7, (i) => start.add(Duration(days: i)));
+  }
+
+  Future<void> _log(DateTime day, bool didWorkout) async {
+    final l10n = AppLocalizations.of(context);
+    final coaching = context.read<CoachingProvider>();
+    final before = coaching.stats;
+    final ok =
+        await context.read<DailyWorkoutLogProvider>().log(day, didWorkout);
+    if (!mounted) return;
+    if (!ok) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(l10n.failedGeneric),
+            backgroundColor: AppColors.errorColor),
+      );
+      return;
+    }
+    // Refresh stats and celebrate new milestones.
+    await coaching.loadStats(widget.traineeId);
+    if (!mounted) return;
+    final after = coaching.stats;
+    const milestones = [7, 30, 100];
+    final hitStreak = milestones.contains(after.currentStreak) &&
+        after.currentStreak != before.currentStreak;
+    final hitGoal = after.thisWeekCount >= after.weeklyGoal &&
+        before.thisWeekCount < after.weeklyGoal;
+    if (didWorkout && (hitStreak || hitGoal)) {
+      _confetti.play();
+      final msg = hitStreak
+          ? l10n.streakMilestone(after.currentStreak)
+          : l10n.weeklyGoalReached;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(msg), backgroundColor: AppColors.successColor));
+    }
+  }
+
+  Future<void> _pickWeeklyGoal() async {
+    final colors = context.colors;
+    final l10n = AppLocalizations.of(context);
+    final current = context.read<CoachingProvider>().stats.weeklyGoal;
+    final picked = await showModalBottomSheet<int>(
+      context: context,
+      backgroundColor: colors.card,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 12),
+            Text(l10n.setWeeklyGoal,
+                style: TextStyle(color: colors.fg, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 8),
+            ...List.generate(7, (i) => i + 1).map((n) => ListTile(
+                  title: Text(l10n.daysPerWeek(n),
+                      style: TextStyle(color: colors.fg)),
+                  trailing: n == current
+                      ? const Icon(Icons.check, color: AppColors.primaryColor1)
+                      : null,
+                  onTap: () => Navigator.pop(ctx, n),
+                )),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+    if (picked != null && mounted) {
+      await context
+          .read<CoachingProvider>()
+          .setWeeklyGoalAndReload(picked, widget.traineeId);
+    }
+  }
+
+  String _badgeLabel(AppLocalizations l10n, String b) {
+    switch (b) {
+      case 'streak_7':
+        return l10n.badge7;
+      case 'streak_30':
+        return l10n.badge30;
+      case 'streak_100':
+        return l10n.badge100;
+      case 'total_10':
+        return l10n.badgeTotal10;
+      case 'total_50':
+        return l10n.badgeTotal50;
+      case 'total_100':
+        return l10n.badgeTotal100;
+      default:
+        return b;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final l10n = AppLocalizations.of(context);
+    final provider = context.watch<DailyWorkoutLogProvider>();
+    final week = _currentWeek();
+    final today = DateTime.now();
+    final todayKey = DateTime(today.year, today.month, today.day);
+    final todayStatus = provider.statusFor(todayKey);
+
+    if (provider.loading) {
+      return const LiaqhPageLoader();
+    }
+
+    final stats = context.watch<CoachingProvider>().stats;
+
+    return Stack(
+      children: [
+        RefreshIndicator(
+      onRefresh: () async {
+        await context.read<DailyWorkoutLogProvider>().load(widget.traineeId);
+        await context.read<CoachingProvider>().loadStats(widget.traineeId);
+      },
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.fromLTRB(
+            20, 20, 20, MediaQuery.of(context).padding.bottom + 90),
+        children: [
+          // ── Streak + weekly goal + badges ─────────────────────────────
+          _StatsHeader(
+            stats: stats,
+            colors: colors,
+            l10n: l10n,
+            onEditGoal: widget.readOnly ? _pickWeeklyGoal : null,
+            badgeLabel: (b) => _badgeLabel(l10n, b),
+          ),
+          const SizedBox(height: 24),
+          // ── This week strip ───────────────────────────────────────────
+          Text(l10n.thisWeekLabel,
+              style: TextStyle(
+                  fontWeight: FontWeight.w700, fontSize: 15, color: colors.fg)),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: week.map((d) {
+              final isToday = d == todayKey;
+              final isFuture = d.isAfter(todayKey);
+              final st = provider.statusFor(d);
+              Color bg;
+              Widget icon;
+              if (st == true) {
+                bg = AppColors.successColor;
+                icon = const Icon(Icons.check, color: Colors.white, size: 16);
+              } else if (st == false) {
+                bg = const Color(0xFFEF4444);
+                icon = const Icon(Icons.close, color: Colors.white, size: 16);
+              } else {
+                bg = colors.listTile;
+                icon = Icon(Icons.remove,
+                    color: colors.subFg.withValues(alpha: 0.5), size: 16);
+              }
+              return Expanded(
+                child: GestureDetector(
+                  // Only the trainee (own profile = readOnly) may log; not future days.
+                  onTap: (!widget.readOnly || isFuture)
+                      ? null
+                      : () => _showDayPicker(d),
+                  child: Column(
+                    children: [
+                      Text(dayShortName(context, d.weekday % 7),
+                          style: TextStyle(
+                              fontSize: 10,
+                              color: isToday
+                                  ? AppColors.primaryColor1
+                                  : colors.subFg,
+                              fontWeight: isToday
+                                  ? FontWeight.w800
+                                  : FontWeight.w500)),
+                      const SizedBox(height: 6),
+                      Container(
+                        width: 34,
+                        height: 34,
+                        decoration: BoxDecoration(
+                          color: bg,
+                          shape: BoxShape.circle,
+                          border: isToday
+                              ? Border.all(
+                                  color: AppColors.primaryColor1, width: 2)
+                              : null,
+                        ),
+                        child: Center(child: icon),
+                      ),
+                      const SizedBox(height: 4),
+                      Text('${d.day}',
+                          style: TextStyle(fontSize: 10, color: colors.subFg)),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 24),
+
+          // ── Today's confirm (trainee only) ────────────────────────────
+          if (widget.readOnly)
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [AppColors.primaryColor1, AppColors.primaryColor2],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(l10n.didYouWorkoutToday,
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800)),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _confirmBtn(
+                          label: l10n.workedOut,
+                          icon: Icons.check_circle,
+                          selected: todayStatus == true,
+                          onTap: provider.saving
+                              ? null
+                              : () => _log(todayKey, true),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _confirmBtn(
+                          label: l10n.restDay,
+                          icon: Icons.bedtime,
+                          selected: todayStatus == false,
+                          onTap: provider.saving
+                              ? null
+                              : () => _log(todayKey, false),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          const SizedBox(height: 24),
+
+          // ── Workout reminder (trainee only) ───────────────────────────
+          if (widget.readOnly) ...[
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: colors.card,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: colors.divider),
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryColor1.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(Icons.alarm,
+                            color: AppColors.primaryColor1, size: 22),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(l10n.workoutReminder,
+                                style: TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 14,
+                                    color: colors.fg)),
+                            Text(l10n.workoutReminderHint,
+                                style: TextStyle(
+                                    fontSize: 11, color: colors.subFg)),
+                          ],
+                        ),
+                      ),
+                      Switch(
+                        value: _reminderEnabled,
+                        activeThumbColor: AppColors.primaryColor1,
+                        onChanged: _toggleReminder,
+                      ),
+                    ],
+                  ),
+                  if (_reminderEnabled) ...[
+                    const SizedBox(height: 12),
+                    GestureDetector(
+                      onTap: _pickReminderTime,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: colors.listTile,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.access_time_rounded,
+                                color: AppColors.primaryColor1, size: 18),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                  l10n.reminderSetFor(
+                                      _reminderTime.format(context)),
+                                  style: TextStyle(
+                                      fontSize: 13, color: colors.fg)),
+                            ),
+                            Text(l10n.setTime,
+                                style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.primaryColor1)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+          ],
+
+          // ── History ───────────────────────────────────────────────────
+          Text(l10n.logHistory,
+              style: TextStyle(
+                  fontWeight: FontWeight.w700, fontSize: 15, color: colors.fg)),
+          const SizedBox(height: 10),
+          if (provider.history.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: Center(
+                  child: Text(l10n.noLogsYet,
+                      style: TextStyle(color: colors.subFg))),
+            )
+          else
+            ...provider.history.map((log) {
+              final done = log.didWorkout;
+              return Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                decoration: BoxDecoration(
+                  color: colors.listTile,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    Icon(done ? Icons.check_circle : Icons.bedtime,
+                        color: done
+                            ? AppColors.successColor
+                            : colors.subFg,
+                        size: 20),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(_fmtLogDate(log.date),
+                          style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: colors.fg)),
+                    ),
+                    Text(done ? l10n.loggedWorkedOut : l10n.loggedRest,
+                        style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: done
+                                ? AppColors.successColor
+                                : colors.subFg)),
+                  ],
+                ),
+              );
+            }),
+        ],
+      ),
+        ),
+        // Celebration confetti
+        Align(
+          alignment: Alignment.topCenter,
+          child: ConfettiWidget(
+            confettiController: _confetti,
+            blastDirectionality: BlastDirectionality.explosive,
+            shouldLoop: false,
+            numberOfParticles: 25,
+            gravity: 0.25,
+            colors: const [
+              AppColors.primaryColor1,
+              Color(0xFF10B981),
+              Color(0xFFFFC107),
+              Color(0xFF6366F1),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Lets the trainee set a past day in the current week.
+  Future<void> _showDayPicker(DateTime day) async {
+    final l10n = AppLocalizations.of(context);
+    final colors = context.colors;
+    final choice = await showModalBottomSheet<bool>(
+      context: context,
+      backgroundColor: colors.card,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 12),
+            Text(_fmtLogDate(day),
+                style: TextStyle(
+                    color: colors.fg, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 8),
+            ListTile(
+              leading: const Icon(Icons.check_circle,
+                  color: AppColors.successColor),
+              title: Text(l10n.workedOut, style: TextStyle(color: colors.fg)),
+              onTap: () => Navigator.pop(ctx, true),
+            ),
+            ListTile(
+              leading: Icon(Icons.bedtime, color: colors.subFg),
+              title: Text(l10n.restDay, style: TextStyle(color: colors.fg)),
+              onTap: () => Navigator.pop(ctx, false),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+    if (choice != null) _log(day, choice);
+  }
+
+  Widget _confirmBtn({
+    required String label,
+    required IconData icon,
+    required bool selected,
+    required VoidCallback? onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: selected
+              ? Colors.white
+              : Colors.white.withValues(alpha: 0.18),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon,
+                size: 18,
+                color: selected ? AppColors.primaryColor1 : Colors.white),
+            const SizedBox(width: 6),
+            Text(label,
+                style: TextStyle(
+                    color: selected ? AppColors.primaryColor1 : Colors.white,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _fmtLogDate(DateTime d) =>
+      '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+}
+
+// ── Streak / weekly goal / badges header ───────────────────────────────────────
+class _StatsHeader extends StatelessWidget {
+  final WorkoutStats stats;
+  final AppThemeColors colors;
+  final AppLocalizations l10n;
+  final VoidCallback? onEditGoal;
+  final String Function(String) badgeLabel;
+  const _StatsHeader({
+    required this.stats,
+    required this.colors,
+    required this.l10n,
+    required this.onEditGoal,
+    required this.badgeLabel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final goalPct = stats.weeklyGoal == 0
+        ? 0.0
+        : (stats.thisWeekCount / stats.weeklyGoal).clamp(0.0, 1.0);
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFFD97757), Color(0xFFB85C38)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              // Streak
+              Expanded(
+                child: Column(
+                  children: [
+                    Text('🔥 ${stats.currentStreak}',
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 26,
+                            fontWeight: FontWeight.w900)),
+                    Text(l10n.dayStreak,
+                        style: const TextStyle(
+                            color: Colors.white70, fontSize: 11)),
+                  ],
+                ),
+              ),
+              // Weekly goal ring
+              SizedBox(
+                width: 76,
+                height: 76,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    SizedBox(
+                      width: 76,
+                      height: 76,
+                      child: CircularProgressIndicator(
+                        value: goalPct,
+                        strokeWidth: 7,
+                        backgroundColor: Colors.white24,
+                        valueColor:
+                            const AlwaysStoppedAnimation(Colors.white),
+                      ),
+                    ),
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text('${stats.thisWeekCount}/${stats.weeklyGoal}',
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800)),
+                        Text(l10n.weeklyGoalLabel,
+                            style: const TextStyle(
+                                color: Colors.white70, fontSize: 8)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              // Total
+              Expanded(
+                child: Column(
+                  children: [
+                    Text('${stats.totalWorkouts}',
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 26,
+                            fontWeight: FontWeight.w900)),
+                    Text(l10n.totalWorkouts,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                            color: Colors.white70, fontSize: 11)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          if (stats.badges.isNotEmpty) ...[
+            const SizedBox(height: 14),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              alignment: WrapAlignment.center,
+              children: stats.badges.map((b) {
+                return Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text('🏅 ${badgeLabel(b)}',
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700)),
+                );
+              }).toList(),
+            ),
+          ],
+          if (onEditGoal != null) ...[
+            const SizedBox(height: 12),
+            GestureDetector(
+              onTap: onEditGoal,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.tune_rounded, color: Colors.white, size: 14),
+                  const SizedBox(width: 6),
+                  Text(l10n.setWeeklyGoal,
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700)),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
 // ── Nutrition Tab ─────────────────────────────────────────────────────────────
 class _NutritionTab extends StatelessWidget {
   final String traineeId;
   final String traineeName;
   final bool readOnly;
+  final double heightCm;
+  final double currentWeightKg;
+  final String goal;
+  final String? traineeUserId;
   const _NutritionTab(
       {required this.traineeId,
       required this.traineeName,
-      this.readOnly = false});
+      this.readOnly = false,
+      this.heightCm = 0,
+      this.currentWeightKg = 0,
+      this.goal = 'Maintain',
+      this.traineeUserId});
 
   @override
   Widget build(BuildContext context) {
@@ -1857,7 +2739,7 @@ class _NutritionTab extends StatelessWidget {
     final provider = context.watch<MealProvider>();
 
     if (provider.loading) {
-      return const Center(child: CircularProgressIndicator());
+      return const LiaqhPageLoader();
     }
 
     final plan = provider.currentPlan;
@@ -1871,42 +2753,38 @@ class _NutritionTab extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Action row
+            // Action row — icon-only buttons
             if (!readOnly || plan != null)
               Row(
                 children: [
-                  if (!readOnly) ...[
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => CreateMealPlanScreen(
-                              traineeId: traineeId,
-                              traineeName: traineeName,
-                            ),
+                  if (!readOnly)
+                    _NutritionActionButton(
+                      icon: Icons.add,
+                      tooltip: plan == null
+                          ? AppLocalizations.of(context).createPlan
+                          : AppLocalizations.of(context).newPlan,
+                      filled: true,
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => CreateMealPlanScreen(
+                            traineeId: traineeId,
+                            traineeName: traineeName,
+                            heightCm: heightCm,
+                            currentWeightKg: currentWeightKg,
+                            goal: goal,
                           ),
-                        ).then((_) => context
-                            .read<MealProvider>()
-                            .loadActivePlan(traineeId)),
-                        icon: const Icon(Icons.add, size: 16),
-                        label: Text(plan == null
-                            ? AppLocalizations.of(context).createPlan
-                            : AppLocalizations.of(context).newPlan),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryColor1,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                          minimumSize: const Size(0, 44),
                         ),
-                      ),
+                      ).then((_) => context
+                          .read<MealProvider>()
+                          .loadActivePlan(traineeId)),
                     ),
-                  ],
                   if (plan != null) ...[
                     if (!readOnly) ...[
-                      const SizedBox(width: 8),
-                      OutlinedButton.icon(
+                      const SizedBox(width: 10),
+                      _NutritionActionButton(
+                        icon: Icons.edit_outlined,
+                        tooltip: AppLocalizations.of(context).edit,
                         onPressed: () => Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -1916,37 +2794,16 @@ class _NutritionTab extends StatelessWidget {
                         ).then((_) => context
                             .read<MealProvider>()
                             .loadActivePlan(traineeId)),
-                        icon: const Icon(Icons.edit_outlined, size: 16),
-                        label: Text(AppLocalizations.of(context).edit),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.primaryColor1,
-                          side:
-                              const BorderSide(color: AppColors.primaryColor1),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                          minimumSize: const Size(0, 44),
-                        ),
                       ),
-                      const SizedBox(width: 8),
                     ],
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => ShoppingListScreen(planId: plan.id),
-                          ),
-                        ),
-                        icon:
-                            const Icon(Icons.shopping_cart_outlined, size: 16),
-                        label: Text(AppLocalizations.of(context).shop),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.primaryColor1,
-                          side:
-                              const BorderSide(color: AppColors.primaryColor1),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                          minimumSize: const Size(0, 44),
+                    const SizedBox(width: 10),
+                    _NutritionActionButton(
+                      icon: Icons.shopping_cart_outlined,
+                      tooltip: AppLocalizations.of(context).shop,
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ShoppingListScreen(planId: plan.id),
                         ),
                       ),
                     ),
@@ -1971,7 +2828,7 @@ class _NutritionTab extends StatelessWidget {
                     const SizedBox(height: 6),
                     Text(
                         readOnly
-                            ? 'Your coach hasn\'t added a meal plan yet.'
+                            ? AppLocalizations.of(context).coachNoMealPlanYet
                             : AppLocalizations.of(context).createNutritionHint,
                         textAlign: TextAlign.center,
                         style: TextStyle(fontSize: 13, color: colors.subFg)),
@@ -2025,15 +2882,26 @@ class _NutritionTab extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              // Day summaries
-              Text(AppLocalizations.of(context).thisWeek,
-                  style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 15,
-                      color: colors.fg)),
-              const SizedBox(height: 10),
-              ...plan.days.map((day) => _NutritionDayRow(day: day)),
-              const SizedBox(height: 16),
+              if (plan.isFile) ...[
+                Text(AppLocalizations.of(context).planFile,
+                    style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 15,
+                        color: colors.fg)),
+                const SizedBox(height: 10),
+                AttachmentsView(urls: [plan.attachmentUrl!]),
+                const SizedBox(height: 16),
+              ] else ...[
+                // Day summaries
+                Text(AppLocalizations.of(context).thisWeek,
+                    style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 15,
+                        color: colors.fg)),
+                const SizedBox(height: 10),
+                ...plan.days.map((day) => _NutritionDayRow(day: day)),
+                const SizedBox(height: 16),
+              ],
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
@@ -2041,7 +2909,10 @@ class _NutritionTab extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder: (_) =>
-                          MealPlanViewScreen(plan: plan, traineeId: traineeId),
+                          MealPlanViewScreen(
+                              plan: plan,
+                              traineeId: traineeId,
+                              canReject: readOnly),
                     ),
                   ),
                   icon: const Icon(Icons.visibility_outlined, size: 16),
@@ -2098,6 +2969,51 @@ class _MacroTarget extends StatelessWidget {
       );
 }
 
+class _NutritionActionButton extends StatelessWidget {
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onPressed;
+  final bool filled;
+  const _NutritionActionButton({
+    required this.icon,
+    required this.tooltip,
+    required this.onPressed,
+    this.filled = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: filled
+            ? AppColors.primaryColor1
+            : Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            width: 48,
+            height: 44,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: filled
+                  ? null
+                  : Border.all(color: AppColors.primaryColor1, width: 1.4),
+            ),
+            child: Icon(
+              icon,
+              size: 20,
+              color: filled ? Colors.white : AppColors.primaryColor1,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _NutritionDayRow extends StatelessWidget {
   final dynamic day;
   const _NutritionDayRow({required this.day});
@@ -2123,17 +3039,20 @@ class _NutritionDayRow extends StatelessWidget {
             ),
             child: Center(
               child: Text(
-                day.dayName.substring(0, 3),
+                dayBadge(context, day.dayOfWeek),
                 style: const TextStyle(
                     color: Color(0xFF43A047),
                     fontWeight: FontWeight.w800,
-                    fontSize: 11),
+                    fontSize: 13),
               ),
             ),
           ),
           const SizedBox(width: 10),
           Expanded(
-            child: Text(day.dayName,
+            child: Text(
+                Localizations.localeOf(context).languageCode == 'ar'
+                    ? day.dayNameAr
+                    : day.dayName,
                 style: TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 13,

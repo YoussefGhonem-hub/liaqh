@@ -1,3 +1,4 @@
+import 'package:fitnessapp/l10n/app_localizations.dart';
 import 'package:fitnessapp/providers/auth_provider.dart';
 import 'package:fitnessapp/utils/app_colors.dart';
 import 'package:fitnessapp/utils/app_theme.dart';
@@ -33,6 +34,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+    final l10n = AppLocalizations.of(context);
     FocusScope.of(context).unfocus();
     setState(() => _submitting = true);
 
@@ -47,8 +49,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
     if (ok) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Password changed successfully.'),
+        SnackBar(
+          content: Text(l10n.passwordChangedSuccess),
           backgroundColor: AppColors.successColor,
         ),
       );
@@ -56,7 +58,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(auth.error ?? 'Could not change password.'),
+          content: Text(auth.error ?? l10n.couldNotChangePassword),
           backgroundColor: AppColors.errorColor,
         ),
       );
@@ -66,6 +68,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: colors.bg,
@@ -73,7 +76,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         backgroundColor: colors.bg,
         elevation: 0,
         foregroundColor: colors.fg,
-        title: Text('Change Password',
+        title: Text(l10n.changePassword,
             style: TextStyle(
                 fontWeight: FontWeight.w700, fontSize: 18, color: colors.fg)),
       ),
@@ -106,10 +109,10 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                         color: Colors.white, size: 26),
                   ),
                   const SizedBox(width: 14),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'Use at least 8 characters. Choose a strong password you don\'t use elsewhere.',
-                      style: TextStyle(color: Colors.white, fontSize: 13, height: 1.4),
+                      l10n.passwordTip,
+                      style: const TextStyle(color: Colors.white, fontSize: 13, height: 1.4),
                     ),
                   ),
                 ],
@@ -119,23 +122,23 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
             _PasswordField(
               controller: _current,
-              label: 'Current Password',
+              label: l10n.currentPassword,
               obscure: !_showCurrent,
               onToggle: () => setState(() => _showCurrent = !_showCurrent),
               validator: (v) =>
-                  (v == null || v.isEmpty) ? 'Enter your current password' : null,
+                  (v == null || v.isEmpty) ? l10n.enterCurrentPassword : null,
             ),
             const SizedBox(height: 16),
             _PasswordField(
               controller: _newPass,
-              label: 'New Password',
+              label: l10n.newPassword,
               obscure: !_showNew,
               onToggle: () => setState(() => _showNew = !_showNew),
               validator: (v) {
-                if (v == null || v.isEmpty) return 'Enter a new password';
-                if (v.length < 8) return 'Must be at least 8 characters';
+                if (v == null || v.isEmpty) return l10n.enterNewPassword;
+                if (v.length < 8) return l10n.passwordMin8;
                 if (v == _current.text) {
-                  return 'New password must differ from the current one';
+                  return l10n.newPasswordMustDiffer;
                 }
                 return null;
               },
@@ -143,12 +146,12 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
             const SizedBox(height: 16),
             _PasswordField(
               controller: _confirm,
-              label: 'Confirm New Password',
+              label: l10n.confirmNewPassword,
               obscure: !_showConfirm,
               onToggle: () => setState(() => _showConfirm = !_showConfirm),
               validator: (v) {
-                if (v == null || v.isEmpty) return 'Re-enter the new password';
-                if (v != _newPass.text) return 'Passwords do not match';
+                if (v == null || v.isEmpty) return l10n.reenterNewPassword;
+                if (v != _newPass.text) return l10n.passwordsDoNotMatch;
                 return null;
               },
             ),
@@ -172,8 +175,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                         child: CircularProgressIndicator(
                             strokeWidth: 2, color: Colors.white),
                       )
-                    : const Text('Update Password',
-                        style: TextStyle(
+                    : Text(l10n.updatePassword,
+                        style: const TextStyle(
                             fontSize: 15, fontWeight: FontWeight.w700)),
               ),
             ),

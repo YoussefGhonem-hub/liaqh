@@ -191,15 +191,33 @@ class AuthProvider extends ChangeNotifier {
   }
 
   String _parseError(dynamic e) {
+    // Prefer the backend's specific message (e.g. "Phone number already
+    // registered.", "Email already registered.") so the user sees what's wrong.
+    final backend = _backendMessage(e);
+    if (backend != null) return backend;
+
     final msg = e.toString();
-    if (msg.contains('400')) return 'Invalid data. Please check your inputs.';
-    if (msg.contains('401')) return 'Unauthorized. Please log in again.';
-    if (msg.contains('409') || msg.contains('already registered')) {
-      return 'Email already in use.';
-    }
     if (msg.contains('SocketException') || msg.contains('Connection')) {
       return 'Cannot connect to server. Check your network.';
     }
+    if (msg.contains('401')) return 'Unauthorized. Please log in again.';
+    if (msg.contains('400')) return 'Invalid data. Please check your inputs.';
     return 'Something went wrong. Please try again.';
+  }
+
+  /// Extracts the API error message from a Dio error response, if present.
+  String? _backendMessage(dynamic e) {
+    try {
+      final data = (e as dynamic).response?.data;
+      if (data is Map && data['message'] is String) {
+        final m = (data['message'] as String).trim();
+        if (m.isNotEmpty && m != 'Validation failed') return m;
+      }
+    } catch (_) {}
+    // Fallback: pull "message" out of the stringified error.
+    final match = RegExp(r'"message"\s*:\s*"([^"]+)"').firstMatch(e.toString());
+    final m = match?.group(1)?.trim();
+    if (m != null && m.isNotEmpty && m != 'Validation failed') return m;
+    return null;
   }
 }

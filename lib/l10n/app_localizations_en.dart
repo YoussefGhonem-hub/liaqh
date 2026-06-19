@@ -45,6 +45,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get phoneNumber => 'Phone Number';
 
   @override
+  String get emailOrPhone => 'Email or phone';
+
+  @override
+  String get invalidCredentials => 'Invalid username or password';
+
+  @override
+  String get phoneRequiredField => 'Phone number';
+
+  @override
+  String get phoneRequiredError => 'Phone number is required';
+
+  @override
+  String get phoneInvalidError => 'Enter a valid phone number';
+
+  @override
   String get forgotPassword => 'Forgot your password?';
 
   @override
@@ -77,6 +92,233 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get delete => 'Delete';
+
+  @override
+  String get message => 'Message';
+
+  @override
+  String get deleteProgramTitle => 'Delete program?';
+
+  @override
+  String deleteProgramConfirm(String name) {
+    return 'This permanently deletes \"$name\" and all its days and exercises.';
+  }
+
+  @override
+  String get programDeleted => 'Program deleted.';
+
+  @override
+  String get dailyLog => 'Daily Log';
+
+  @override
+  String get thisWeekLabel => 'This week';
+
+  @override
+  String get didYouWorkoutToday => 'Did you work out today?';
+
+  @override
+  String get workedOut => 'Worked out';
+
+  @override
+  String get restDay => 'Rest day';
+
+  @override
+  String get loggedWorkedOut => 'Done ✅';
+
+  @override
+  String get loggedRest => 'Rest';
+
+  @override
+  String get notLoggedYet => 'Not logged';
+
+  @override
+  String get logHistory => 'History';
+
+  @override
+  String get noLogsYet => 'No check-ins yet.';
+
+  @override
+  String get yes => 'Yes';
+
+  @override
+  String get no => 'No';
+
+  @override
+  String get analyticsTitle => 'Analytics';
+
+  @override
+  String get activeTraineesLabel => 'Active';
+
+  @override
+  String get retentionLabel => 'Retention';
+
+  @override
+  String get newThisMonthLabel => 'New this month';
+
+  @override
+  String get revenueThisMonthLabel => 'Revenue (month)';
+
+  @override
+  String get workoutsThisWeekLabel => 'Workouts (week)';
+
+  @override
+  String get needsAttention => 'Needs attention';
+
+  @override
+  String get needsAttentionSub => 'Trainees who may need a nudge';
+
+  @override
+  String get everyoneOnTrack => 'Everyone\'s on track 🎉';
+
+  @override
+  String get leaderboard => 'Leaderboard';
+
+  @override
+  String get byStreak => 'Streak';
+
+  @override
+  String get byMonth => 'This month';
+
+  @override
+  String get broadcast => 'Broadcast';
+
+  @override
+  String get broadcastSub => 'Message all your trainees at once';
+
+  @override
+  String get broadcastTitleHint => 'Title (optional)';
+
+  @override
+  String get broadcastBodyHint => 'Write your message…';
+
+  @override
+  String get send => 'Send';
+
+  @override
+  String broadcastSent(int count) {
+    return 'Sent to $count trainee(s).';
+  }
+
+  @override
+  String get flagNoPlan => 'No plan yet';
+
+  @override
+  String get flagInactive => 'Inactive';
+
+  @override
+  String flagInactiveDays(int days) {
+    return 'Inactive ${days}d';
+  }
+
+  @override
+  String get flagRejectedMeal => 'Rejected a meal';
+
+  @override
+  String get flagExpiring => 'Subscription expiring';
+
+  @override
+  String get dayStreak => 'Day streak';
+
+  @override
+  String get bestStreak => 'Best Streak';
+
+  @override
+  String get totalWorkouts => 'Total Workouts';
+
+  @override
+  String get weeklyGoalLabel => 'Weekly goal';
+
+  @override
+  String get setWeeklyGoal => 'Set weekly goal';
+
+  @override
+  String daysPerWeek(int n) {
+    return '$n days / week';
+  }
+
+  @override
+  String streakMilestone(int days) {
+    return '🔥 $days-day streak!';
+  }
+
+  @override
+  String get weeklyGoalReached => 'Weekly goal reached! 🎉';
+
+  @override
+  String get badge7 => '7-day streak';
+
+  @override
+  String get badge30 => '30-day streak';
+
+  @override
+  String get badge100 => '100-day streak';
+
+  @override
+  String get badgeTotal10 => '10 workouts';
+
+  @override
+  String get badgeTotal50 => '50 workouts';
+
+  @override
+  String get badgeTotal100 => '100 workouts';
+
+  @override
+  String get workoutReminder => 'Workout reminder';
+
+  @override
+  String get workoutReminderHint =>
+      'Get a daily notification to head to the gym';
+
+  @override
+  String get reminderTime => 'Reminder time';
+
+  @override
+  String get setTime => 'Set time';
+
+  @override
+  String reminderSetFor(String time) {
+    return 'You\'ll be reminded daily at $time';
+  }
+
+  @override
+  String get reply => 'Reply';
+
+  @override
+  String get typing => 'typing…';
+
+  @override
+  String get restTimer => 'Rest timer';
+
+  @override
+  String get customSeconds => 'Custom seconds';
+
+  @override
+  String get customLabel => 'Custom';
+
+  @override
+  String get reset => 'Reset';
+
+  @override
+  String get pause => 'Pause';
+
+  @override
+  String get start => 'Start';
+
+  @override
+  String get chatYou => 'You';
+
+  @override
+  String get editMessage => 'Edit message';
+
+  @override
+  String get deleteMessage => 'Delete message';
+
+  @override
+  String get deleteMessageConfirm =>
+      'This message will be removed for everyone.';
+
+  @override
+  String get edited => 'edited';
 
   @override
   String get ok => 'OK';
@@ -770,9 +1012,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gymLogoDesc => 'Optional — shown on trainee dashboard';
 
   @override
-  String get leaderboard => 'Leaderboard';
-
-  @override
   String get points => 'Points';
 
   @override
@@ -963,13 +1202,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noProgressHint => 'Complete workouts to see your progress charts.';
 
   @override
-  String get totalWorkouts => 'Total Workouts';
-
-  @override
   String get avgEffort => 'Avg. Effort';
-
-  @override
-  String get bestStreak => 'Best Streak';
 
   @override
   String get contactUsTitle => 'Contact Us';
@@ -1610,4 +1843,866 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get assignFromTemplate => 'Assign from a template';
+
+  @override
+  String get planBuildInApp => 'Build in app';
+
+  @override
+  String get planUploadFile => 'Upload file';
+
+  @override
+  String get chooseFileToUpload => 'Please choose a file to upload.';
+
+  @override
+  String get fileUploadFailed => 'File upload failed. Please try again.';
+
+  @override
+  String get planUploadedSuccess => 'Nutrition plan uploaded successfully.';
+
+  @override
+  String get somethingWentWrong => 'Something went wrong.';
+
+  @override
+  String get uploadAndAssignPlan => 'Upload & Assign Plan';
+
+  @override
+  String get traineeMeasurements => 'Trainee measurements';
+
+  @override
+  String get heightCmLabel => 'Height (cm)';
+
+  @override
+  String get weightKgLabel => 'Weight (kg)';
+
+  @override
+  String get ageLabel => 'Age';
+
+  @override
+  String get planFilePdfImage => 'Plan file (PDF / image)';
+
+  @override
+  String get enterMeasurementsHint =>
+      'Enter height, weight and age to auto-calculate daily targets.';
+
+  @override
+  String get recommendedDailyTargets => 'Recommended daily targets';
+
+  @override
+  String get water => 'Water';
+
+  @override
+  String get bmrLabel => 'BMR';
+
+  @override
+  String get tdeeLabel => 'TDEE';
+
+  @override
+  String get proteinPerMeal => 'Protein/meal';
+
+  @override
+  String get fiber => 'Fiber';
+
+  @override
+  String get perWeek => 'Per week';
+
+  @override
+  String get useTheseTargets => 'Use these as plan targets';
+
+  @override
+  String get tapToChooseFile => 'Tap to choose a PDF or image';
+
+  @override
+  String get fileTypesHint => 'PDF, JPG, PNG · up to 50 MB';
+
+  @override
+  String get monthSingular => 'month';
+
+  @override
+  String get monthPlural => 'months';
+
+  @override
+  String get male => 'Male';
+
+  @override
+  String get female => 'Female';
+
+  @override
+  String get rejectedByTrainee => 'Rejected by trainee';
+
+  @override
+  String get replaceMeal => 'Replace meal';
+
+  @override
+  String get mealReplacedNotified =>
+      'Meal replaced. The trainee has been notified.';
+
+  @override
+  String copyDayTo(String day) {
+    return 'Copy $day to…';
+  }
+
+  @override
+  String mealsWillBeCopied(int count) {
+    return '$count meal(s) will be copied to the selected days.';
+  }
+
+  @override
+  String get clearAll => 'Clear all';
+
+  @override
+  String get selectAll => 'Select all';
+
+  @override
+  String currentlyHasMeals(int count) {
+    return 'Currently has $count meal(s)';
+  }
+
+  @override
+  String get replaceExistingMeals => 'Replace existing meals';
+
+  @override
+  String get replaceExistingOn => 'Target days are cleared before copying';
+
+  @override
+  String get replaceExistingOff =>
+      'Copied meals are added alongside existing ones';
+
+  @override
+  String copyToDays(int count) {
+    return 'Copy to $count day(s)';
+  }
+
+  @override
+  String copiedMealsToDays(int meals, int days) {
+    return 'Copied $meals meal(s) to $days day(s).';
+  }
+
+  @override
+  String get couldNotDuplicate => 'Could not duplicate the day.';
+
+  @override
+  String get copyThisDayToOthers => 'Copy this day to other days';
+
+  @override
+  String coachProvidedFilePlan(int months) {
+    return 'Your coach provided this nutrition plan as a file. Duration: $months month(s).';
+  }
+
+  @override
+  String get rejectThisMeal => 'Reject this meal?';
+
+  @override
+  String get rejectReasonHint =>
+      'Let your coach know why this meal doesn\'t work for you so they can replace it.';
+
+  @override
+  String get rejectReasonPlaceholder =>
+      'e.g. I\'m allergic, I dislike this food…';
+
+  @override
+  String get reject => 'Reject';
+
+  @override
+  String get mealRejectedNotified =>
+      'Meal rejected. Your coach has been notified.';
+
+  @override
+  String get couldNotReject => 'Could not reject the meal.';
+
+  @override
+  String get rejectedWaitingCoach => 'Rejected — waiting for coach';
+
+  @override
+  String get planFile => 'Plan file';
+
+  @override
+  String get catAll => 'All';
+
+  @override
+  String get catVegetable => 'Vegetable';
+
+  @override
+  String get catFruit => 'Fruit';
+
+  @override
+  String get catDairy => 'Dairy';
+
+  @override
+  String get catOther => 'Other';
+
+  @override
+  String howManyUnit(String unit) {
+    return 'How many $unit?';
+  }
+
+  @override
+  String get pieceUnit => 'piece';
+
+  @override
+  String approxGrams(String grams) {
+    return '≈ $grams g';
+  }
+
+  @override
+  String get countLabel => 'Count';
+
+  @override
+  String get measureByCount => 'Measure by count (e.g. eggs)';
+
+  @override
+  String get gramsPerUnitLabel => 'Grams per unit';
+
+  @override
+  String get unitNameLabel => 'Unit name (e.g. egg)';
+
+  @override
+  String get addCustomFood => 'Add custom food';
+
+  @override
+  String get newCustomFood => 'New custom food';
+
+  @override
+  String get foodNameEnLabel => 'Food name (English)';
+
+  @override
+  String get foodNameArLabel => 'Food name (Arabic)';
+
+  @override
+  String get categoryLabel => 'Category';
+
+  @override
+  String get per100gNote => 'Values per 100 g';
+
+  @override
+  String get caloriesPer100 => 'Calories (kcal)';
+
+  @override
+  String get proteinPer100 => 'Protein (g)';
+
+  @override
+  String get carbsPer100 => 'Carbs (g)';
+
+  @override
+  String get fatPer100 => 'Fat (g)';
+
+  @override
+  String get foodNameRequired => 'Food name is required.';
+
+  @override
+  String get foodAdded => 'Food added to your library.';
+
+  @override
+  String get saveFood => 'Save food';
+
+  @override
+  String get noFoodAddYours => 'No foods found. Add your own custom food.';
+
+  @override
+  String get coachGuide => 'Coach Guide';
+
+  @override
+  String get guideHeaderSubtitle =>
+      'Everything you need to run your coaching — step by step.';
+
+  @override
+  String get guideProcessTitle => 'The full journey';
+
+  @override
+  String get guideProcessStep1 => 'Add a trainee and assign them to yourself.';
+
+  @override
+  String get guideProcessStep2 =>
+      'Record their measurements (InBody) and set a goal.';
+
+  @override
+  String get guideProcessStep3 =>
+      'Create a workout program and a nutrition plan.';
+
+  @override
+  String get guideProcessStep4 =>
+      'Set their subscription so their content unlocks.';
+
+  @override
+  String get guideProcessStep5 =>
+      'They follow, log, and chat — you track progress.';
+
+  @override
+  String get guideNutritionTitle => 'Create a nutrition plan';
+
+  @override
+  String get guideNutritionStep1 =>
+      'Open a trainee → Nutrition tab → tap New plan.';
+
+  @override
+  String get guideNutritionStep2 =>
+      'Enter height, weight & age, then pick sex, goal and activity — targets are calculated for you.';
+
+  @override
+  String get guideNutritionStep3 =>
+      'Choose to build in-app or upload a ready file (PDF/image), and set the duration in months.';
+
+  @override
+  String get guideNutritionStep4 =>
+      'Add meals, pick foods (or add your own custom food) and enter grams — macros are auto-calculated.';
+
+  @override
+  String get guideNutritionStep5 =>
+      'Use Copy day to duplicate one day across the week in seconds.';
+
+  @override
+  String get guideNutritionStep6 =>
+      'If a trainee rejects a meal, you\'re notified — just replace it and they\'re notified back.';
+
+  @override
+  String get guideWorkoutsTitle => 'Create a workout';
+
+  @override
+  String get guideWorkoutsStep1 =>
+      'Open a trainee → Workout tab → create a program.';
+
+  @override
+  String get guideWorkoutsStep2 =>
+      'Build a template once and assign it to any trainee in one tap.';
+
+  @override
+  String get guideWorkoutsStep3 =>
+      'Edit day-by-day and add exercises from the library.';
+
+  @override
+  String get guideWorkoutsStep4 =>
+      'Trainees log their workouts and comment on exercises.';
+
+  @override
+  String get guideSubscriptionsTitle => 'Manage subscriptions';
+
+  @override
+  String get guideSubscriptionsStep1 =>
+      'Open a trainee and set up their membership/subscription.';
+
+  @override
+  String get guideSubscriptionsStep2 =>
+      'Track who has paid and who is unpaid at a glance.';
+
+  @override
+  String get guideSubscriptionsStep3 =>
+      'When the subscription is active, the trainee\'s content unlocks automatically.';
+
+  @override
+  String get guideTipsTitle => 'Pro tips';
+
+  @override
+  String get guideTip1 =>
+      'Reuse workout templates and copy nutrition days to save time.';
+
+  @override
+  String get guideTip2 =>
+      'Add your own custom foods so your plans match your style.';
+
+  @override
+  String get guideTip3 =>
+      'Keep an eye on notifications for meal rejections and messages.';
+
+  @override
+  String get tourSkip => 'Skip';
+
+  @override
+  String get tourNext => 'Next';
+
+  @override
+  String get tourDone => 'Get started';
+
+  @override
+  String get tourReopenHint =>
+      'You can reopen this guide anytime from the menu.';
+
+  @override
+  String get tourWelcomeTitle => 'Welcome to Liaqh 👋';
+
+  @override
+  String get tourWelcomeBody =>
+      'Your all-in-one app to coach trainees: workouts, nutrition, progress and payments — in Arabic & English.';
+
+  @override
+  String get tourNutritionTitle => 'Smart nutrition 🍽️';
+
+  @override
+  String get tourNutritionBody =>
+      'Create plans with auto-calculated targets, build in-app or upload a file, add custom foods, and copy days in one tap.';
+
+  @override
+  String get tourWorkoutsTitle => 'Workouts made easy 🏋️';
+
+  @override
+  String get tourWorkoutsBody =>
+      'Build reusable templates and assign full programs to any trainee in seconds.';
+
+  @override
+  String get tourTrackTitle => 'Track & get paid 📊';
+
+  @override
+  String get tourTrackBody =>
+      'Follow InBody and progress over time, chat with trainees, and unlock their content with subscriptions.';
+
+  @override
+  String get tourGuideTitle => 'Need a refresher? 📖';
+
+  @override
+  String get tourGuideBody =>
+      'Open the Coach Guide anytime from the side menu for step-by-step instructions.';
+
+  @override
+  String get goalCut => 'Cut';
+
+  @override
+  String get goalBulk => 'Bulk';
+
+  @override
+  String get goalMaintain => 'Maintain';
+
+  @override
+  String get goalRecomp => 'Recomp';
+
+  @override
+  String get activitySedentary => 'Sedentary';
+
+  @override
+  String get activityLight => 'Light';
+
+  @override
+  String get activityModerate => 'Moderate';
+
+  @override
+  String get activityActive => 'Active';
+
+  @override
+  String get activityVeryActive => 'Very active';
+
+  @override
+  String get activitySedentaryHint => 'Little or no exercise';
+
+  @override
+  String get activityLightHint => '1–3 days / week';
+
+  @override
+  String get activityModerateHint => '3–5 days / week';
+
+  @override
+  String get activityActiveHint => '6–7 days / week';
+
+  @override
+  String get activityVeryActiveHint => 'Hard daily / physical job';
+
+  @override
+  String get passwordChangedSuccess => 'Password changed successfully.';
+
+  @override
+  String get couldNotChangePassword => 'Could not change password.';
+
+  @override
+  String get passwordTip =>
+      'Use at least 8 characters. Choose a strong password you don\'t use elsewhere.';
+
+  @override
+  String get currentPassword => 'Current Password';
+
+  @override
+  String get enterCurrentPassword => 'Enter your current password';
+
+  @override
+  String get newPassword => 'New Password';
+
+  @override
+  String get enterNewPassword => 'Enter a new password';
+
+  @override
+  String get passwordMin8 => 'Must be at least 8 characters';
+
+  @override
+  String get newPasswordMustDiffer =>
+      'New password must differ from the current one';
+
+  @override
+  String get confirmNewPassword => 'Confirm New Password';
+
+  @override
+  String get reenterNewPassword => 'Re-enter the new password';
+
+  @override
+  String get passwordsDoNotMatch => 'Passwords do not match';
+
+  @override
+  String get updatePassword => 'Update Password';
+
+  @override
+  String get completeProfileTitle => 'Let\'s complete your profile';
+
+  @override
+  String get completeProfileSubtitle =>
+      'It will help us to know more about you!';
+
+  @override
+  String get chooseGender => 'Choose Gender';
+
+  @override
+  String get dateOfBirth => 'Date of Birth';
+
+  @override
+  String get yourWeight => 'Your Weight';
+
+  @override
+  String get yourHeight => 'Your Height';
+
+  @override
+  String get couldNotLoadProfile => 'Could not load your profile';
+
+  @override
+  String get uploadingImage => 'Uploading image…';
+
+  @override
+  String get profileImageUpdated => 'Profile image updated';
+
+  @override
+  String get uploadFailed => 'Upload failed';
+
+  @override
+  String get privacySection1Title => '1. Information We Collect';
+
+  @override
+  String get privacySection2Title => '2. How We Use Information';
+
+  @override
+  String get privacySection3Title => '3. Data Storage';
+
+  @override
+  String get privacySection4Title => '4. Sharing Information';
+
+  @override
+  String get privacySection5Title => '5. Your Rights';
+
+  @override
+  String get privacySection6Title => '6. Changes to this Policy';
+
+  @override
+  String get privacySection7Title => '7. Contact';
+
+  @override
+  String get newWorkoutTemplate => 'New workout template';
+
+  @override
+  String get uploadWorkoutFile => 'Upload workout file';
+
+  @override
+  String get templateName => 'Template name';
+
+  @override
+  String get continueLabel => 'Continue';
+
+  @override
+  String get buildFromSystem => 'Build from system';
+
+  @override
+  String get addDaysExercisesHint => 'Add days & exercises from the library';
+
+  @override
+  String get uploadAFile => 'Upload a file';
+
+  @override
+  String get uploadFileHint => 'PDF, document or image with the workout';
+
+  @override
+  String get templateDeleted => 'Template deleted';
+
+  @override
+  String get noTemplatesYet => 'No templates yet';
+
+  @override
+  String get templatesEmptyHint =>
+      'Create a workout once and assign it to any trainee — no need to rebuild it each time.';
+
+  @override
+  String get editDays => 'Edit days';
+
+  @override
+  String get fileWorkout => 'File workout';
+
+  @override
+  String daysCountLabel(int count) {
+    return '$count day(s)';
+  }
+
+  @override
+  String exercisesCountLabel(int count) {
+    return '$count exercise(s)';
+  }
+
+  @override
+  String get dayUpdated => 'Day updated';
+
+  @override
+  String get daySaved => 'Day saved';
+
+  @override
+  String get savedDays => 'Saved days';
+
+  @override
+  String editDayTitle(String name) {
+    return 'Edit $name';
+  }
+
+  @override
+  String get dayWord => 'day';
+
+  @override
+  String get updateDay => 'Update Day';
+
+  @override
+  String get cancelEdit => 'Cancel edit';
+
+  @override
+  String get failedToDelete => 'Failed to delete';
+
+  @override
+  String get subStatusActive => 'Active';
+
+  @override
+  String get subStatusFrozen => 'Frozen';
+
+  @override
+  String get subStatusExpired => 'Expired';
+
+  @override
+  String get subStatusCancelled => 'Cancelled';
+
+  @override
+  String get subStatusPending => 'Pending';
+
+  @override
+  String get subStatusNone => 'None';
+
+  @override
+  String get payStatusPaid => 'Paid';
+
+  @override
+  String get payStatusUnpaid => 'Unpaid';
+
+  @override
+  String get payStatusFree => 'Free';
+
+  @override
+  String get subscribeNow => 'Subscribe Now';
+
+  @override
+  String get egpPerMonth => 'EGP / month';
+
+  @override
+  String get subscriptionDetails => 'Subscription details';
+
+  @override
+  String get cancelSubscription => 'Cancel subscription';
+
+  @override
+  String get cancelSubscriptionQ => 'Cancel subscription?';
+
+  @override
+  String get keepIt => 'Keep it';
+
+  @override
+  String get paymentHistory => 'Payment history';
+
+  @override
+  String get standardPlan => 'Standard Plan';
+
+  @override
+  String get planStandard => 'Standard';
+
+  @override
+  String get couldNotLoadSubscription => 'Could not load subscription.';
+
+  @override
+  String daysRemainingCount(int days) {
+    return '$days days remaining';
+  }
+
+  @override
+  String get started => 'Started';
+
+  @override
+  String get renewsOn => 'Renews on';
+
+  @override
+  String get expiresOn => 'Expires on';
+
+  @override
+  String get nextBilling => 'Next billing';
+
+  @override
+  String get amount => 'Amount';
+
+  @override
+  String get subscribeToUnlock => 'Subscribe to unlock everything';
+
+  @override
+  String get subscribeToUnlockBody =>
+      'Get full access to workouts, meal plans, InBody tracking, progress and coach chat.';
+
+  @override
+  String get subscribeAndPay => 'Subscribe & Pay';
+
+  @override
+  String get noCoachAssigned => 'No coach is assigned to your account yet.';
+
+  @override
+  String get couldNotOpenChat => 'Could not open chat';
+
+  @override
+  String get lockOneStepPayCoach => 'One step left — pay your coach';
+
+  @override
+  String get lockOneStepSubscribe =>
+      'One step left — subscribe to the platform';
+
+  @override
+  String get lockPendingMsg =>
+      'Your platform payment is pending approval by the admin (up to 24 hours). Complete your coach payment below in the meantime.';
+
+  @override
+  String get lockPaidPlatformMsg =>
+      'Your platform subscription is active. Now pay your coach to unlock everything.';
+
+  @override
+  String get lockPaidCoachMsg =>
+      'Your coach payment is confirmed. Now subscribe to the platform to unlock everything.';
+
+  @override
+  String get lockBothMsg =>
+      'To unlock your workouts, meals, InBody and progress you must complete BOTH payments below.';
+
+  @override
+  String get closeLabel => 'Close';
+
+  @override
+  String get subscribeToPlatform => 'Subscribe to the platform';
+
+  @override
+  String get payByCardInstaPayWallet => 'Pay by card, InstaPay or Wallet';
+
+  @override
+  String get pendingAdminApproval => 'Pending admin approval (up to 24h)';
+
+  @override
+  String get payPlatform => 'Pay platform';
+
+  @override
+  String get payYourCoach => 'Pay your coach';
+
+  @override
+  String get cashToCoachHint => 'Cash to your coach — they confirm it';
+
+  @override
+  String get pendingApproval => 'Pending approval';
+
+  @override
+  String get paidLabel => 'Paid';
+
+  @override
+  String get paymentSubmitted24h =>
+      'Payment submitted. We\'ll confirm within 24 hours.';
+
+  @override
+  String payWithMethod(String method) {
+    return 'Pay with $method';
+  }
+
+  @override
+  String sendPaymentToNumber(String method) {
+    return 'Send the payment to this $method number';
+  }
+
+  @override
+  String get numberCopied => 'Number copied';
+
+  @override
+  String get acceptance24h => 'Acceptance of payment may take up to 24 hours.';
+
+  @override
+  String get afterSendingFillDetails =>
+      'After sending the money, fill in your details below:';
+
+  @override
+  String get fullAccountName => 'Full account name';
+
+  @override
+  String get nameOnAccountHint => 'Name on your account';
+
+  @override
+  String get referenceNumber => 'Reference number';
+
+  @override
+  String get referenceNumberOptional => 'Reference number (if found)';
+
+  @override
+  String get transactionReferenceHint => 'Transaction reference';
+
+  @override
+  String get submitPayment => 'Submit Payment';
+
+  @override
+  String get choosePaymentMethod => 'Choose payment method';
+
+  @override
+  String get noPaymentMethods => 'No payment methods available.';
+
+  @override
+  String get paymentSuccessful => 'Payment Successful';
+
+  @override
+  String get membershipNowActive =>
+      'Your membership is now active. Enjoy full access to all features.';
+
+  @override
+  String get continueToApp => 'Continue to App';
+
+  @override
+  String get couldNotOpenBrowser => 'Could not open the browser for checkout.';
+
+  @override
+  String get completePayment => 'Complete Payment';
+
+  @override
+  String get paymentComplete => 'Payment Complete!';
+
+  @override
+  String get waitingForPayment => 'Waiting for payment...';
+
+  @override
+  String get openingCheckout => 'Opening checkout...';
+
+  @override
+  String get membershipActivated => 'Your membership has been activated.';
+
+  @override
+  String get completePaymentInBrowser =>
+      'Complete your payment in the browser.\nThis screen will update automatically.';
+
+  @override
+  String get openCheckoutAgain => 'Open Checkout Again';
+
+  @override
+  String get yourCoach => 'Your Coach';
+
+  @override
+  String get couldNotUpdatePaymentStatus => 'Could not update payment status.';
+
+  @override
+  String get coachNoWorkoutYet =>
+      'Your coach hasn\'t added a workout program yet.';
+
+  @override
+  String get coachNoMealPlanYet => 'Your coach hasn\'t added a meal plan yet.';
+
+  @override
+  String get currencyEgp => 'EGP';
+
+  @override
+  String get currentPeriodSuffix => 'current';
 }

@@ -1,4 +1,5 @@
 import 'package:fitnessapp/data/models/workout_models.dart';
+import 'package:fitnessapp/common_widgets/liaqh_loaders.dart';
 import 'package:fitnessapp/l10n/app_localizations.dart';
 import 'package:fitnessapp/providers/workout_provider.dart';
 import 'package:fitnessapp/utils/app_colors.dart';
@@ -47,7 +48,7 @@ class _WorkoutHistoryScreenState extends State<WorkoutHistoryScreen> {
         foregroundColor: colors.fg,
       ),
       body: provider.loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const LiaqhPageLoader()
           : provider.history.isEmpty
               ? Center(
                   child: Column(

@@ -109,6 +109,23 @@ class WorkoutProvider extends ChangeNotifier {
     }
   }
 
+  /// Deletes an entire program; clears it as the active program on success.
+  Future<bool> deleteProgram(String programId, {String? traineeId}) async {
+    try {
+      await _repo.deleteProgram(programId);
+      if (traineeId != null) {
+        await loadActiveProgram(traineeId);
+      } else {
+        _currentProgram = null;
+        notifyListeners();
+      }
+      return true;
+    } catch (e) {
+      _setError(e.toString());
+      return false;
+    }
+  }
+
   Future<bool> deleteTemplate(String templateId) async {
     try {
       await _repo.deleteTemplate(templateId);

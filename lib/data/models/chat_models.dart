@@ -14,12 +14,21 @@ class ChatMessage {
   final String text;
   final DateTime sentAt;
   final bool isRead;
+  final bool isEdited;
 
   /// Optional reference tying this message to a specific InBody result,
   /// workout, or meal plan so questions/adjustments have context.
   final String? contextType; // ChatContextType.*
   final String? contextId; // id of the referenced entity (nullable)
   final String? contextLabel; // human-readable label shown in the bubble
+
+  /// Reply (quote) of another message in the same conversation.
+  final String? replyToId;
+  final String? replyToText;
+  final String? replyToSender;
+
+  /// Emoji reactions, keyed by reacting userId → emoji.
+  final Map<String, String> reactions;
 
   const ChatMessage({
     required this.id,
@@ -28,12 +37,18 @@ class ChatMessage {
     required this.text,
     required this.sentAt,
     required this.isRead,
+    this.isEdited = false,
     this.contextType,
     this.contextId,
     this.contextLabel,
+    this.replyToId,
+    this.replyToText,
+    this.replyToSender,
+    this.reactions = const {},
   });
 
   bool get hasContext => contextType != null && contextType!.isNotEmpty;
+  bool get hasReply => replyToId != null && replyToId!.isNotEmpty;
 
   factory ChatMessage.fromDoc(DocumentSnapshot doc) {
     final d = doc.data() as Map<String, dynamic>;
@@ -44,9 +59,16 @@ class ChatMessage {
       text: d['text'] ?? '',
       sentAt: (d['sentAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       isRead: d['isRead'] ?? false,
+      isEdited: d['isEdited'] ?? false,
       contextType: d['contextType'],
       contextId: d['contextId'],
       contextLabel: d['contextLabel'],
+      replyToId: d['replyToId'],
+      replyToText: d['replyToText'],
+      replyToSender: d['replyToSender'],
+      reactions: (d['reactions'] as Map?)?.map(
+              (k, v) => MapEntry(k.toString(), v.toString())) ??
+          const {},
     );
   }
 
@@ -56,9 +78,14 @@ class ChatMessage {
         'text': text,
         'sentAt': Timestamp.fromDate(sentAt),
         'isRead': isRead,
+        'isEdited': isEdited,
         if (contextType != null) 'contextType': contextType,
         if (contextId != null) 'contextId': contextId,
         if (contextLabel != null) 'contextLabel': contextLabel,
+        if (replyToId != null) 'replyToId': replyToId,
+        if (replyToText != null) 'replyToText': replyToText,
+        if (replyToSender != null) 'replyToSender': replyToSender,
+        'reactions': reactions,
       };
 }
 

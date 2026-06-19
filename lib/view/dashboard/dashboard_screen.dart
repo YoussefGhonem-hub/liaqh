@@ -29,6 +29,11 @@ import 'package:fitnessapp/view/platform/payment_requests_screen.dart';
 import 'package:fitnessapp/view/platform/payment_methods_management_screen.dart';
 import 'package:fitnessapp/view/support/my_support_tickets_screen.dart';
 import 'package:fitnessapp/view/workout/workout_templates_screen.dart';
+import 'package:fitnessapp/view/guide/coach_guide_screen.dart';
+import 'package:fitnessapp/view/guide/app_tour_overlay.dart';
+import 'package:fitnessapp/view/coaching/needs_attention_screen.dart';
+import 'package:fitnessapp/view/coaching/leaderboard_screen.dart';
+import 'package:fitnessapp/view/coaching/broadcast_screen.dart';
 import 'package:fitnessapp/view/platform/support_tickets_screen.dart';
 import 'package:fitnessapp/view/gym_admin/gym_admin_dashboard_screen.dart';
 import 'package:fitnessapp/view/gym_admin/coaches_screen.dart';
@@ -85,6 +90,9 @@ class _DashboardScreenState extends State<DashboardScreen>
           if (mounted) _maybeShowSubscribePrompt();
         });
       }
+
+      // First-time welcome tour (shown once after register / first open).
+      AppTour.maybeShow(context, isCoach: auth.isCoach || auth.isGymAdmin);
     });
   }
 
@@ -608,100 +616,137 @@ class _AppDrawer extends StatelessWidget {
     final chat = context.read<ChatProvider>();
     final rootNav = Navigator.of(context, rootNavigator: true);
 
+    const danger2 = Color(0xFFB91C1C);
     final confirmed = await showDialog<bool>(
       context: context,
       useRootNavigator: true,
-      barrierColor: Colors.black.withValues(alpha: 0.55),
-      builder: (ctx) => Dialog(
-        backgroundColor: colors.card,
-        elevation: 0,
-        insetPadding: const EdgeInsets.symmetric(horizontal: 40),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 28, 24, 22),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Icon badge
-              Container(
-                width: 68,
-                height: 68,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: danger.withValues(alpha: 0.12),
-                ),
-                child: Center(
-                  child: Container(
-                    width: 50,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: danger.withValues(alpha: 0.16),
+      barrierColor: Colors.black.withValues(alpha: 0.6),
+      builder: (ctx) => TweenAnimationBuilder<double>(
+        duration: const Duration(milliseconds: 240),
+        curve: Curves.easeOutBack,
+        tween: Tween(begin: 0.9, end: 1.0),
+        builder: (_, scale, child) => Transform.scale(scale: scale, child: child),
+        child: Dialog(
+          backgroundColor: colors.card,
+          elevation: 24,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 36),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 30, 24, 22),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Glowing icon ring
+                Container(
+                  width: 88,
+                  height: 88,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(colors: [
+                      danger.withValues(alpha: 0.22),
+                      danger.withValues(alpha: 0.04),
+                    ]),
+                  ),
+                  child: Center(
+                    child: Container(
+                      width: 58,
+                      height: 58,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: const LinearGradient(
+                          colors: [danger, danger2],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: danger.withValues(alpha: 0.45),
+                            blurRadius: 18,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(Icons.logout_rounded,
+                          color: Colors.white, size: 28),
                     ),
-                    child: const Icon(Icons.logout_rounded,
-                        color: danger, size: 26),
                   ),
                 ),
-              ),
-              const SizedBox(height: 18),
-              Text(
-                l10n.logOutTitle,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    color: colors.fg,
-                    fontSize: 19,
-                    fontWeight: FontWeight.w800),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                l10n.logOutMessage,
-                textAlign: TextAlign.center,
-                style:
-                    TextStyle(color: colors.subFg, fontSize: 14, height: 1.45),
-              ),
-              const SizedBox(height: 26),
-              Row(
-                children: [
-                  Expanded(
-                    child: SizedBox(
-                      height: 50,
-                      child: OutlinedButton(
-                        onPressed: () => Navigator.pop(ctx, false),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: colors.fg,
-                          side: BorderSide(color: colors.divider),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14)),
+                const SizedBox(height: 20),
+                Text(
+                  l10n.logOutTitle,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      color: colors.fg,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  l10n.logOutMessage,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      color: colors.subFg, fontSize: 14, height: 1.5),
+                ),
+                const SizedBox(height: 28),
+                Row(
+                  children: [
+                    Expanded(
+                      child: SizedBox(
+                        height: 52,
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.pop(ctx, false),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: colors.fg,
+                            backgroundColor: colors.listTile,
+                            side: BorderSide(color: colors.divider),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16)),
+                          ),
+                          child: Text(l10n.cancel,
+                              style: const TextStyle(
+                                  fontSize: 15, fontWeight: FontWeight.w700)),
                         ),
-                        child: Text(l10n.cancel,
-                            style: const TextStyle(
-                                fontSize: 15, fontWeight: FontWeight.w700)),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: SizedBox(
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: () => Navigator.pop(ctx, true),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: danger,
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          shadowColor: danger.withValues(alpha: 0.4),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14)),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Container(
+                        height: 52,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          gradient: const LinearGradient(
+                            colors: [danger, danger2],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: danger.withValues(alpha: 0.4),
+                              blurRadius: 14,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
                         ),
-                        child: Text(l10n.logOut,
-                            style: const TextStyle(
-                                fontSize: 15, fontWeight: FontWeight.w800)),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(16),
+                            onTap: () => Navigator.pop(ctx, true),
+                            child: Center(
+                              child: Text(l10n.logOut,
+                                  style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w800)),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -941,6 +986,55 @@ class _AppDrawer extends StatelessWidget {
                                 builder: (_) => const WorkoutTemplatesScreen()));
                       },
                     ),
+                    // Step-by-step guide for coaches.
+                    _DrawerItem(
+                      icon: Icons.menu_book_rounded,
+                      label: l10n.coachGuide,
+                      color: AppColors.primaryColor1,
+                      onTap: () {
+                        onClose();
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const CoachGuideScreen()));
+                      },
+                    ),
+                    _DrawerItem(
+                      icon: Icons.warning_amber_rounded,
+                      label: l10n.needsAttention,
+                      color: const Color(0xFFF59E0B),
+                      onTap: () {
+                        onClose();
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const NeedsAttentionScreen()));
+                      },
+                    ),
+                    _DrawerItem(
+                      icon: Icons.leaderboard_rounded,
+                      label: l10n.leaderboard,
+                      color: const Color(0xFF10B981),
+                      onTap: () {
+                        onClose();
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const LeaderboardScreen()));
+                      },
+                    ),
+                    _DrawerItem(
+                      icon: Icons.campaign_rounded,
+                      label: l10n.broadcast,
+                      color: const Color(0xFF6366F1),
+                      onTap: () {
+                        onClose();
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const BroadcastScreen()));
+                      },
+                    ),
                   ],
 
                   // Gym Admin management. ("Home" above already opens the
@@ -952,6 +1046,18 @@ class _AppDrawer extends StatelessWidget {
                       label: l10n.dashCoaches,
                       color: const Color(0xFF8B5CF6),
                       onTap: () => onNavigate(1),
+                    ),
+                    _DrawerItem(
+                      icon: Icons.menu_book_rounded,
+                      label: l10n.coachGuide,
+                      color: AppColors.primaryColor1,
+                      onTap: () {
+                        onClose();
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const CoachGuideScreen()));
+                      },
                     ),
                   ],
 

@@ -1,4 +1,5 @@
 import 'package:fitnessapp/data/models/payment_method_models.dart';
+import 'package:fitnessapp/common_widgets/liaqh_loaders.dart';
 import 'package:fitnessapp/providers/payment_methods_provider.dart';
 import 'package:fitnessapp/utils/app_colors.dart';
 import 'package:fitnessapp/utils/app_theme.dart';
@@ -89,7 +90,7 @@ class _PaymentMethodsManagementScreenState
             style: TextStyle(color: colors.fg, fontWeight: FontWeight.w700)),
       ),
       body: provider.loading && provider.methods.isEmpty
-          ? const Center(child: CircularProgressIndicator())
+          ? const LiaqhPageLoader()
           : RefreshIndicator(
               onRefresh: () => provider.loadMethods(all: true),
               child: ListView(

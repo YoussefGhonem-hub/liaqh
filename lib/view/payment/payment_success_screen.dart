@@ -1,4 +1,5 @@
 import 'package:fitnessapp/data/models/payment_models.dart';
+import 'package:fitnessapp/l10n/app_localizations.dart';
 import 'package:fitnessapp/providers/payment_provider.dart';
 import 'package:fitnessapp/utils/app_colors.dart';
 import 'package:fitnessapp/utils/app_theme.dart';
@@ -35,6 +36,7 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final colors = context.colors;
     final pp = context.watch<PaymentProvider>();
     final sub = pp.mySubscription;
@@ -60,14 +62,14 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
               ),
               const SizedBox(height: 28),
               Text(
-                'Payment Successful',
+                l10n.paymentSuccessful,
                 style: TextStyle(
                     color: colors.fg, fontSize: 24, fontWeight: FontWeight.w800),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 10),
               Text(
-                'Your membership is now active. Enjoy full access to all features.',
+                l10n.membershipNowActive,
                 style: TextStyle(color: colors.mutedFg, fontSize: 15, height: 1.4),
                 textAlign: TextAlign.center,
               ),
@@ -94,8 +96,8 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
                       ? null
                       : () => Navigator.of(context)
                           .popUntil((route) => route.isFirst),
-                  child: const Text('Continue to App',
-                      style: TextStyle(
+                  child: Text(l10n.continueToApp,
+                      style: const TextStyle(
                           fontWeight: FontWeight.w700, fontSize: 16)),
                 ),
               ),

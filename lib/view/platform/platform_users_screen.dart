@@ -1,7 +1,14 @@
+import 'package:fitnessapp/data/models/chat_models.dart';
+import 'package:fitnessapp/common_widgets/liaqh_loaders.dart';
 import 'package:fitnessapp/data/models/platform_models.dart';
+import 'package:fitnessapp/data/services/chat_service.dart';
+import 'package:fitnessapp/l10n/app_localizations.dart';
+import 'package:fitnessapp/providers/auth_provider.dart';
+import 'package:fitnessapp/providers/chat_provider.dart';
 import 'package:fitnessapp/providers/platform_provider.dart';
 import 'package:fitnessapp/utils/app_colors.dart';
 import 'package:fitnessapp/utils/app_theme.dart';
+import 'package:fitnessapp/view/chat/chat_room_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -99,7 +106,7 @@ class _PlatformUsersScreenState extends State<PlatformUsersScreen> {
             if (p.usersLoading && data == null)
               const SliverFillRemaining(
                 hasScrollBody: false,
-                child: Center(child: CircularProgressIndicator()),
+                child: const LiaqhPageLoader(),
               )
             else if (p.usersError != null && data == null)
               SliverFillRemaining(
@@ -236,9 +243,106 @@ class _PlatformUsersScreenState extends State<PlatformUsersScreen> {
             value: u.isActive,
             onChanged: (v) => _toggle(u, v),
           ),
+          if (u.role != 'PlatformOwner')
+            PopupMenuButton<String>(
+              icon: Icon(Icons.more_vert_rounded, color: colors.mutedFg),
+              onSelected: (v) {
+                if (v == 'message') _openChat(u);
+                if (v == 'delete') _confirmDelete(u);
+              },
+              itemBuilder: (_) => [
+                PopupMenuItem(
+                  value: 'message',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.chat_bubble_outline_rounded,
+                          size: 18, color: AppColors.primaryColor1),
+                      const SizedBox(width: 10),
+                      Text(AppLocalizations.of(context).message),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'delete',
+                  child: Text('Delete account',
+                      style: TextStyle(color: AppColors.errorColor)),
+                ),
+              ],
+            ),
         ],
       ),
     );
+  }
+
+  /// Platform Owner starts (or opens) a 1:1 chat with any user. The owner
+  /// occupies the conversation's "coach" slot; the target user the other slot.
+  Future<void> _openChat(PlatformUser u) async {
+    final me = context.read<AuthProvider>().currentUser;
+    if (me == null) return;
+    final chat = context.read<ChatProvider>();
+    final convId = ChatService.convId(me.userId, u.id);
+
+    await chat.openOrCreateConversation(
+      coachId: me.userId,
+      traineeId: u.id,
+      coachName: me.fullName,
+      traineeName: u.fullName,
+      gymId: u.gymId,
+    );
+    if (!mounted) return;
+
+    final conversation = ChatConversation(
+      id: convId,
+      coachId: me.userId,
+      traineeId: u.id,
+      coachName: me.fullName,
+      traineeName: u.fullName,
+      gymId: u.gymId,
+      lastMessage: '',
+      lastMessageAt: DateTime.now(),
+      unreadCoach: 0,
+      unreadTrainee: 0,
+    );
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (_) => ChatRoomScreen(conversation: conversation),
+    ));
+  }
+
+  Future<void> _confirmDelete(PlatformUser u) async {
+    final colors = context.colors;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: colors.card,
+        title: Text('Delete account?', style: TextStyle(color: colors.fg)),
+        content: Text(
+          'This permanently deletes ${u.fullName}\'s account. They will be '
+          'logged out and unable to sign in. Historical records are kept. '
+          'This cannot be undone.',
+          style: TextStyle(color: colors.subFg, fontSize: 13),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.errorColor,
+                foregroundColor: Colors.white),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final success = await context.read<PlatformProvider>().deleteUser(u.id);
+    if (!mounted) return;
+    messenger.showSnackBar(SnackBar(
+      content: Text(success ? 'Account deleted' : 'Could not delete account'),
+      backgroundColor: success ? AppColors.successColor : AppColors.errorColor,
+    ));
   }
 
   Future<void> _toggle(PlatformUser u, bool v) async {

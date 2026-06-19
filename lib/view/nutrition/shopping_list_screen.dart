@@ -1,6 +1,8 @@
 import 'package:fitnessapp/data/models/meal_models.dart';
+import 'package:fitnessapp/common_widgets/liaqh_loaders.dart';
 import 'package:fitnessapp/l10n/app_localizations.dart';
 import 'package:fitnessapp/providers/meal_provider.dart';
+import 'package:fitnessapp/utils/nutrition_l10n.dart';
 import 'package:fitnessapp/utils/app_colors.dart';
 import 'package:fitnessapp/utils/app_theme.dart';
 import 'package:flutter/material.dart';
@@ -87,7 +89,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
         ],
       ),
       body: provider.loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const LiaqhPageLoader()
           : provider.shoppingList == null ||
                   provider.shoppingList!.items.isEmpty
               ? Center(
@@ -172,7 +174,7 @@ class _ShoppingListBody extends StatelessWidget {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    cat,
+                    foodCategoryLabel(l10n, cat),
                     style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,

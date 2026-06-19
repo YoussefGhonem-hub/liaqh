@@ -1,3 +1,4 @@
+import 'package:fitnessapp/common_widgets/rest_timer_sheet.dart';
 import 'package:fitnessapp/data/models/workout_models.dart';
 import 'package:fitnessapp/l10n/app_localizations.dart';
 import 'package:fitnessapp/providers/auth_provider.dart';
@@ -44,6 +45,14 @@ class WorkoutDayDetailScreen extends StatelessWidget {
         title: Text(liveDay.dayName,
             style: TextStyle(
                 color: colors.fg, fontSize: 17, fontWeight: FontWeight.w700)),
+        actions: [
+          IconButton(
+            tooltip: l10n.restTimer,
+            icon: const Icon(Icons.timer_outlined,
+                color: AppColors.primaryColor1),
+            onPressed: () => RestTimerSheet.show(context),
+          ),
+        ],
       ),
       body: ListView.builder(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 40),
@@ -128,9 +137,64 @@ class _ExerciseCommentCard extends StatelessWidget {
         .read<WorkoutProvider>()
         .deleteComment(c.id, programId: programId);
     if (!ok && context.mounted) {
+      final l10n = AppLocalizations.of(context);
       ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Failed to delete')));
+          .showSnackBar(SnackBar(content: Text(l10n.failedToDelete)));
     }
+  }
+
+  void _showFullImage(BuildContext context, String url, String title) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.92),
+      builder: (ctx) => Stack(
+        children: [
+          // Zoomable full-screen image
+          Positioned.fill(
+            child: InteractiveViewer(
+              minScale: 0.8,
+              maxScale: 4,
+              child: Center(
+                child: Image.network(
+                  url,
+                  fit: BoxFit.contain,
+                  loadingBuilder: (_, child, p) => p == null
+                      ? child
+                      : const Center(
+                          child: CircularProgressIndicator(
+                              color: Colors.white)),
+                  errorBuilder: (_, __, ___) => const Icon(
+                      Icons.broken_image_outlined,
+                      color: Colors.white54,
+                      size: 64),
+                ),
+              ),
+            ),
+          ),
+          // Title
+          Positioned(
+            left: 16,
+            right: 64,
+            bottom: 40,
+            child: Text(title,
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700)),
+          ),
+          // Close button
+          Positioned(
+            top: MediaQuery.of(ctx).padding.top + 8,
+            right: 12,
+            child: IconButton(
+              icon: const Icon(Icons.close_rounded,
+                  color: Colors.white, size: 28),
+              onPressed: () => Navigator.pop(ctx),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -160,15 +224,45 @@ class _ExerciseCommentCard extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(14, 14, 14, 8),
             child: Row(
               children: [
-                Container(
-                  width: 38,
-                  height: 38,
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryColor1.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(10),
+                GestureDetector(
+                  onTap: exercise.fullImage != null
+                      ? () => _showFullImage(context, exercise.fullImage!,
+                          exercise.exerciseNameEn)
+                      : null,
+                  child: Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryColor1.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: exercise.listImage != null
+                        ? Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              Image.network(
+                                exercise.listImage!,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => const Icon(
+                                    Icons.fitness_center_rounded,
+                                    color: AppColors.primaryColor1,
+                                    size: 20),
+                              ),
+                              // subtle zoom hint
+                              const Align(
+                                alignment: Alignment.bottomRight,
+                                child: Padding(
+                                  padding: EdgeInsets.all(2),
+                                  child: Icon(Icons.zoom_out_map_rounded,
+                                      size: 11, color: Colors.white),
+                                ),
+                              ),
+                            ],
+                          )
+                        : const Icon(Icons.fitness_center_rounded,
+                            color: AppColors.primaryColor1, size: 20),
                   ),
-                  child: const Icon(Icons.fitness_center_rounded,
-                      color: AppColors.primaryColor1, size: 20),
                 ),
                 const SizedBox(width: 12),
                 Expanded(

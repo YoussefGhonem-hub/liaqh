@@ -1,3 +1,4 @@
+import 'package:fitnessapp/l10n/app_localizations.dart';
 import 'package:fitnessapp/utils/app_theme.dart';
 import 'package:fitnessapp/view/your_goal/your_goal_screen.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +13,7 @@ class CompleteProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final l10n = AppLocalizations.of(context);
     var media = MediaQuery.of(context).size;
     return Scaffold(
       backgroundColor: colors.bg,
@@ -26,7 +28,7 @@ class CompleteProfileScreen extends StatelessWidget {
                   height: 15,
                 ),
                 Text(
-                  "Let's complete your profile",
+                  l10n.completeProfileTitle,
                   style: TextStyle(
                     color: colors.fg,
                     fontSize: 20,
@@ -35,7 +37,7 @@ class CompleteProfileScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 5),
                 Text(
-                  "It will help us to know more about you!",
+                  l10n.completeProfileSubtitle,
                   style: TextStyle(
                     color: colors.subFg,
                     fontSize: 12,
@@ -65,9 +67,9 @@ class CompleteProfileScreen extends StatelessWidget {
                       Expanded(child: DropdownButtonHideUnderline(
                         child: DropdownButton(
                           items: ["Male","Female"].map((name) => DropdownMenuItem(value:name,child: Text(
-                            name,style: TextStyle(color: colors.subFg,fontSize: 14),
+                            name == "Male" ? l10n.male : l10n.female,style: TextStyle(color: colors.subFg,fontSize: 14),
                           ))).toList(), onChanged: (value) {  },isExpanded: true,
-                          hint: Text("Choose Gender",style: TextStyle(color: colors.subFg,fontSize: 12)),
+                          hint: Text(l10n.chooseGender,style: TextStyle(color: colors.subFg,fontSize: 12)),
                         ),
                       )),
                       const SizedBox(width: 8,)
@@ -75,26 +77,26 @@ class CompleteProfileScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 15),
-                const RoundTextField(
-                  hintText: "Date of Birth",
+                RoundTextField(
+                  hintText: l10n.dateOfBirth,
                   icon: "assets/icons/calendar_icon.png",
                   textInputType: TextInputType.text,
                 ),
                 const SizedBox(height: 15),
-                const RoundTextField(
-                  hintText: "Your Weight",
+                RoundTextField(
+                  hintText: l10n.yourWeight,
                   icon: "assets/icons/weight_icon.png",
                   textInputType: TextInputType.text,
                 ),
                 const SizedBox(height: 15),
-                const RoundTextField(
-                  hintText: "Your Height",
+                RoundTextField(
+                  hintText: l10n.yourHeight,
                   icon: "assets/icons/swap_icon.png",
                   textInputType: TextInputType.text,
                 ),
                 const SizedBox(height: 15),
                 RoundGradientButton(
-                  title: "Next >",
+                  title: l10n.next,
                   onPressed: () {
                     Navigator.pushNamed(context, YourGoalScreen.routeName);
                   },

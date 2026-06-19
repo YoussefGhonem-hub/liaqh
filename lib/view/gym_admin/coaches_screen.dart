@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'package:fitnessapp/common_widgets/liaqh_loaders.dart';
+
 import 'package:fitnessapp/data/models/gym_admin_models.dart';
 import 'package:fitnessapp/l10n/app_localizations.dart';
 import 'package:fitnessapp/providers/gym_admin_provider.dart';
@@ -18,13 +21,38 @@ class CoachesScreen extends StatefulWidget {
 }
 
 class _CoachesScreenState extends State<CoachesScreen> {
-  String _search = '';
+  Timer? _debounce;
+  final _scrollCtrl = ScrollController();
 
   @override
   void initState() {
     super.initState();
+    _scrollCtrl.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback(
         (_) => context.read<GymAdminProvider>().loadCoaches());
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _scrollCtrl.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollCtrl.position.pixels >=
+        _scrollCtrl.position.maxScrollExtent - 300) {
+      context.read<GymAdminProvider>().loadMoreCoaches();
+    }
+  }
+
+  void _onSearch(String v) {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 400), () {
+      context
+          .read<GymAdminProvider>()
+          .loadCoaches(search: v.trim().isEmpty ? null : v.trim());
+    });
   }
 
   Future<void> _addCoach() async {
@@ -37,22 +65,12 @@ class _CoachesScreenState extends State<CoachesScreen> {
     }
   }
 
-  List<GymCoach> _filter(List<GymCoach> coaches) {
-    final s = _search.trim().toLowerCase();
-    if (s.isEmpty) return coaches;
-    return coaches
-        .where((c) =>
-            c.fullName.toLowerCase().contains(s) ||
-            c.email.toLowerCase().contains(s))
-        .toList();
-  }
-
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
     final l10n = AppLocalizations.of(context);
     final provider = context.watch<GymAdminProvider>();
-    final coaches = _filter(provider.coaches);
+    final coaches = provider.coaches;
 
     return Scaffold(
       backgroundColor: colors.bg,
@@ -83,7 +101,7 @@ class _CoachesScreenState extends State<CoachesScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: TextField(
-                onChanged: (v) => setState(() => _search = v),
+                onChanged: _onSearch,
                 style: TextStyle(color: colors.fg),
                 decoration: InputDecoration(
                   hintText: l10n.searchCoaches,
@@ -101,7 +119,7 @@ class _CoachesScreenState extends State<CoachesScreen> {
             const SizedBox(height: 8),
             Expanded(
               child: provider.coachesLoading && provider.coaches.isEmpty
-                  ? const Center(child: CircularProgressIndicator())
+                  ? const LiaqhPageLoader()
                   : coaches.isEmpty
                       ? Center(
                           child: Text(l10n.noCoachesYet,
@@ -110,20 +128,30 @@ class _CoachesScreenState extends State<CoachesScreen> {
                           onRefresh: () =>
                               context.read<GymAdminProvider>().loadCoaches(),
                           child: ListView.builder(
+                            controller: _scrollCtrl,
                             padding:
                                 const EdgeInsets.fromLTRB(16, 4, 16, 100),
-                            itemCount: coaches.length,
-                            itemBuilder: (_, i) => _CoachCard(
-                              coach: coaches[i],
-                              colors: colors,
-                              onTap: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) =>
-                                      CoachDetailScreen(coach: coaches[i]),
+                            itemCount: coaches.length +
+                                (provider.coachesHasMore ? 1 : 0),
+                            itemBuilder: (_, i) {
+                              if (i >= coaches.length) {
+                                return const Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 16),
+                                  child: LiaqhMarkLoader(size: 34),
+                                );
+                              }
+                              return _CoachCard(
+                                coach: coaches[i],
+                                colors: colors,
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        CoachDetailScreen(coach: coaches[i]),
+                                  ),
                                 ),
-                              ),
-                            ),
+                              );
+                            },
                           ),
                         ),
             ),

@@ -1,7 +1,10 @@
 import 'package:fitnessapp/data/models/payment_models.dart';
+import 'package:fitnessapp/common_widgets/liaqh_loaders.dart';
+import 'package:fitnessapp/l10n/app_localizations.dart';
 import 'package:fitnessapp/providers/payment_provider.dart';
 import 'package:fitnessapp/utils/app_colors.dart';
 import 'package:fitnessapp/utils/app_theme.dart';
+import 'package:fitnessapp/utils/status_l10n.dart';
 import 'package:fitnessapp/view/payment/subscription_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -18,6 +21,8 @@ class MySubscriptionScreen extends StatefulWidget {
 
 class _MySubscriptionScreenState extends State<MySubscriptionScreen> {
   final _fmt = DateFormat('MMM d, yyyy');
+
+  AppLocalizations get l10n => AppLocalizations.of(context);
 
   @override
   void initState() {
@@ -46,18 +51,18 @@ class _MySubscriptionScreenState extends State<MySubscriptionScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: const Text('Cancel subscription?'),
+        title: Text(l10n.cancelSubscriptionQ),
         content: const Text(
             'Your subscription stays active until the end of the current billing period, then it will not renew.'),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Keep it')),
+              child: Text(l10n.keepIt)),
           TextButton(
             style:
                 TextButton.styleFrom(foregroundColor: const Color(0xFFEF4444)),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Cancel subscription'),
+            child: Text(l10n.cancelSubscription),
           ),
         ],
       ),
@@ -81,15 +86,15 @@ class _MySubscriptionScreenState extends State<MySubscriptionScreen> {
         backgroundColor: colors.bg,
         elevation: 0,
         foregroundColor: colors.fg,
-        title: Text('My Subscription',
+        title: Text(l10n.drawerMySubscription,
             style: TextStyle(
                 fontWeight: FontWeight.w700, fontSize: 18, color: colors.fg)),
       ),
       body: pp.mySubLoading && sub == null
-          ? const Center(child: CircularProgressIndicator())
+          ? const LiaqhPageLoader()
           : sub == null
               ? Center(
-                  child: Text('Could not load subscription.',
+                  child: Text(l10n.couldNotLoadSubscription,
                       style: TextStyle(color: colors.subFg)))
               : RefreshIndicator(
                   onRefresh: () =>
@@ -106,7 +111,7 @@ class _MySubscriptionScreenState extends State<MySubscriptionScreen> {
                         _subscribeCta(colors),
                       if (sub.recentPayments.isNotEmpty) ...[
                         const SizedBox(height: 24),
-                        Text('Payment history',
+                        Text(l10n.paymentHistory,
                             style: TextStyle(
                                 color: colors.fg,
                                 fontSize: 15,
@@ -160,9 +165,7 @@ class _MySubscriptionScreenState extends State<MySubscriptionScreen> {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  sub.status == 'None'
-                      ? 'NO SUBSCRIPTION'
-                      : sub.status.toUpperCase(),
+                  subStatusLabel(l10n, sub.status),
                   style: TextStyle(
                     color: active ? Colors.white : _statusColor(sub.status),
                     fontSize: 11,
@@ -220,7 +223,7 @@ class _MySubscriptionScreenState extends State<MySubscriptionScreen> {
               child: Row(children: [
                 const Icon(Icons.timer_outlined, color: Colors.white, size: 16),
                 const SizedBox(width: 8),
-                Text('${sub.daysRemaining} days remaining',
+                Text(l10n.daysRemainingCount(sub.daysRemaining!),
                     style: const TextStyle(
                         color: Colors.white,
                         fontSize: 13,
@@ -250,30 +253,30 @@ class _MySubscriptionScreenState extends State<MySubscriptionScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Subscription details',
+          Text(l10n.subscriptionDetails,
               style: TextStyle(
                   color: colors.fg, fontSize: 15, fontWeight: FontWeight.w700)),
           const SizedBox(height: 14),
           if (sub.startDate != null)
-            _row(colors, Icons.event_available_outlined, 'Started',
+            _row(colors, Icons.event_available_outlined, l10n.started,
                 _fmt.format(sub.startDate!)),
           if (sub.endDate != null)
             _row(
                 colors,
                 Icons.event_busy_outlined,
-                sub.autoRenew ? 'Renews on' : 'Expires on',
+                sub.autoRenew ? l10n.renewsOn : l10n.expiresOn,
                 _fmt.format(sub.endDate!)),
           _row(
               colors,
               sub.autoRenew
                   ? Icons.autorenew_rounded
                   : Icons.do_not_disturb_on_outlined,
-              'Auto-renew',
-              sub.autoRenew ? 'On' : 'Off'),
+              l10n.autoRenew,
+              sub.autoRenew ? l10n.settingOn : l10n.settingOff),
           if (sub.isRecurring && sub.nextBillDate != null)
-            _row(colors, Icons.receipt_long_outlined, 'Next billing',
+            _row(colors, Icons.receipt_long_outlined, l10n.nextBilling,
                 _fmt.format(sub.nextBillDate!)),
-          _row(colors, Icons.payments_outlined, 'Amount',
+          _row(colors, Icons.payments_outlined, l10n.amount,
               '${sub.currency} ${(sub.price ?? 0).toStringAsFixed(2)}'),
           if (sub.isRecurring && sub.status == 'Active') ...[
             const SizedBox(height: 14),
@@ -282,7 +285,7 @@ class _MySubscriptionScreenState extends State<MySubscriptionScreen> {
               child: OutlinedButton.icon(
                 onPressed: () => _confirmCancel(sub),
                 icon: const Icon(Icons.cancel_outlined, size: 18),
-                label: const Text('Cancel subscription'),
+                label: Text(l10n.cancelSubscription),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: const Color(0xFFEF4444),
                   side: const BorderSide(color: Color(0xFFEF4444)),
@@ -312,7 +315,7 @@ class _MySubscriptionScreenState extends State<MySubscriptionScreen> {
               const Icon(Icons.lock_open_rounded,
                   size: 40, color: AppColors.primaryColor1),
               const SizedBox(height: 10),
-              Text('Subscribe to unlock everything',
+              Text(l10n.subscribeToUnlock,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                       color: colors.fg,
@@ -320,7 +323,7 @@ class _MySubscriptionScreenState extends State<MySubscriptionScreen> {
                       fontWeight: FontWeight.w700)),
               const SizedBox(height: 6),
               Text(
-                'Get full access to workouts, meal plans, InBody tracking, progress and coach chat.',
+                l10n.subscribeToUnlockBody,
                 textAlign: TextAlign.center,
                 style:
                     TextStyle(color: colors.subFg, fontSize: 13, height: 1.4),
@@ -338,9 +341,9 @@ class _MySubscriptionScreenState extends State<MySubscriptionScreen> {
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14)),
                   ),
-                  child: const Text('Subscribe & Pay',
-                      style:
-                          TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+                  child: Text(l10n.subscribeAndPay,
+                      style: const TextStyle(
+                          fontSize: 15, fontWeight: FontWeight.w800)),
                 ),
               ),
             ],
@@ -390,7 +393,7 @@ class _MySubscriptionScreenState extends State<MySubscriptionScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(t.status,
+              Text(subStatusLabel(l10n, t.status),
                   style: TextStyle(
                       color: colors.fg,
                       fontSize: 13,

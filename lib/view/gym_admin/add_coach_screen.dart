@@ -44,7 +44,7 @@ class _AddCoachScreenState extends State<AddCoachScreen> {
       password: _password.text,
       firstName: _first.text.trim(),
       lastName: _last.text.trim(),
-      phoneNumber: _phone.text.trim().isEmpty ? null : _phone.text.trim(),
+      phoneNumber: _phone.text.trim(),
       bio: _bio.text.trim().isEmpty ? null : _bio.text.trim(),
     );
     if (!mounted) return;
@@ -95,8 +95,8 @@ class _AddCoachScreenState extends State<AddCoachScreen> {
             const SizedBox(height: 12),
             _field(colors, _password, l10n.tempPasswordField, required: true),
             const SizedBox(height: 12),
-            _field(colors, _phone, l10n.phoneOptionalField,
-                keyboardType: TextInputType.phone),
+            _field(colors, _phone, l10n.phoneRequiredField,
+                keyboardType: TextInputType.phone, required: true),
             const SizedBox(height: 12),
             _field(colors, _bio, l10n.bioOptionalField, maxLines: 3),
             const SizedBox(height: 28),

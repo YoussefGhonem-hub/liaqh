@@ -1,4 +1,5 @@
 import 'package:fitnessapp/data/models/support_ticket_models.dart';
+import 'package:fitnessapp/common_widgets/liaqh_loaders.dart';
 import 'package:fitnessapp/providers/support_ticket_provider.dart';
 import 'package:fitnessapp/utils/app_colors.dart';
 import 'package:fitnessapp/utils/app_theme.dart';
@@ -18,11 +19,26 @@ class SupportTicketsScreen extends StatefulWidget {
 
 class _SupportTicketsScreenState extends State<SupportTicketsScreen> {
   String _status = 'Open';
+  final _scrollCtrl = ScrollController();
 
   @override
   void initState() {
     super.initState();
+    _scrollCtrl.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) => _load());
+  }
+
+  @override
+  void dispose() {
+    _scrollCtrl.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollCtrl.position.pixels >=
+        _scrollCtrl.position.maxScrollExtent - 300) {
+      context.read<SupportTicketProvider>().loadMoreAll();
+    }
   }
 
   void _load() => context.read<SupportTicketProvider>().loadAll(status: _status);
@@ -80,7 +96,7 @@ class _SupportTicketsScreenState extends State<SupportTicketsScreen> {
           ),
           Expanded(
             child: provider.loading && provider.tickets.isEmpty
-                ? const Center(child: CircularProgressIndicator())
+                ? const LiaqhPageLoader()
                 : provider.tickets.isEmpty
                     ? Center(
                         child: Text('No $_status tickets.',
@@ -88,13 +104,23 @@ class _SupportTicketsScreenState extends State<SupportTicketsScreen> {
                     : RefreshIndicator(
                         onRefresh: () async => _load(),
                         child: ListView.builder(
+                          controller: _scrollCtrl,
                           padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                          itemCount: provider.tickets.length,
-                          itemBuilder: (_, i) => _TicketCard(
-                            t: provider.tickets[i],
-                            colors: colors,
-                            onTap: () => _open(provider.tickets[i]),
-                          ),
+                          itemCount: provider.tickets.length +
+                              (provider.allHasMore ? 1 : 0),
+                          itemBuilder: (_, i) {
+                            if (i >= provider.tickets.length) {
+                              return const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 16),
+                                child: LiaqhMarkLoader(size: 34),
+                              );
+                            }
+                            return _TicketCard(
+                              t: provider.tickets[i],
+                              colors: colors,
+                              onTap: () => _open(provider.tickets[i]),
+                            );
+                          },
                         ),
                       ),
           ),

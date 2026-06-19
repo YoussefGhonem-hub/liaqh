@@ -1,8 +1,10 @@
 import 'package:fitnessapp/data/models/meal_models.dart';
+import 'package:fitnessapp/common_widgets/liaqh_loaders.dart';
 import 'package:fitnessapp/l10n/app_localizations.dart';
 import 'package:fitnessapp/providers/meal_provider.dart';
 import 'package:fitnessapp/utils/app_colors.dart';
 import 'package:fitnessapp/utils/app_theme.dart';
+import 'package:fitnessapp/utils/nutrition_l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -120,7 +122,7 @@ class _BuildMealPlanScreenState extends State<BuildMealPlanScreen>
         foregroundColor: Colors.white,
       ),
       body: provider.loading && plan == null
-          ? const Center(child: CircularProgressIndicator())
+          ? const LiaqhPageLoader()
           : plan == null
               ? Center(
                   child: Text(l10n.noMealPlanLoaded,
@@ -141,7 +143,8 @@ class _BuildMealPlanScreenState extends State<BuildMealPlanScreen>
                         labelStyle: const TextStyle(
                             fontWeight: FontWeight.w700, fontSize: 12),
                         tabs: plan.days
-                            .map((d) => Tab(text: d.dayName.substring(0, 3)))
+                            .map((d) =>
+                                Tab(text: dayShortName(context, d.dayOfWeek)))
                             .toList(),
                       ),
                     ),
@@ -151,6 +154,7 @@ class _BuildMealPlanScreenState extends State<BuildMealPlanScreen>
                         children: plan.days
                             .map((d) => _DayPanel(
                                   day: d,
+                                  allDays: plan.days,
                                   planId: widget.planId,
                                   traineeName: widget.traineeName,
                                 ))
@@ -296,14 +300,186 @@ class _MacroBar extends StatelessWidget {
 
 class _DayPanel extends StatelessWidget {
   final MealPlanDay day;
+  final List<MealPlanDay> allDays;
   final String planId;
   final String traineeName;
 
   const _DayPanel({
     required this.day,
+    required this.allDays,
     required this.planId,
     required this.traineeName,
   });
+
+  Future<void> _duplicateDay(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
+    final others = allDays.where((d) => d.id != day.id).toList();
+    final selected = <String>{};
+    var replaceExisting = true;
+
+    final confirmed = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        final colors = ctx.colors;
+        return StatefulBuilder(
+          builder: (ctx, setSheet) => Container(
+            decoration: BoxDecoration(
+              color: colors.bg,
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(22)),
+            ),
+            padding: EdgeInsets.fromLTRB(
+                20, 14, 20, MediaQuery.of(ctx).viewInsets.bottom + 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                        color: colors.divider,
+                        borderRadius: BorderRadius.circular(2)),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    const Icon(Icons.copy_all,
+                        color: AppColors.primaryColor1, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(l10n.copyDayTo(day.dayName),
+                          style: TextStyle(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 16,
+                              color: colors.fg)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  l10n.mealsWillBeCopied(day.meals.length),
+                  style: TextStyle(fontSize: 12, color: colors.subFg),
+                ),
+                const SizedBox(height: 14),
+                // Quick "select all" toggle
+                Row(
+                  children: [
+                    TextButton.icon(
+                      onPressed: () => setSheet(() {
+                        if (selected.length == others.length) {
+                          selected.clear();
+                        } else {
+                          selected
+                            ..clear()
+                            ..addAll(others.map((d) => d.id));
+                        }
+                      }),
+                      icon: Icon(
+                          selected.length == others.length
+                              ? Icons.remove_done
+                              : Icons.done_all,
+                          size: 16),
+                      label: Text(selected.length == others.length
+                          ? l10n.clearAll
+                          : l10n.selectAll),
+                    ),
+                  ],
+                ),
+                ...others.map((d) {
+                  final sel = selected.contains(d.id);
+                  final hasMeals = d.meals.isNotEmpty;
+                  return CheckboxListTile(
+                    contentPadding: EdgeInsets.zero,
+                    activeColor: AppColors.primaryColor1,
+                    value: sel,
+                    onChanged: (v) => setSheet(() {
+                      if (v == true) {
+                        selected.add(d.id);
+                      } else {
+                        selected.remove(d.id);
+                      }
+                    }),
+                    title: Text(d.dayName,
+                        style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                            color: colors.fg)),
+                    subtitle: hasMeals
+                        ? Text(l10n.currentlyHasMeals(d.meals.length),
+                            style: TextStyle(
+                                fontSize: 11, color: colors.subFg))
+                        : null,
+                  );
+                }),
+                const Divider(),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  activeThumbColor: AppColors.primaryColor1,
+                  value: replaceExisting,
+                  onChanged: (v) => setSheet(() => replaceExisting = v),
+                  title: Text(l10n.replaceExistingMeals,
+                      style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                          color: colors.fg)),
+                  subtitle: Text(
+                      replaceExisting
+                          ? l10n.replaceExistingOn
+                          : l10n.replaceExistingOff,
+                      style: TextStyle(fontSize: 11, color: colors.subFg)),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: selected.isEmpty
+                        ? null
+                        : () => Navigator.pop(ctx, true),
+                    icon: const Icon(Icons.copy, size: 16),
+                    label: Text(l10n.copyToDays(selected.length)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryColor1,
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor:
+                          AppColors.primaryColor1.withValues(alpha: 0.3),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      minimumSize: const Size(0, 48),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    if (confirmed != true || selected.isEmpty || !context.mounted) return;
+
+    final copied = await context.read<MealProvider>().duplicateDay(
+          planId: planId,
+          dayId: day.id,
+          targetDayIds: selected.toList(),
+          replaceExisting: replaceExisting,
+        );
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(copied != null
+              ? l10n.copiedMealsToDays(copied, selected.length)
+              : l10n.couldNotDuplicate),
+          backgroundColor:
+              copied != null ? AppColors.successColor : AppColors.errorColor,
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -343,8 +519,31 @@ class _DayPanel extends StatelessWidget {
                     meal: m,
                     planId: planId,
                     dayId: day.id,
+                    traineeName: traineeName,
                   )),
               const SizedBox(height: 12),
+              if (day.meals.isNotEmpty && allDays.length > 1) ...[
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () => _duplicateDay(context),
+                    icon: const Icon(Icons.copy_all,
+                        color: AppColors.primaryColor1, size: 18),
+                    label: Text(l10n.copyThisDayToOthers,
+                        style: const TextStyle(
+                            color: AppColors.primaryColor1,
+                            fontWeight: FontWeight.w600)),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(
+                          color: AppColors.primaryColor1, width: 1.5),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14)),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+              ],
               // Add meal button
               OutlinedButton.icon(
                 onPressed: () async {
@@ -407,11 +606,13 @@ class _MealCard extends StatelessWidget {
   final Meal meal;
   final String planId;
   final String dayId;
+  final String traineeName;
 
   const _MealCard({
     required this.meal,
     required this.planId,
     required this.dayId,
+    required this.traineeName,
   });
 
   @override
@@ -440,7 +641,7 @@ class _MealCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        meal.mealType,
+                        mealTypeLabel(l10n, meal.mealType),
                         style: TextStyle(
                             fontWeight: FontWeight.w700,
                             fontSize: 14,
@@ -494,6 +695,89 @@ class _MealCard extends StatelessWidget {
               ],
             ),
           ),
+          // Rejected banner + Replace action
+          if (meal.isRejected)
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.fromLTRB(14, 0, 14, 10),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: AppColors.errorColor.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                    color: AppColors.errorColor.withValues(alpha: 0.3)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.report_problem_outlined,
+                          size: 16, color: AppColors.errorColor),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(l10n.rejectedByTrainee,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 12,
+                                    color: AppColors.errorColor)),
+                            if (meal.rejectionReason != null &&
+                                meal.rejectionReason!.isNotEmpty)
+                              Text('“${meal.rejectionReason!}”',
+                                  style: const TextStyle(
+                                      fontSize: 11,
+                                      fontStyle: FontStyle.italic,
+                                      color: AppColors.errorColor)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () async {
+                        final done = await Navigator.push<bool>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => AddMealScreen(
+                              planId: planId,
+                              dayId: dayId,
+                              traineeName: traineeName,
+                              replaceMealId: meal.id,
+                              initialMealType: meal.mealType,
+                            ),
+                          ),
+                        );
+                        if (done == true && context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(l10n.mealReplacedNotified),
+                              backgroundColor: AppColors.successColor,
+                            ),
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.swap_horiz, size: 16),
+                      label: Text(l10n.replaceMeal),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryColor1,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10)),
+                        minimumSize: const Size(0, 40),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           // Food items
           if (meal.foodItems.isNotEmpty) ...[
             Divider(height: 1, thickness: 1, color: colors.divider),

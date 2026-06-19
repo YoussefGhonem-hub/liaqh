@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:fitnessapp/providers/auth_provider.dart';
 import 'package:fitnessapp/providers/chat_provider.dart';
 import 'package:fitnessapp/l10n/app_localizations.dart';
@@ -26,23 +28,43 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   late String _currentUserId;
   late bool _isCoach;
 
+  /// Id of the newest message we last auto-scrolled to, so we only jump to the
+  /// bottom for genuinely new messages — not when older ones are prepended.
+  String? _lastMsgId;
+
   // Pending context reference to attach to the next message.
   String? _pendingContextType;
   String? _pendingContextLabel;
+
+  // Pending reply (quote) to attach to the next message.
+  ChatMessage? _replyTo;
+
+  static const _quickEmojis = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
 
   @override
   void initState() {
     super.initState();
     final auth = context.read<AuthProvider>();
     _currentUserId = auth.currentUser?.userId ?? '';
-    _isCoach = auth.isCoach;
+    // Slot is decided by identity (who is the coachId of THIS conversation),
+    // not the user's global role — so owner↔anyone chats stay consistent.
+    _isCoach = widget.conversation.coachId == _currentUserId;
 
     final chat = context.read<ChatProvider>();
     chat.listenMessages(widget.conversation.id);
+    chat.listenTyping(widget.conversation.id, _isCoach);
     chat.markRead(widget.conversation.id, _isCoach, _currentUserId);
     // Re-mark as read whenever new messages arrive while this screen is open,
     // so the other person's "seen" updates in real time.
     chat.addListener(_markReadOnNewMessages);
+    _scroll.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    // Near the top → load older messages.
+    if (_scroll.hasClients && _scroll.position.pixels <= 80) {
+      context.read<ChatProvider>().loadMoreMessages();
+    }
   }
 
   void _markReadOnNewMessages() {
@@ -55,20 +77,42 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     }
   }
 
+  Timer? _typingTimer;
+
+  void _onTyping(String value) {
+    final chat = context.read<ChatProvider>();
+    chat.setTyping(widget.conversation.id, _isCoach, true);
+    _typingTimer?.cancel();
+    _typingTimer = Timer(const Duration(seconds: 2), () {
+      chat.setTyping(widget.conversation.id, _isCoach, false);
+    });
+  }
+
   @override
   void dispose() {
-    context.read<ChatProvider>().removeListener(_markReadOnNewMessages);
+    final chat = context.read<ChatProvider>();
+    chat.removeListener(_markReadOnNewMessages);
+    _typingTimer?.cancel();
+    chat.stopTyping(widget.conversation.id, _isCoach);
     _ctrl.dispose();
     _scroll.dispose();
-    context.read<ChatProvider>().clearMessages();
+    chat.clearMessages();
     super.dispose();
   }
 
+  bool _firstScrollDone = false;
+
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scroll.hasClients) {
+      if (!_scroll.hasClients) return;
+      final target = _scroll.position.maxScrollExtent;
+      if (!_firstScrollDone) {
+        // First open: jump instantly so the latest message is visible at once.
+        _scroll.jumpTo(target);
+        _firstScrollDone = true;
+      } else {
         _scroll.animateTo(
-          _scroll.position.maxScrollExtent,
+          target,
           duration: const Duration(milliseconds: 250),
           curve: Curves.easeOut,
         );
@@ -76,23 +120,33 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     });
   }
 
-  String _labelForType(AppLocalizations l10n, String type) {
-    switch (type) {
-      case ChatContextType.inbody:
-        return l10n.chatReferenceInBody;
-      case ChatContextType.workout:
-        return l10n.chatReferenceWorkout;
-      case ChatContextType.mealplan:
-        return l10n.chatReferenceMeal;
-      default:
-        return '';
-    }
+  void _clearContext() {
+    setState(() {
+      _pendingContextType = null;
+      _pendingContextLabel = null;
+    });
   }
 
-  Future<void> _pickContext() async {
+  void _react(ChatMessage msg, String emoji) {
+    context
+        .read<ChatProvider>()
+        .reactToMessage(widget.conversation.id, msg.id, _currentUserId, emoji);
+  }
+
+  /// Double-tap = quick ❤️ like (toggles).
+  void _quickReact(ChatMessage msg) => _react(msg, '❤️');
+
+  void _startReply(ChatMessage msg) {
+    setState(() => _replyTo = msg);
+  }
+
+  void _clearReply() => setState(() => _replyTo = null);
+
+  /// WhatsApp-style action sheet: react row, Reply (all), Edit/Delete (own).
+  Future<void> _showMessageActions(ChatMessage msg, bool isMine) async {
     final l10n = AppLocalizations.of(context);
     final colors = context.colors;
-    final type = await showModalBottomSheet<String>(
+    final action = await showModalBottomSheet<String>(
       context: context,
       backgroundColor: colors.card,
       shape: const RoundedRectangleBorder(
@@ -102,58 +156,221 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
-              child: Row(
-                children: [
-                  const Icon(Icons.link_rounded,
-                      color: AppColors.primaryColor1, size: 20),
-                  const SizedBox(width: 8),
-                  Text(l10n.chatAttachReference,
-                      style: TextStyle(
-                          color: colors.fg,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700)),
-                ],
+            const SizedBox(height: 8),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                  color: colors.divider,
+                  borderRadius: BorderRadius.circular(2)),
+            ),
+            const SizedBox(height: 10),
+            // Quick reactions row
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: _quickEmojis.map((e) {
+                final selected = msg.reactions[_currentUserId] == e;
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _react(msg, e);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: selected
+                          ? AppColors.primaryColor1.withValues(alpha: 0.18)
+                          : Colors.transparent,
+                    ),
+                    child: Text(e, style: const TextStyle(fontSize: 26)),
+                  ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 6),
+            const Divider(height: 1),
+            ListTile(
+              leading: const Icon(Icons.reply_rounded,
+                  color: AppColors.primaryColor1),
+              title: Text(l10n.reply, style: TextStyle(color: colors.fg)),
+              onTap: () => Navigator.pop(ctx, 'reply'),
+            ),
+            if (isMine) ...[
+              ListTile(
+                leading: const Icon(Icons.edit_rounded,
+                    color: AppColors.primaryColor1),
+                title: Text(l10n.editMessage,
+                    style: TextStyle(color: colors.fg)),
+                onTap: () => Navigator.pop(ctx, 'edit'),
               ),
-            ),
-            _ContextOption(
-              icon: Icons.monitor_heart_rounded,
-              color: const Color(0xFF6C63FF),
-              label: l10n.chatReferenceInBody,
-              onTap: () => Navigator.pop(ctx, ChatContextType.inbody),
-            ),
-            _ContextOption(
-              icon: Icons.fitness_center_rounded,
-              color: const Color(0xFF8B5CF6),
-              label: l10n.chatReferenceWorkout,
-              onTap: () => Navigator.pop(ctx, ChatContextType.workout),
-            ),
-            _ContextOption(
-              icon: Icons.restaurant_rounded,
-              color: const Color(0xFF10B981),
-              label: l10n.chatReferenceMeal,
-              onTap: () => Navigator.pop(ctx, ChatContextType.mealplan),
-            ),
+              ListTile(
+                leading: const Icon(Icons.delete_outline_rounded,
+                    color: Color(0xFFEF4444)),
+                title: Text(l10n.deleteMessage,
+                    style: const TextStyle(color: Color(0xFFEF4444))),
+                onTap: () => Navigator.pop(ctx, 'delete'),
+              ),
+            ],
             const SizedBox(height: 8),
           ],
         ),
       ),
     );
+    if (!mounted || action == null) return;
 
-    if (type != null && mounted) {
-      setState(() {
-        _pendingContextType = type;
-        _pendingContextLabel = _labelForType(l10n, type);
-      });
+    if (action == 'reply') {
+      _startReply(msg);
+    } else if (action == 'edit') {
+      await _editMessage(msg);
+    } else if (action == 'delete') {
+      final ok = await _confirmDelete();
+      if (ok && mounted) {
+        await context
+            .read<ChatProvider>()
+            .deleteMessage(widget.conversation.id, msg.id);
+      }
     }
   }
 
-  void _clearContext() {
-    setState(() {
-      _pendingContextType = null;
-      _pendingContextLabel = null;
-    });
+  Future<void> _editMessage(ChatMessage msg) async {
+    final l10n = AppLocalizations.of(context);
+    final colors = context.colors;
+    final ctrl = TextEditingController(text: msg.text);
+    final newText = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: colors.card,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(l10n.editMessage,
+            style: TextStyle(
+                color: colors.fg, fontSize: 17, fontWeight: FontWeight.w800)),
+        content: TextField(
+          controller: ctrl,
+          autofocus: true,
+          maxLines: 5,
+          minLines: 1,
+          style: TextStyle(color: colors.fg),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: colors.inputFill,
+            border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide.none),
+          ),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(l10n.cancel)),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, ctrl.text.trim()),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryColor1,
+                foregroundColor: Colors.white),
+            child: Text(l10n.save),
+          ),
+        ],
+      ),
+    );
+    if (newText != null && newText.isNotEmpty && newText != msg.text && mounted) {
+      await context
+          .read<ChatProvider>()
+          .editMessage(widget.conversation.id, msg.id, newText);
+    }
+  }
+
+  Future<bool> _confirmDelete() async {
+    final l10n = AppLocalizations.of(context);
+    final colors = context.colors;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: colors.card,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(l10n.deleteMessage,
+            style: TextStyle(
+                color: colors.fg, fontSize: 17, fontWeight: FontWeight.w800)),
+        content: Text(l10n.deleteMessageConfirm,
+            style: TextStyle(color: colors.subFg)),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(l10n.cancel)),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFEF4444),
+                foregroundColor: Colors.white),
+            child: Text(l10n.delete),
+          ),
+        ],
+      ),
+    );
+    return ok ?? false;
+  }
+
+  /// Inserts an emoji at the current cursor position (or appends).
+  void _insertEmoji(String emoji) {
+    final sel = _ctrl.selection;
+    final text = _ctrl.text;
+    if (sel.isValid) {
+      final newText = text.replaceRange(sel.start, sel.end, emoji);
+      _ctrl.value = TextEditingValue(
+        text: newText,
+        selection:
+            TextSelection.collapsed(offset: sel.start + emoji.length),
+      );
+    } else {
+      _ctrl.text = text + emoji;
+      _ctrl.selection =
+          TextSelection.collapsed(offset: _ctrl.text.length);
+    }
+  }
+
+  void _showEmojiPicker() {
+    final colors = context.colors;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: colors.card,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                    color: colors.divider,
+                    borderRadius: BorderRadius.circular(2)),
+              ),
+              const SizedBox(height: 10),
+              SizedBox(
+                height: 280,
+                child: GridView.count(
+                  crossAxisCount: 8,
+                  children: _chatEmojis
+                      .map((e) => InkWell(
+                            borderRadius: BorderRadius.circular(8),
+                            onTap: () => _insertEmoji(e),
+                            child: Center(
+                              child: Text(e,
+                                  style: const TextStyle(fontSize: 26)),
+                            ),
+                          ))
+                      .toList(),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> _send() async {
@@ -165,7 +382,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     final recipientId = _isCoach ? conv.traineeId : conv.coachId;
     final ctxType = _pendingContextType;
     final ctxLabel = _pendingContextLabel;
+    final reply = _replyTo;
     _clearContext();
+    _clearReply();
     await context.read<ChatProvider>().sendMessage(
           conversationId: conv.id,
           senderId: _currentUserId,
@@ -175,6 +394,13 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
           recipientId: recipientId,
           contextType: ctxType,
           contextLabel: ctxLabel,
+          replyToId: reply?.id,
+          replyToText: reply?.text,
+          replyToSender: reply == null
+              ? null
+              : (reply.senderId == _currentUserId
+                  ? AppLocalizations.of(context).chatYou
+                  : reply.senderName),
         );
     _scrollToBottom();
   }
@@ -186,7 +412,13 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     final chat = context.watch<ChatProvider>();
     final otherName = widget.conversation.otherName(_currentUserId);
 
-    if (chat.messages.isNotEmpty) _scrollToBottom();
+    // Auto-scroll to the bottom only when the newest message changes (new
+    // message sent/received), not when older messages are prepended.
+    final newestId = chat.messages.isNotEmpty ? chat.messages.last.id : null;
+    if (newestId != null && newestId != _lastMsgId) {
+      _lastMsgId = newestId;
+      _scrollToBottom();
+    }
 
     return Scaffold(
       backgroundColor: colors.bg,
@@ -220,8 +452,18 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                         color: colors.fg,
                         fontSize: 15,
                         fontWeight: FontWeight.w700)),
-                Text(_isCoach ? l10n.chatTrainee : l10n.chatCoach,
-                    style: TextStyle(color: colors.subFg, fontSize: 11)),
+                Text(
+                    chat.otherTyping
+                        ? l10n.typing
+                        : (_isCoach ? l10n.chatTrainee : l10n.chatCoach),
+                    style: TextStyle(
+                        color: chat.otherTyping
+                            ? const Color(0xFF10B981)
+                            : colors.subFg,
+                        fontSize: 11,
+                        fontWeight: chat.otherTyping
+                            ? FontWeight.w600
+                            : FontWeight.w400)),
               ],
             ),
           ],
@@ -248,8 +490,26 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                     controller: _scroll,
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 12),
-                    itemCount: chat.messages.length,
-                    itemBuilder: (context, i) {
+                    itemCount: chat.messages.length +
+                        (chat.messagesHasMore ? 1 : 0),
+                    itemBuilder: (context, index) {
+                      final offset = chat.messagesHasMore ? 1 : 0;
+                      // Top "load older" spinner.
+                      if (chat.messagesHasMore && index == 0) {
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 12),
+                          child: Center(
+                            child: SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: AppColors.primaryColor1),
+                            ),
+                          ),
+                        );
+                      }
+                      final i = index - offset;
                       final msg = chat.messages[i];
                       final isMine = msg.senderId == _currentUserId;
                       final showDate = i == 0 ||
@@ -257,7 +517,15 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                       return Column(
                         children: [
                           if (showDate) _DateChip(date: msg.sentAt),
-                          _Bubble(msg: msg, isMine: isMine),
+                          GestureDetector(
+                            onLongPress: () => _showMessageActions(msg, isMine),
+                            onDoubleTap: () => _quickReact(msg),
+                            child: _Bubble(
+                              msg: msg,
+                              isMine: isMine,
+                              currentUserId: _currentUserId,
+                            ),
+                          ),
                         ],
                       );
                     },
@@ -269,10 +537,19 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
               label: _pendingContextLabel ?? '',
               onClear: _clearContext,
             ),
+          if (_replyTo != null)
+            _ReplyBanner(
+              sender: _replyTo!.senderId == _currentUserId
+                  ? l10n.chatYou
+                  : _replyTo!.senderName,
+              text: _replyTo!.text,
+              onClear: _clearReply,
+            ),
           _InputBar(
             ctrl: _ctrl,
             onSend: _send,
-            onAttach: _pickContext,
+            onEmoji: _showEmojiPicker,
+            onChanged: _onTyping,
             colors: colors,
             hint: l10n.chatTypeMessage,
           ),
@@ -309,49 +586,6 @@ Color contextColor(String type) {
       return const Color(0xFF10B981);
     default:
       return AppColors.primaryColor1;
-  }
-}
-
-class _ContextOption extends StatelessWidget {
-  final IconData icon;
-  final Color color;
-  final String label;
-  final VoidCallback onTap;
-  const _ContextOption({
-    required this.icon,
-    required this.color,
-    required this.label,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        child: Row(
-          children: [
-            Container(
-              width: 42,
-              height: 42,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: color, size: 22),
-            ),
-            const SizedBox(width: 14),
-            Text(label,
-                style: TextStyle(
-                    color: colors.fg,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600)),
-          ],
-        ),
-      ),
-    );
   }
 }
 
@@ -408,6 +642,54 @@ class _PendingContextBanner extends StatelessWidget {
   }
 }
 
+// ── Reply banner (above the composer) ──────────────────────────────────────────
+class _ReplyBanner extends StatelessWidget {
+  final String sender;
+  final String text;
+  final VoidCallback onClear;
+  const _ReplyBanner(
+      {required this.sender, required this.text, required this.onClear});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final l10n = AppLocalizations.of(context);
+    return Container(
+      color: colors.card,
+      padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+      child: Row(
+        children: [
+          Container(width: 3, height: 36, color: AppColors.primaryColor1),
+          const SizedBox(width: 10),
+          const Icon(Icons.reply_rounded,
+              color: AppColors.primaryColor1, size: 18),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('${l10n.reply} · $sender',
+                    style: const TextStyle(
+                        color: AppColors.primaryColor1,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700)),
+                Text(text,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: colors.subFg, fontSize: 13)),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: Icon(Icons.close_rounded, color: colors.mutedFg, size: 20),
+            onPressed: onClear,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 // ── Date separator ────────────────────────────────────────────────────────────
 class _DateChip extends StatelessWidget {
   final DateTime date;
@@ -454,7 +736,12 @@ class _DateChip extends StatelessWidget {
 class _Bubble extends StatelessWidget {
   final ChatMessage msg;
   final bool isMine;
-  const _Bubble({required this.msg, required this.isMine});
+  final String currentUserId;
+  const _Bubble({
+    required this.msg,
+    required this.isMine,
+    required this.currentUserId,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -463,8 +750,11 @@ class _Bubble extends StatelessWidget {
 
     return Align(
       alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 6),
+      child: Column(
+        crossAxisAlignment:
+            isMine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        children: [
+          Container(
         constraints:
             BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.72),
         decoration: BoxDecoration(
@@ -494,6 +784,7 @@ class _Bubble extends StatelessWidget {
           crossAxisAlignment:
               isMine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
           children: [
+            if (msg.hasReply) _ReplyQuote(msg: msg, isMine: isMine),
             if (msg.hasContext)
               _ContextChip(
                 type: msg.contextType!,
@@ -509,6 +800,16 @@ class _Bubble extends StatelessWidget {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
+                if (msg.isEdited) ...[
+                  Text(AppLocalizations.of(context).edited,
+                      style: TextStyle(
+                          color: isMine
+                              ? Colors.white.withValues(alpha: 0.7)
+                              : colors.mutedFg,
+                          fontSize: 10,
+                          fontStyle: FontStyle.italic)),
+                  const SizedBox(width: 5),
+                ],
                 Text(time,
                     style: TextStyle(
                         color: isMine
@@ -531,6 +832,105 @@ class _Bubble extends StatelessWidget {
             ),
           ],
         ),
+      ),
+          if (msg.reactions.isNotEmpty)
+            _ReactionsChip(
+                reactions: msg.reactions,
+                isMine: isMine,
+                colors: colors),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Reply quote shown at the top of a bubble ───────────────────────────────────
+class _ReplyQuote extends StatelessWidget {
+  final ChatMessage msg;
+  final bool isMine;
+  const _ReplyQuote({required this.msg, required this.isMine});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final onMine = isMine;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: onMine
+            ? Colors.white.withValues(alpha: 0.18)
+            : AppColors.primaryColor1.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(10),
+        border: Border(
+          left: BorderSide(
+              color: onMine ? Colors.white : AppColors.primaryColor1,
+              width: 3),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(msg.replyToSender ?? '',
+              style: TextStyle(
+                  color: onMine ? Colors.white : AppColors.primaryColor1,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700)),
+          const SizedBox(height: 2),
+          Text(msg.replyToText ?? '',
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                  color: onMine
+                      ? Colors.white.withValues(alpha: 0.85)
+                      : colors.subFg,
+                  fontSize: 12)),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Reactions chip shown under a bubble ────────────────────────────────────────
+class _ReactionsChip extends StatelessWidget {
+  final Map<String, String> reactions;
+  final bool isMine;
+  final dynamic colors;
+  const _ReactionsChip(
+      {required this.reactions, required this.isMine, required this.colors});
+
+  @override
+  Widget build(BuildContext context) {
+    // Count each emoji.
+    final counts = <String, int>{};
+    for (final e in reactions.values) {
+      counts[e] = (counts[e] ?? 0) + 1;
+    }
+    return Container(
+      margin: const EdgeInsets.only(top: 2, bottom: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: colors.card,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colors.divider),
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 4,
+              offset: const Offset(0, 1)),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: counts.entries.map((e) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 1),
+            child: Text(
+              e.value > 1 ? '${e.key} ${e.value}' : e.key,
+              style: const TextStyle(fontSize: 12),
+            ),
+          );
+        }).toList(),
       ),
     );
   }
@@ -578,17 +978,31 @@ class _ContextChip extends StatelessWidget {
   }
 }
 
+/// A compact set of common emojis for the in-chat picker.
+const List<String> _chatEmojis = [
+  '😀', '😁', '😂', '🤣', '😊', '😇', '🙂', '😉',
+  '😍', '😘', '😋', '😎', '🤩', '🥳', '😴', '🤔',
+  '🤗', '🙃', '😅', '😢', '😭', '😡', '😱', '😬',
+  '👍', '👎', '👏', '🙏', '💪', '🤝', '👌', '✌️',
+  '🔥', '⭐', '✨', '🎉', '❤️', '🧡', '💛', '💚',
+  '💙', '💜', '💯', '✅', '❌', '⚡', '🏆', '🥇',
+  '🏋️', '🤸', '🏃', '🚴', '🥗', '🍎', '🥦', '🍗',
+  '🥚', '🥛', '💧', '☕', '😋', '😴', '⏰', '📅',
+];
+
 // ── Input bar ─────────────────────────────────────────────────────────────────
 class _InputBar extends StatelessWidget {
   final TextEditingController ctrl;
   final VoidCallback onSend;
-  final VoidCallback onAttach;
+  final VoidCallback onEmoji;
+  final ValueChanged<String> onChanged;
   final dynamic colors;
   final String hint;
   const _InputBar({
     required this.ctrl,
     required this.onSend,
-    required this.onAttach,
+    required this.onEmoji,
+    required this.onChanged,
     required this.colors,
     required this.hint,
   });
@@ -607,13 +1021,13 @@ class _InputBar extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          // Attach / link reference
+          // Emoji picker
           GestureDetector(
-            onTap: onAttach,
+            onTap: onEmoji,
             behavior: HitTestBehavior.opaque,
-            child: Padding(
-              padding: const EdgeInsets.only(right: 6, bottom: 6),
-              child: Icon(Icons.add_link_rounded,
+            child: const Padding(
+              padding: EdgeInsets.only(right: 4, bottom: 6),
+              child: Icon(Icons.emoji_emotions_outlined,
                   color: AppColors.primaryColor1, size: 26),
             ),
           ),
@@ -648,6 +1062,7 @@ class _InputBar extends StatelessWidget {
                       color: AppColors.primaryColor1, width: 1.3),
                 ),
               ),
+              onChanged: onChanged,
               onSubmitted: (_) => onSend(),
             ),
           ),

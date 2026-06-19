@@ -1,4 +1,5 @@
 import 'package:fitnessapp/data/models/payment_method_models.dart';
+import 'package:fitnessapp/common_widgets/liaqh_loaders.dart';
 import 'package:fitnessapp/providers/payment_methods_provider.dart';
 import 'package:fitnessapp/utils/app_colors.dart';
 import 'package:fitnessapp/utils/app_theme.dart';
@@ -17,11 +18,26 @@ class PaymentRequestsScreen extends StatefulWidget {
 
 class _PaymentRequestsScreenState extends State<PaymentRequestsScreen> {
   String _status = 'Pending';
+  final _scrollCtrl = ScrollController();
 
   @override
   void initState() {
     super.initState();
+    _scrollCtrl.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) => _load());
+  }
+
+  @override
+  void dispose() {
+    _scrollCtrl.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollCtrl.position.pixels >=
+        _scrollCtrl.position.maxScrollExtent - 300) {
+      context.read<PaymentMethodsProvider>().loadMoreRequests();
+    }
   }
 
   void _load() =>
@@ -121,7 +137,7 @@ class _PaymentRequestsScreenState extends State<PaymentRequestsScreen> {
           ),
           Expanded(
             child: provider.loading && provider.requests.isEmpty
-                ? const Center(child: CircularProgressIndicator())
+                ? const LiaqhPageLoader()
                 : provider.requests.isEmpty
                     ? Center(
                         child: Text('No $_status requests.',
@@ -129,15 +145,26 @@ class _PaymentRequestsScreenState extends State<PaymentRequestsScreen> {
                     : RefreshIndicator(
                         onRefresh: () async => _load(),
                         child: ListView.builder(
+                          controller: _scrollCtrl,
                           padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                          itemCount: provider.requests.length,
-                          itemBuilder: (_, i) => _RequestCard(
-                            r: provider.requests[i],
-                            colors: colors,
-                            statusColor: _statusColor(provider.requests[i].status),
-                            onAccept: () => _accept(provider.requests[i]),
-                            onReject: () => _reject(provider.requests[i]),
-                          ),
+                          itemCount: provider.requests.length +
+                              (provider.requestsHasMore ? 1 : 0),
+                          itemBuilder: (_, i) {
+                            if (i >= provider.requests.length) {
+                              return const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 16),
+                                child: LiaqhMarkLoader(size: 34),
+                              );
+                            }
+                            return _RequestCard(
+                              r: provider.requests[i],
+                              colors: colors,
+                              statusColor:
+                                  _statusColor(provider.requests[i].status),
+                              onAccept: () => _accept(provider.requests[i]),
+                              onReject: () => _reject(provider.requests[i]),
+                            );
+                          },
                         ),
                       ),
           ),

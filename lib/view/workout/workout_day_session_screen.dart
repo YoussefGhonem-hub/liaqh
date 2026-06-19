@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:fitnessapp/common_widgets/liaqh_loaders.dart';
 import 'package:fitnessapp/data/models/workout_models.dart';
 import 'package:fitnessapp/l10n/app_localizations.dart';
 import 'package:fitnessapp/providers/workout_provider.dart';
@@ -275,7 +276,7 @@ class _WorkoutDaySessionScreenState extends State<WorkoutDaySessionScreen> {
         ],
         const SizedBox(height: 20),
         provider.loading
-            ? const Center(child: CircularProgressIndicator())
+            ? const LiaqhPageLoader()
             : ElevatedButton.icon(
                 onPressed: _submit,
                 icon: const Icon(Icons.check_circle_outline),

@@ -1,8 +1,10 @@
+import 'package:fitnessapp/common_widgets/attachments_view.dart';
 import 'package:fitnessapp/data/models/meal_models.dart';
 import 'package:fitnessapp/l10n/app_localizations.dart';
 import 'package:fitnessapp/providers/meal_provider.dart';
 import 'package:fitnessapp/utils/app_colors.dart';
 import 'package:fitnessapp/utils/app_theme.dart';
+import 'package:fitnessapp/utils/nutrition_l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -10,15 +12,65 @@ class MealPlanViewScreen extends StatelessWidget {
   final MealPlan plan;
   final String traineeId;
 
+  /// When true (the trainee viewing their own plan) each meal shows a Reject
+  /// action and file-based plans offer a whole-plan reject.
+  final bool canReject;
+
   const MealPlanViewScreen({
     Key? key,
     required this.plan,
     required this.traineeId,
+    this.canReject = false,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final l10n = AppLocalizations.of(context);
+
+    // File-based plan → show the uploaded document instead of day tabs.
+    if (plan.isFile) {
+      return Scaffold(
+        backgroundColor: colors.bg,
+        appBar: AppBar(
+          title: Text(plan.name,
+              style: TextStyle(
+                  fontWeight: FontWeight.w700, color: colors.fg, fontSize: 16)),
+          backgroundColor: colors.bg,
+          elevation: 0,
+          foregroundColor: colors.fg,
+        ),
+        body: ListView(
+          padding: const EdgeInsets.all(20),
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF43A047), Color(0xFF1B5E20)],
+                ),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.picture_as_pdf, color: Colors.white),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      l10n.coachProvidedFilePlan(plan.durationMonths),
+                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            AttachmentsView(urls: [plan.attachmentUrl!]),
+          ],
+        ),
+      );
+    }
+
     return DefaultTabController(
       length: plan.days.length,
       child: Scaffold(
@@ -42,13 +94,14 @@ class MealPlanViewScreen extends StatelessWidget {
             labelStyle:
                 const TextStyle(fontWeight: FontWeight.w700, fontSize: 12),
             tabs: plan.days
-                .map((d) => Tab(text: d.dayName.substring(0, 3)))
+                .map((d) => Tab(text: dayShortName(context, d.dayOfWeek)))
                 .toList(),
           ),
         ),
         body: TabBarView(
           children: plan.days
-              .map((d) => _DayViewTab(day: d, traineeId: traineeId))
+              .map((d) => _DayViewTab(
+                  day: d, traineeId: traineeId, canReject: canReject))
               .toList(),
         ),
       ),
@@ -61,8 +114,10 @@ class MealPlanViewScreen extends StatelessWidget {
 class _DayViewTab extends StatelessWidget {
   final MealPlanDay day;
   final String traineeId;
+  final bool canReject;
 
-  const _DayViewTab({required this.day, required this.traineeId});
+  const _DayViewTab(
+      {required this.day, required this.traineeId, this.canReject = false});
 
   @override
   Widget build(BuildContext context) {
@@ -108,7 +163,8 @@ class _DayViewTab extends StatelessWidget {
           )
         else
           ...day.meals.map(
-            (m) => _MealViewCard(meal: m, traineeId: traineeId),
+            (m) => _MealViewCard(
+                meal: m, traineeId: traineeId, canReject: canReject),
           ),
       ],
     );
@@ -140,8 +196,10 @@ class _DaySummaryChip extends StatelessWidget {
 class _MealViewCard extends StatelessWidget {
   final Meal meal;
   final String traineeId;
+  final bool canReject;
 
-  const _MealViewCard({required this.meal, required this.traineeId});
+  const _MealViewCard(
+      {required this.meal, required this.traineeId, this.canReject = false});
 
   void _showLogSheet(BuildContext context) {
     showModalBottomSheet(
@@ -154,6 +212,82 @@ class _MealViewCard extends StatelessWidget {
         traineeId: traineeId,
       ),
     );
+  }
+
+  Future<void> _showRejectDialog(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
+    final ctrl = TextEditingController();
+    final reason = await showDialog<String>(
+      context: context,
+      builder: (ctx) {
+        final colors = ctx.colors;
+        return AlertDialog(
+          backgroundColor: colors.bg,
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(18)),
+          title: Text(l10n.rejectThisMeal,
+              style: TextStyle(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 16,
+                  color: colors.fg)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l10n.rejectReasonHint,
+                style: TextStyle(fontSize: 12, color: colors.subFg),
+              ),
+              const SizedBox(height: 14),
+              TextField(
+                controller: ctrl,
+                maxLines: 3,
+                style: TextStyle(color: colors.fg, fontSize: 14),
+                decoration: InputDecoration(
+                  hintText: l10n.rejectReasonPlaceholder,
+                  hintStyle: TextStyle(color: colors.subFg, fontSize: 12),
+                  filled: true,
+                  fillColor: colors.listTile,
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(l10n.cancel),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, ctrl.text.trim()),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.errorColor,
+                  foregroundColor: Colors.white),
+              child: Text(l10n.reject),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (reason == null || reason.isEmpty || !context.mounted) return;
+    final ok = await context.read<MealProvider>().rejectMeal(
+          mealId: meal.id,
+          reason: reason,
+          traineeId: traineeId,
+        );
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              ok ? l10n.mealRejectedNotified : l10n.couldNotReject),
+          backgroundColor:
+              ok ? AppColors.successColor : AppColors.errorColor,
+        ),
+      );
+    }
   }
 
   @override
@@ -182,7 +316,7 @@ class _MealViewCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        meal.mealType,
+                        mealTypeLabel(l10n, meal.mealType),
                         style: TextStyle(
                             fontWeight: FontWeight.w700,
                             fontSize: 14,
@@ -238,9 +372,65 @@ class _MealViewCard extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (canReject && !meal.isRejected) ...[
+                  const SizedBox(width: 6),
+                  GestureDetector(
+                    onTap: () => _showRejectDialog(context),
+                    child: Container(
+                      padding: const EdgeInsets.all(7),
+                      decoration: BoxDecoration(
+                        color: AppColors.errorColor.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(Icons.thumb_down_alt_outlined,
+                          size: 16, color: AppColors.errorColor),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
+          // Rejected banner
+          if (meal.isRejected)
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.fromLTRB(14, 0, 14, 10),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: AppColors.errorColor.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                    color: AppColors.errorColor.withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.report_problem_outlined,
+                      size: 16, color: AppColors.errorColor),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(l10n.rejectedWaitingCoach,
+                            style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 12,
+                                color: AppColors.errorColor)),
+                        if (meal.rejectionReason != null &&
+                            meal.rejectionReason!.isNotEmpty)
+                          Text('“${meal.rejectionReason!}”',
+                              style: const TextStyle(
+                                  fontSize: 11,
+                                  fontStyle: FontStyle.italic,
+                                  color: AppColors.errorColor)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           // Food items
           if (meal.foodItems.isNotEmpty) ...[
             Divider(height: 1, thickness: 1, color: colors.divider),
@@ -325,7 +515,7 @@ class _LogBottomSheet extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            l10n.logMeal(meal.mealType),
+            l10n.logMeal(mealTypeLabel(l10n, meal.mealType)),
             style: TextStyle(
                 fontWeight: FontWeight.w700,
                 fontSize: 16,
@@ -333,21 +523,21 @@ class _LogBottomSheet extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           _LogOption(
-            label: '${l10n.completed} ✅',
+            label: l10n.completed,
             subtitle: l10n.completedHint,
             color: AppColors.successColor,
             onTap: () => _log(context, 'Completed'),
           ),
           const SizedBox(height: 10),
           _LogOption(
-            label: '${l10n.skipped} ❌',
+            label: l10n.skipped,
             subtitle: l10n.skippedHint,
             color: AppColors.errorColor,
             onTap: () => _log(context, 'Skipped'),
           ),
           const SizedBox(height: 10),
           _LogOption(
-            label: '${l10n.partial} 🔄',
+            label: l10n.partial,
             subtitle: l10n.partialHint,
             color: AppColors.warningColor,
             onTap: () => _log(context, 'Partial'),

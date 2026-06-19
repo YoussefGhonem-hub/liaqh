@@ -1,9 +1,11 @@
 import 'package:fitnessapp/data/models/trainee_models.dart';
+import 'package:fitnessapp/common_widgets/liaqh_loaders.dart';
 import 'package:fitnessapp/l10n/app_localizations.dart';
 import 'package:fitnessapp/providers/trainee_provider.dart';
 import 'package:fitnessapp/utils/app_alerts.dart';
 import 'package:fitnessapp/utils/app_colors.dart';
 import 'package:fitnessapp/utils/app_theme.dart';
+import 'package:fitnessapp/utils/nutrition_l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -23,6 +25,7 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
   final _passwordCtrl = TextEditingController();
   final _firstNameCtrl = TextEditingController();
   final _lastNameCtrl = TextEditingController();
+  final _phoneCtrl = TextEditingController();
   final _heightCtrl = TextEditingController();
   final _weightCtrl = TextEditingController();
   String _selectedGoal = 'Maintain';
@@ -32,13 +35,18 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
 
   @override
   void dispose() {
-    for (final c in [_emailCtrl, _passwordCtrl, _firstNameCtrl, _lastNameCtrl, _heightCtrl, _weightCtrl]) {
+    for (final c in [_emailCtrl, _passwordCtrl, _firstNameCtrl, _lastNameCtrl, _phoneCtrl, _heightCtrl, _weightCtrl]) {
       c.dispose();
     }
     super.dispose();
   }
 
   Future<void> _submit() async {
+    final l10n = AppLocalizations.of(context);
+    if (_phoneCtrl.text.trim().length < 7) {
+      AppAlerts.error(context, l10n.phoneInvalidError);
+      return;
+    }
     final provider = context.read<TraineeProvider>();
     try {
       await provider.addTrainee(CreateTraineeRequest(
@@ -46,6 +54,7 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
         password: _passwordCtrl.text,
         firstName: _firstNameCtrl.text.trim(),
         lastName: _lastNameCtrl.text.trim(),
+        phoneNumber: _phoneCtrl.text.trim(),
         goal: _selectedGoal,
         heightCm: double.tryParse(_heightCtrl.text) ?? 170,
         currentWeightKg: double.tryParse(_weightCtrl.text) ?? 70,
@@ -102,6 +111,13 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
             ),
             const SizedBox(height: 15),
             RoundTextField(
+              textEditingController: _phoneCtrl,
+              hintText: l10n.phoneNumber,
+              icon: "assets/icons/profile_icon.png",
+              textInputType: TextInputType.phone,
+            ),
+            const SizedBox(height: 15),
+            RoundTextField(
               textEditingController: _passwordCtrl,
               hintText: l10n.tempPassword,
               icon: "assets/icons/lock_icon.png",
@@ -150,7 +166,7 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       alignment: Alignment.center,
-                      child: Text(goal,
+                      child: Text(goalLabel(l10n, goal),
                           style: TextStyle(
                             color: selected ? Colors.white : colors.subFg,
                             fontSize: 12,
@@ -163,7 +179,7 @@ class _AddTraineeScreenState extends State<AddTraineeScreen> {
             ),
             const SizedBox(height: 30),
             provider.loading
-                ? const Center(child: CircularProgressIndicator())
+                ? const LiaqhPageLoader()
                 : RoundGradientButton(title: l10n.addTrainee, onPressed: _submit),
           ],
         ),

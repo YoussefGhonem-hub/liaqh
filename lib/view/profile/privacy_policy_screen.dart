@@ -11,20 +11,20 @@ class PrivacyPolicyScreen extends StatelessWidget {
     final colors = context.colors;
     final l10n = AppLocalizations.of(context);
 
-    const sections = [
-      _Section('1. Information We Collect',
+    final sections = [
+      _Section(l10n.privacySection1Title,
           'We collect information you provide when creating an account, such as your name, email address, and fitness data. We also collect usage data to improve our services.'),
-      _Section('2. How We Use Information',
+      _Section(l10n.privacySection2Title,
           'Your data is used to personalise your experience, provide coaching insights, and improve the platform. We do not sell your personal information to third parties.'),
-      _Section('3. Data Storage',
+      _Section(l10n.privacySection3Title,
           'Your information is securely stored and protected using industry-standard encryption. We retain data only as long as necessary to provide our services.'),
-      _Section('4. Sharing Information',
+      _Section(l10n.privacySection4Title,
           'Your fitness data is shared only with your assigned coach within the platform. We do not share data with external parties without your explicit consent.'),
-      _Section('5. Your Rights',
+      _Section(l10n.privacySection5Title,
           'You have the right to access, correct, or delete your personal data at any time. Contact us through the app to exercise these rights.'),
-      _Section('6. Changes to this Policy',
+      _Section(l10n.privacySection6Title,
           'We may update this policy from time to time. We will notify you of significant changes through the app or via email.'),
-      _Section('7. Contact',
+      _Section(l10n.privacySection7Title,
           'For privacy-related questions, contact us at privacy@gymapp.com.'),
     ];
 

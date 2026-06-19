@@ -1,9 +1,11 @@
 import 'package:fitnessapp/data/models/trainee_models.dart';
+import 'package:fitnessapp/common_widgets/liaqh_loaders.dart';
 import 'package:fitnessapp/l10n/app_localizations.dart';
 import 'package:fitnessapp/providers/auth_provider.dart';
 import 'package:fitnessapp/providers/trainee_provider.dart';
 import 'package:fitnessapp/utils/app_colors.dart';
 import 'package:fitnessapp/utils/app_theme.dart';
+import 'package:fitnessapp/utils/nutrition_l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -19,12 +21,28 @@ class TraineesScreen extends StatefulWidget {
 }
 
 class _TraineesScreenState extends State<TraineesScreen> {
+  final _scrollCtrl = ScrollController();
+
   @override
   void initState() {
     super.initState();
+    _scrollCtrl.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<TraineeProvider>().loadTrainees();
     });
+  }
+
+  @override
+  void dispose() {
+    _scrollCtrl.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollCtrl.position.pixels >=
+        _scrollCtrl.position.maxScrollExtent - 300) {
+      context.read<TraineeProvider>().loadMore();
+    }
   }
 
   @override
@@ -54,7 +72,7 @@ class _TraineesScreenState extends State<TraineesScreen> {
         ],
       ),
       body: provider.loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const LiaqhPageLoader()
           : provider.trainees.isEmpty
               ? _EmptyState(
                   onAdd: canAdd
@@ -63,27 +81,40 @@ class _TraineesScreenState extends State<TraineesScreen> {
               : RefreshIndicator(
                   onRefresh: () => context.read<TraineeProvider>().loadTrainees(),
                   child: ListView.separated(
+                    controller: _scrollCtrl,
                     padding: const EdgeInsets.all(16),
-                    itemCount: provider.trainees.length,
+                    itemCount: provider.trainees.length +
+                        (provider.hasMore ? 1 : 0),
                     separatorBuilder: (_, __) => const SizedBox(height: 12),
-                    itemBuilder: (_, i) => _TraineeCard(
-                          trainee: provider.trainees[i],
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => TraineeDetailScreen(
-                                traineeId: provider.trainees[i].id,
-                                traineeUserId: provider.trainees[i].userId,
-                                traineeName: provider.trainees[i].fullName,
-                                goal: provider.trainees[i].goal,
-                                heightCm: provider.trainees[i].heightCm,
-                                currentWeightKg: provider.trainees[i].currentWeightKg,
-                                latestBodyScore: provider.trainees[i].latestBodyScore,
-                                profileImageUrl: provider.trainees[i].profileImageUrl,
-                              ),
+                    itemBuilder: (_, i) {
+                      if (i >= provider.trainees.length) {
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          child: const LiaqhPageLoader(),
+                        );
+                      }
+                      return _TraineeCard(
+                        trainee: provider.trainees[i],
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => TraineeDetailScreen(
+                              traineeId: provider.trainees[i].id,
+                              traineeUserId: provider.trainees[i].userId,
+                              traineeName: provider.trainees[i].fullName,
+                              goal: provider.trainees[i].goal,
+                              heightCm: provider.trainees[i].heightCm,
+                              currentWeightKg:
+                                  provider.trainees[i].currentWeightKg,
+                              latestBodyScore:
+                                  provider.trainees[i].latestBodyScore,
+                              profileImageUrl:
+                                  provider.trainees[i].profileImageUrl,
                             ),
                           ),
                         ),
+                      );
+                    },
                   ),
                 ),
     );
@@ -156,7 +187,7 @@ class _TraineeCard extends StatelessWidget {
                         color: _goalColor(trainee.goal).withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Text(trainee.goal,
+                      child: Text(goalLabel(l10n, trainee.goal),
                           style: TextStyle(
                               fontSize: 11,
                               color: _goalColor(trainee.goal),

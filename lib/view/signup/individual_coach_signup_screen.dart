@@ -1,4 +1,5 @@
 import 'package:fitnessapp/data/models/auth_models.dart';
+import 'package:fitnessapp/common_widgets/liaqh_loaders.dart';
 import 'package:fitnessapp/l10n/app_localizations.dart';
 import 'package:fitnessapp/providers/auth_provider.dart';
 import 'package:fitnessapp/utils/app_colors.dart';
@@ -44,6 +45,7 @@ class _IndividualCoachSignupScreenState
     if (_lastNameCtrl.text.trim().isEmpty) return l10n.errorRequired;
     if (!_emailCtrl.text.contains('@')) return l10n.errorInvalidEmail;
     if (_passwordCtrl.text.length < 6) return l10n.errorMinPassword;
+    if (_phoneCtrl.text.trim().length < 7) return l10n.phoneInvalidError;
     return null;
   }
 
@@ -63,8 +65,7 @@ class _IndividualCoachSignupScreenState
         password: _passwordCtrl.text,
         firstName: _firstNameCtrl.text.trim(),
         lastName: _lastNameCtrl.text.trim(),
-        phoneNumber:
-            _phoneCtrl.text.trim().isEmpty ? null : _phoneCtrl.text.trim(),
+        phoneNumber: _phoneCtrl.text.trim(),
       ),
     );
     if (ok && mounted) {
@@ -173,7 +174,7 @@ class _IndividualCoachSignupScreenState
               ],
               SizedBox(height: media.width * 0.06),
               auth.loading
-                  ? const Center(child: CircularProgressIndicator())
+                  ? const LiaqhPageLoader()
                   : RoundGradientButton(
                       title: l10n.createAccount,
                       onPressed: _submit,
