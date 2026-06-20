@@ -2705,4 +2705,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get currentPeriodSuffix => 'current';
+
+  @override
+  String get dangerZone => 'Danger Zone';
+
+  @override
+  String get deleteAccount => 'Delete Account';
+
+  @override
+  String get deleteAccountSubtitle =>
+      'Permanently delete your account and data';
+
+  @override
+  String get deleteAccountConfirmTitle => 'Are you sure?';
+
+  @override
+  String get deleteAccountConfirmBody =>
+      'This will permanently delete your account and personal data. This action cannot be undone.';
+
+  @override
+  String get accountDeleted => 'Your account has been deleted.';
+
+  @override
+  String get deleteAccountFailed =>
+      'Could not delete account. Please try again.';
 }

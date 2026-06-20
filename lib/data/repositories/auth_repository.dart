@@ -167,6 +167,14 @@ class AuthRepository {
     });
   }
 
+  /// Permanently deletes the current user's account on the server, then clears
+  /// all local credentials so the app returns to a signed-out state.
+  Future<void> deleteAccount() async {
+    await _api.delete('/auth/account');
+    await _api.clearToken();
+    await _api.clearUser();
+  }
+
   Future<void> logout() async {
     await _api.clearToken();
     await _api.clearUser();

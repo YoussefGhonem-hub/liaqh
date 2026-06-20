@@ -1025,5 +1025,13 @@
   "coachNoWorkoutYet": "Your coach hasn't added a workout program yet.",
   "coachNoMealPlanYet": "Your coach hasn't added a meal plan yet.",
   "currencyEgp": "EGP",
-  "currentPeriodSuffix": "current"
+  "currentPeriodSuffix": "current",
+
+  "dangerZone": "Danger Zone",
+  "deleteAccount": "Delete Account",
+  "deleteAccountSubtitle": "Permanently delete your account and data",
+  "deleteAccountConfirmTitle": "Are you sure?",
+  "deleteAccountConfirmBody": "This will permanently delete your account and personal data. This action cannot be undone.",
+  "accountDeleted": "Your account has been deleted.",
+  "deleteAccountFailed": "Could not delete account. Please try again."
 }

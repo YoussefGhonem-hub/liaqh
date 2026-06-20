@@ -176,6 +176,21 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Permanently deletes the current account. On success the user is signed out.
+  Future<bool> deleteAccount() async {
+    _setLoading(true);
+    try {
+      await _repo.deleteAccount();
+      _currentUser = null;
+      _loading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _setError(e.toString());
+      return false;
+    }
+  }
+
   Future<bool> checkLoginStatus() => _repo.isLoggedIn();
 
   void _setLoading(bool v) {

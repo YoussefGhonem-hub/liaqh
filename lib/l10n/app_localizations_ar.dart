@@ -2677,4 +2677,26 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get currentPeriodSuffix => 'الحالية';
+
+  @override
+  String get dangerZone => 'منطقة الخطر';
+
+  @override
+  String get deleteAccount => 'حذف الحساب';
+
+  @override
+  String get deleteAccountSubtitle => 'احذف حسابك وبياناتك نهائيًا';
+
+  @override
+  String get deleteAccountConfirmTitle => 'هل أنت متأكد؟';
+
+  @override
+  String get deleteAccountConfirmBody =>
+      'سيؤدي هذا إلى حذف حسابك وبياناتك الشخصية نهائيًا. لا يمكن التراجع عن هذا الإجراء.';
+
+  @override
+  String get accountDeleted => 'تم حذف حسابك.';
+
+  @override
+  String get deleteAccountFailed => 'تعذّر حذف الحساب. حاول مرة أخرى.';
 }

@@ -10,7 +10,7 @@ class ApiService {
   static const String _prodBaseUrl =
       'https://ghyoussef-002-site2.ftempurl.com/api';
 
-  static const String baseUrl =  _prodBaseUrl;
+  static const String baseUrl = _localBaseUrl;
 
   /// Called when the server rejects our token (401) on an authenticated request
   /// — e.g. the password was changed elsewhere and the security stamp no longer
@@ -66,12 +66,15 @@ class ApiService {
 
   static const _userKey = 'cached_user';
 
-  Future<void> saveToken(String token) => _storage.write(key: _tokenKey, value: token);
+  Future<void> saveToken(String token) =>
+      _storage.write(key: _tokenKey, value: token);
   Future<void> clearToken() => _storage.delete(key: _tokenKey);
   Future<String?> getToken() => _storage.read(key: _tokenKey);
-  Future<bool> isLoggedIn() async => (await _storage.read(key: _tokenKey)) != null;
+  Future<bool> isLoggedIn() async =>
+      (await _storage.read(key: _tokenKey)) != null;
 
-  Future<void> saveUser(String userJson) => _storage.write(key: _userKey, value: userJson);
+  Future<void> saveUser(String userJson) =>
+      _storage.write(key: _userKey, value: userJson);
   Future<String?> getSavedUser() => _storage.read(key: _userKey);
   Future<void> clearUser() => _storage.delete(key: _userKey);
 
@@ -90,8 +93,8 @@ class ApiService {
   Future<Response> delete(String path) => _dio.delete(path);
 
   Future<Response> postForm(String path, {required FormData formData}) =>
-      _dio.post(path, data: formData,
-          options: Options(contentType: 'multipart/form-data'));
+      _dio.post(path,
+          data: formData, options: Options(contentType: 'multipart/form-data'));
 
   Future<Response> uploadFile(String path, FormData formData) =>
       _dio.post(path, data: formData);

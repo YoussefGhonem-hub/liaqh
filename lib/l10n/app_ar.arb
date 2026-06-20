@@ -1025,5 +1025,13 @@
   "coachNoWorkoutYet": "لم يضِف مدربك برنامج تمرين بعد.",
   "coachNoMealPlanYet": "لم يضِف مدربك خطة وجبات بعد.",
   "currencyEgp": "ج.م",
-  "currentPeriodSuffix": "الحالية"
+  "currentPeriodSuffix": "الحالية",
+
+  "dangerZone": "منطقة الخطر",
+  "deleteAccount": "حذف الحساب",
+  "deleteAccountSubtitle": "احذف حسابك وبياناتك نهائيًا",
+  "deleteAccountConfirmTitle": "هل أنت متأكد؟",
+  "deleteAccountConfirmBody": "سيؤدي هذا إلى حذف حسابك وبياناتك الشخصية نهائيًا. لا يمكن التراجع عن هذا الإجراء.",
+  "accountDeleted": "تم حذف حسابك.",
+  "deleteAccountFailed": "تعذّر حذف الحساب. حاول مرة أخرى."
 }

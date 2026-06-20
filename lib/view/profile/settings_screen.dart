@@ -1,9 +1,12 @@
+import 'package:fitnessapp/common_widgets/liaqh_loaders.dart';
 import 'package:fitnessapp/data/services/notification_service.dart';
 import 'package:fitnessapp/l10n/app_localizations.dart';
+import 'package:fitnessapp/providers/auth_provider.dart';
 import 'package:fitnessapp/providers/language_provider.dart';
 import 'package:fitnessapp/providers/theme_provider.dart';
 import 'package:fitnessapp/utils/app_colors.dart';
 import 'package:fitnessapp/utils/app_theme.dart';
+import 'package:fitnessapp/view/login/login_screen.dart';
 import 'package:fitnessapp/view/profile/change_password_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -271,9 +274,91 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
           ),
+          const SizedBox(height: 24),
+
+          // ── Danger Zone ───────────────────────────────────────────────
+          _SectionHeader(title: l10n.dangerZone, colors: colors),
+          _Card(
+            colors: colors,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () => _confirmDelete(context, l10n),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                child: Row(
+                  children: [
+                    const _IconBubble(
+                        icon: Icons.delete_forever_rounded,
+                        color: AppColors.errorColor),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(l10n.deleteAccount,
+                              style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.errorColor)),
+                          Text(l10n.deleteAccountSubtitle,
+                              style:
+                                  TextStyle(fontSize: 12, color: colors.subFg)),
+                        ],
+                      ),
+                    ),
+                    Icon(Icons.chevron_right_rounded, color: colors.subFg),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
+  }
+
+  Future<void> _confirmDelete(
+      BuildContext context, AppLocalizations l10n) async {
+    final colors = context.colors;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: colors.card,
+        title: Text(l10n.deleteAccountConfirmTitle,
+            style: TextStyle(color: colors.fg, fontWeight: FontWeight.w700)),
+        content: Text(l10n.deleteAccountConfirmBody,
+            style: TextStyle(color: colors.subFg)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.cancel, style: TextStyle(color: colors.subFg)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l10n.delete,
+                style: const TextStyle(
+                    color: AppColors.errorColor, fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !context.mounted) return;
+
+    final auth = context.read<AuthProvider>();
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+
+    final ok = await LiaqhLoading.during(context, () => auth.deleteAccount());
+
+    if (ok) {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.accountDeleted)));
+      navigator.pushNamedAndRemoveUntil(LoginScreen.routeName, (r) => false);
+    } else {
+      messenger.showSnackBar(SnackBar(
+          content: Text(l10n.deleteAccountFailed),
+          backgroundColor: AppColors.errorColor));
+    }
   }
 }
 
