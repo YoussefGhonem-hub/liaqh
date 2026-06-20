@@ -10,7 +10,7 @@ class ApiService {
   static const String _prodBaseUrl =
       'https://ghyoussef-002-site2.ftempurl.com/api';
 
-  static const String baseUrl = _localBaseUrl;
+  static const String baseUrl = _prodBaseUrl;
 
   /// Called when the server rejects our token (401) on an authenticated request
   /// — e.g. the password was changed elsewhere and the security stamp no longer
