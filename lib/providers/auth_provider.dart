@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import '../data/models/auth_models.dart';
 import '../data/repositories/auth_repository.dart';
+import '../data/services/notification_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   final AuthRepository _repo;
@@ -36,6 +37,7 @@ class AuthProvider extends ChangeNotifier {
     _setLoading(true);
     try {
       _currentUser = await _repo.login(LoginRequest(email: email, password: password));
+      _registerPushToken();
       _setLoading(false);
       return true;
     } catch (e) {
@@ -48,6 +50,7 @@ class AuthProvider extends ChangeNotifier {
     _setLoading(true);
     try {
       _currentUser = await _repo.registerIndividualCoach(req);
+      _registerPushToken();
       _setLoading(false);
       return true;
     } catch (e) {
@@ -77,6 +80,7 @@ class AuthProvider extends ChangeNotifier {
         logo: logo,
       );
       _currentUser = result.admin;
+      _registerPushToken();
       _setLoading(false);
       return true;
     } catch (e) {
@@ -89,6 +93,7 @@ class AuthProvider extends ChangeNotifier {
     _setLoading(true);
     try {
       _currentUser = await _repo.registerCoach(req);
+      _registerPushToken();
       _setLoading(false);
       return true;
     } catch (e) {
@@ -168,6 +173,22 @@ class AuthProvider extends ChangeNotifier {
       return 'Cannot connect to server. Check your network.';
     }
     return 'Could not change password. Please try again.';
+  }
+
+  /// Registers the device's FCM push token immediately after a successful
+  /// login/registration (so the user can receive push without restarting the
+  /// app). Saves to both Firestore (chat/push) and the backend. Fire-and-forget
+  /// — failures (e.g. no Google Play Services on emulator) must not block auth.
+  void _registerPushToken() {
+    final userId = _currentUser?.userId;
+    if (userId == null || userId.isEmpty) return;
+    () async {
+      try {
+        await NotificationService.saveTokenForUser(userId);
+        final token = await NotificationService.getToken();
+        if (token != null) await _repo.saveFcmToken(token);
+      } catch (_) {/* push is optional */}
+    }();
   }
 
   Future<void> logout() async {

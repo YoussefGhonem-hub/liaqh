@@ -175,6 +175,10 @@ class AuthRepository {
     await _api.clearUser();
   }
 
+  /// Registers the device's FCM push token with the backend for the current user.
+  Future<void> saveFcmToken(String token) =>
+      _api.patch('/notifications/fcm-token', data: {'token': token});
+
   Future<void> logout() async {
     await _api.clearToken();
     await _api.clearUser();
