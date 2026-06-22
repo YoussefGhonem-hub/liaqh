@@ -5209,6 +5209,505 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not delete account. Please try again.'**
   String get deleteAccountFailed;
+
+  /// No description provided for @pickFromContacts.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick from contacts'**
+  String get pickFromContacts;
+
+  /// No description provided for @noPhoneInContact.
+  ///
+  /// In en, this message translates to:
+  /// **'This contact has no phone number.'**
+  String get noPhoneInContact;
+
+  /// No description provided for @chooseNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a number'**
+  String get chooseNumber;
+
+  /// No description provided for @couldNotOpenWhatsapp.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open WhatsApp.'**
+  String get couldNotOpenWhatsapp;
+
+  /// No description provided for @sendOnWhatsapp.
+  ///
+  /// In en, this message translates to:
+  /// **'Send on WhatsApp'**
+  String get sendOnWhatsapp;
+
+  /// No description provided for @whatsappWelcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Trainee added 🎉'**
+  String get whatsappWelcomeTitle;
+
+  /// No description provided for @whatsappWelcomeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Send {name} their login details and the app link on WhatsApp?'**
+  String whatsappWelcomeBody(String name);
+
+  /// No description provided for @whatsappWelcomeTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to Liaqh, {name}! 🏋️\n\nYour coach created an account for you. Here are your login details:\n\n👤 Username: {username}\n🔑 Password: {password}\n\n📲 Download the app: {link}\n\nLog in and let\'s get started! 💪'**
+  String whatsappWelcomeTemplate(
+      String name, String username, String password, String link);
+
+  /// No description provided for @rolePlatformOwner.
+  ///
+  /// In en, this message translates to:
+  /// **'Platform Owner'**
+  String get rolePlatformOwner;
+
+  /// No description provided for @roleGymAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Gym Admin'**
+  String get roleGymAdmin;
+
+  /// No description provided for @roleCoach.
+  ///
+  /// In en, this message translates to:
+  /// **'Coach'**
+  String get roleCoach;
+
+  /// No description provided for @roleTrainee.
+  ///
+  /// In en, this message translates to:
+  /// **'Trainee'**
+  String get roleTrainee;
+
+  /// No description provided for @statusAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted'**
+  String get statusAccepted;
+
+  /// No description provided for @statusRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get statusRejected;
+
+  /// No description provided for @paymentApprovedActivated.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment approved — subscription activated.'**
+  String get paymentApprovedActivated;
+
+  /// No description provided for @rejectPaymentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject payment?'**
+  String get rejectPaymentTitle;
+
+  /// No description provided for @reasonOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason (optional)'**
+  String get reasonOptional;
+
+  /// No description provided for @noRequestsForStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'No {status} requests.'**
+  String noRequestsForStatus(String status);
+
+  /// No description provided for @methodLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Method'**
+  String get methodLabel;
+
+  /// No description provided for @accountNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Account name'**
+  String get accountNameLabel;
+
+  /// No description provided for @accountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get accountLabel;
+
+  /// No description provided for @referenceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference'**
+  String get referenceLabel;
+
+  /// No description provided for @submittedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Submitted'**
+  String get submittedLabel;
+
+  /// No description provided for @noteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get noteLabel;
+
+  /// No description provided for @accept.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept'**
+  String get accept;
+
+  /// No description provided for @editNamed.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit {name}'**
+  String editNamed(String name);
+
+  /// No description provided for @receiverNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Receiver number'**
+  String get receiverNumber;
+
+  /// No description provided for @instructionsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Instructions / hint'**
+  String get instructionsHint;
+
+  /// No description provided for @couldNotUpdateSetting.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not update setting'**
+  String get couldNotUpdateSetting;
+
+  /// No description provided for @requireSystemSubscription.
+  ///
+  /// In en, this message translates to:
+  /// **'Require system subscription'**
+  String get requireSystemSubscription;
+
+  /// No description provided for @requireSystemOnDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Trainees must pay the system subscription AND their coach.'**
+  String get requireSystemOnDesc;
+
+  /// No description provided for @requireSystemOffDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'System payment is OFF — trainees only need to pay their coach.'**
+  String get requireSystemOffDesc;
+
+  /// No description provided for @manualNeedsApproval.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual · needs approval'**
+  String get manualNeedsApproval;
+
+  /// No description provided for @onlinePaddle.
+  ///
+  /// In en, this message translates to:
+  /// **'Online (Paddle)'**
+  String get onlinePaddle;
+
+  /// No description provided for @receiverWithNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Receiver: {number}'**
+  String receiverWithNumber(String number);
+
+  /// No description provided for @usersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Users'**
+  String get usersTitle;
+
+  /// No description provided for @allUsersSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'All users across the platform'**
+  String get allUsersSubtitle;
+
+  /// No description provided for @searchUsers.
+  ///
+  /// In en, this message translates to:
+  /// **'Search users...'**
+  String get searchUsers;
+
+  /// No description provided for @noUsersFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No users found'**
+  String get noUsersFound;
+
+  /// No description provided for @deleteAccountQ.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete account?'**
+  String get deleteAccountQ;
+
+  /// No description provided for @deleteUserConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This permanently deletes {name}\'s account. They will be logged out and unable to sign in. Historical records are kept. This cannot be undone.'**
+  String deleteUserConfirmBody(String name);
+
+  /// No description provided for @userAccountDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Account deleted'**
+  String get userAccountDeleted;
+
+  /// No description provided for @couldNotDeleteAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not delete account'**
+  String get couldNotDeleteAccount;
+
+  /// No description provided for @failedToUpdateStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update status: {error}'**
+  String failedToUpdateStatus(String error);
+
+  /// No description provided for @coachProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Coach Profile'**
+  String get coachProfile;
+
+  /// No description provided for @editCoachProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Profile'**
+  String get editCoachProfile;
+
+  /// No description provided for @viewProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'View profile'**
+  String get viewProfile;
+
+  /// No description provided for @coachProfileEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'This coach hasn\'t added profile details yet.'**
+  String get coachProfileEmpty;
+
+  /// No description provided for @headlineLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Headline'**
+  String get headlineLabel;
+
+  /// No description provided for @headlineHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Certified Strength & Nutrition Coach'**
+  String get headlineHint;
+
+  /// No description provided for @aboutLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get aboutLabel;
+
+  /// No description provided for @yearsExperienceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Years of experience'**
+  String get yearsExperienceLabel;
+
+  /// No description provided for @specialtiesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Specialties'**
+  String get specialtiesLabel;
+
+  /// No description provided for @specialtiesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Comma-separated (e.g. Weight loss, Bodybuilding)'**
+  String get specialtiesHint;
+
+  /// No description provided for @instagramLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Instagram'**
+  String get instagramLabel;
+
+  /// No description provided for @whatsappLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'WhatsApp number'**
+  String get whatsappLabel;
+
+  /// No description provided for @messageOnWhatsapp.
+  ///
+  /// In en, this message translates to:
+  /// **'Message on WhatsApp'**
+  String get messageOnWhatsapp;
+
+  /// No description provided for @certifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Certifications'**
+  String get certifications;
+
+  /// No description provided for @addCertification.
+  ///
+  /// In en, this message translates to:
+  /// **'Add certification'**
+  String get addCertification;
+
+  /// No description provided for @certTitleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Certification title'**
+  String get certTitleLabel;
+
+  /// No description provided for @issuerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Issuer'**
+  String get issuerLabel;
+
+  /// No description provided for @yearLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Year'**
+  String get yearLabel;
+
+  /// No description provided for @transformationsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Transformations'**
+  String get transformationsTitle;
+
+  /// No description provided for @addTransformation.
+  ///
+  /// In en, this message translates to:
+  /// **'Add transformation'**
+  String get addTransformation;
+
+  /// No description provided for @beforeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Before'**
+  String get beforeLabel;
+
+  /// No description provided for @afterLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'After'**
+  String get afterLabel;
+
+  /// No description provided for @captionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Caption'**
+  String get captionLabel;
+
+  /// No description provided for @durationResultLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration / result'**
+  String get durationResultLabel;
+
+  /// No description provided for @documentsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get documentsTitle;
+
+  /// No description provided for @uploadDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload PDF / document'**
+  String get uploadDocument;
+
+  /// No description provided for @reviewsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reviews'**
+  String get reviewsTitle;
+
+  /// No description provided for @noReviewsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No reviews yet'**
+  String get noReviewsYet;
+
+  /// No description provided for @rateYourCoach.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate your coach'**
+  String get rateYourCoach;
+
+  /// No description provided for @writeReviewOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Write a review (optional)'**
+  String get writeReviewOptional;
+
+  /// No description provided for @submitReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit review'**
+  String get submitReview;
+
+  /// No description provided for @yourReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Your review'**
+  String get yourReview;
+
+  /// No description provided for @reviewSubmitted.
+  ///
+  /// In en, this message translates to:
+  /// **'Review submitted'**
+  String get reviewSubmitted;
+
+  /// No description provided for @statTrainees.
+  ///
+  /// In en, this message translates to:
+  /// **'Trainees'**
+  String get statTrainees;
+
+  /// No description provided for @statTransformations.
+  ///
+  /// In en, this message translates to:
+  /// **'Transformations'**
+  String get statTransformations;
+
+  /// No description provided for @statYears.
+  ///
+  /// In en, this message translates to:
+  /// **'Years'**
+  String get statYears;
+
+  /// No description provided for @statRating.
+  ///
+  /// In en, this message translates to:
+  /// **'Rating'**
+  String get statRating;
+
+  /// No description provided for @addPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Add photo'**
+  String get addPhoto;
+
+  /// No description provided for @profileSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile saved'**
+  String get profileSaved;
 }
 
 class _AppLocalizationsDelegate

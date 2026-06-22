@@ -32,6 +32,7 @@ import 'package:fitnessapp/view/workout/workout_templates_screen.dart';
 import 'package:fitnessapp/view/guide/coach_guide_screen.dart';
 import 'package:fitnessapp/view/guide/app_tour_overlay.dart';
 import 'package:fitnessapp/view/coaching/needs_attention_screen.dart';
+import 'package:fitnessapp/view/coaching/coach_profile_edit_screen.dart';
 import 'package:fitnessapp/view/coaching/leaderboard_screen.dart';
 import 'package:fitnessapp/view/coaching/broadcast_screen.dart';
 import 'package:fitnessapp/view/platform/support_tickets_screen.dart';
@@ -973,6 +974,20 @@ class _AppDrawer extends StatelessWidget {
                               context, AddTraineeScreen.routeName);
                         },
                       ),
+                    // Public coach profile / portfolio (certifications, transformations…).
+                    _DrawerItem(
+                      icon: Icons.badge_rounded,
+                      label: l10n.coachProfile,
+                      color: const Color(0xFFEC4899),
+                      onTap: () {
+                        onClose();
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) =>
+                                    const CoachProfileEditScreen()));
+                      },
+                    ),
                     // Reusable workout templates the coach assigns to trainees.
                     _DrawerItem(
                       icon: Icons.assignment_rounded,

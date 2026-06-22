@@ -1,4 +1,5 @@
 import 'package:fitnessapp/common_widgets/attachments_view.dart';
+import 'package:fitnessapp/view/coaching/coach_profile_view_screen.dart';
 import 'package:fitnessapp/common_widgets/liaqh_loaders.dart';
 import 'package:fitnessapp/common_widgets/user_avatar.dart';
 import 'package:fitnessapp/view/workout/workout_templates_screen.dart';
@@ -475,6 +476,7 @@ class _ProfileTab extends StatelessWidget {
               bio: widget.coachBio,
               specialization: widget.coachSpecialization,
               imageUrl: widget.coachImageUrl,
+              coachUserId: widget.coachUserId,
             ),
         ],
       ),
@@ -490,6 +492,7 @@ class _CoachCard extends StatelessWidget {
   final String? bio;
   final String? specialization;
   final String? imageUrl;
+  final String? coachUserId;
   const _CoachCard({
     required this.name,
     this.email,
@@ -497,6 +500,7 @@ class _CoachCard extends StatelessWidget {
     this.bio,
     this.specialization,
     this.imageUrl,
+    this.coachUserId,
   });
 
   @override
@@ -569,6 +573,33 @@ class _CoachCard extends StatelessWidget {
           if (phone != null && phone!.trim().isNotEmpty) ...[
             const SizedBox(height: 8),
             _CoachContactRow(icon: Icons.phone_outlined, value: phone!.trim()),
+          ],
+          if (coachUserId != null && coachUserId!.isNotEmpty) ...[
+            const SizedBox(height: 14),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        CoachProfileViewScreen(coachUserId: coachUserId!),
+                  ),
+                ),
+                icon: const Icon(Icons.badge_outlined,
+                    size: 18, color: AppColors.primaryColor1),
+                label: Text(l10n.viewProfile,
+                    style: const TextStyle(
+                        color: AppColors.primaryColor1,
+                        fontWeight: FontWeight.w700)),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: AppColors.primaryColor1),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
+            ),
           ],
         ],
       ),

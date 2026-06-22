@@ -8,6 +8,7 @@ import 'package:fitnessapp/providers/chat_provider.dart';
 import 'package:fitnessapp/providers/platform_provider.dart';
 import 'package:fitnessapp/utils/app_colors.dart';
 import 'package:fitnessapp/utils/app_theme.dart';
+import 'package:fitnessapp/utils/status_l10n.dart';
 import 'package:fitnessapp/view/chat/chat_room_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -59,6 +60,7 @@ class _PlatformUsersScreenState extends State<PlatformUsersScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final colors = context.colors;
     final p = context.watch<PlatformProvider>();
     final data = p.users;
@@ -70,10 +72,10 @@ class _PlatformUsersScreenState extends State<PlatformUsersScreen> {
         onRefresh: () async => _load(),
         child: CustomScrollView(
           slivers: [
-            const SliverToBoxAdapter(
+            SliverToBoxAdapter(
               child: PlatformGradientHeader(
-                title: 'Users',
-                subtitle: 'All users across the platform',
+                title: l10n.usersTitle,
+                subtitle: l10n.allUsersSubtitle,
                 icon: Icons.group_rounded,
                 showBack: true,
               ),
@@ -84,7 +86,7 @@ class _PlatformUsersScreenState extends State<PlatformUsersScreen> {
                 child: Column(
                   children: [
                     PlatformSearchField(
-                      hint: 'Search users...',
+                      hint: l10n.searchUsers,
                       onChanged: (v) => setState(() => _search = v),
                     ),
                     const SizedBox(height: 10),
@@ -93,7 +95,11 @@ class _PlatformUsersScreenState extends State<PlatformUsersScreen> {
                       child: Row(
                         children: [
                           for (final e in _roles.entries) ...[
-                            _roleChip(e.key, e.value.isEmpty ? null : e.value),
+                            _roleChip(
+                                e.value.isEmpty
+                                    ? l10n.catAll
+                                    : roleLabel(l10n, e.value),
+                                e.value.isEmpty ? null : e.value),
                             const SizedBox(width: 8),
                           ],
                         ],
@@ -106,7 +112,7 @@ class _PlatformUsersScreenState extends State<PlatformUsersScreen> {
             if (p.usersLoading && data == null)
               const SliverFillRemaining(
                 hasScrollBody: false,
-                child: const LiaqhPageLoader(),
+                child: LiaqhPageLoader(),
               )
             else if (p.usersError != null && data == null)
               SliverFillRemaining(
@@ -115,10 +121,10 @@ class _PlatformUsersScreenState extends State<PlatformUsersScreen> {
                     message: p.usersError!, onRetry: _load),
               )
             else if (items.isEmpty)
-              const SliverFillRemaining(
+              SliverFillRemaining(
                 hasScrollBody: false,
                 child: PlatformEmptyState(
-                    icon: Icons.group_rounded, message: 'No users found'),
+                    icon: Icons.group_rounded, message: l10n.noUsersFound),
               )
             else
               SliverPadding(
@@ -177,6 +183,7 @@ class _PlatformUsersScreenState extends State<PlatformUsersScreen> {
   }
 
   Widget _userTile(PlatformUser u) {
+    final l10n = AppLocalizations.of(context);
     final colors = context.colors;
     final rc = _roleColor(u.role);
     return PlatformCard(
@@ -217,7 +224,7 @@ class _PlatformUsersScreenState extends State<PlatformUsersScreen> {
                         color: rc.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(7),
                       ),
-                      child: Text(u.role,
+                      child: Text(roleLabel(l10n, u.role),
                           style: TextStyle(
                               color: rc,
                               fontSize: 10,
@@ -262,10 +269,10 @@ class _PlatformUsersScreenState extends State<PlatformUsersScreen> {
                     ],
                   ),
                 ),
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'delete',
-                  child: Text('Delete account',
-                      style: TextStyle(color: AppColors.errorColor)),
+                  child: Text(l10n.deleteAccount,
+                      style: const TextStyle(color: AppColors.errorColor)),
                 ),
               ],
             ),
@@ -309,28 +316,27 @@ class _PlatformUsersScreenState extends State<PlatformUsersScreen> {
   }
 
   Future<void> _confirmDelete(PlatformUser u) async {
+    final l10n = AppLocalizations.of(context);
     final colors = context.colors;
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: colors.card,
-        title: Text('Delete account?', style: TextStyle(color: colors.fg)),
+        title: Text(l10n.deleteAccountQ, style: TextStyle(color: colors.fg)),
         content: Text(
-          'This permanently deletes ${u.fullName}\'s account. They will be '
-          'logged out and unable to sign in. Historical records are kept. '
-          'This cannot be undone.',
+          l10n.deleteUserConfirmBody(u.fullName),
           style: TextStyle(color: colors.subFg, fontSize: 13),
         ),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel')),
+              child: Text(l10n.cancel)),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.errorColor,
                 foregroundColor: Colors.white),
-            child: const Text('Delete'),
+            child: Text(l10n.delete),
           ),
         ],
       ),
@@ -340,7 +346,8 @@ class _PlatformUsersScreenState extends State<PlatformUsersScreen> {
     final success = await context.read<PlatformProvider>().deleteUser(u.id);
     if (!mounted) return;
     messenger.showSnackBar(SnackBar(
-      content: Text(success ? 'Account deleted' : 'Could not delete account'),
+      content: Text(
+          success ? l10n.userAccountDeleted : l10n.couldNotDeleteAccount),
       backgroundColor: success ? AppColors.successColor : AppColors.errorColor,
     ));
   }
@@ -350,8 +357,9 @@ class _PlatformUsersScreenState extends State<PlatformUsersScreen> {
       await context.read<PlatformProvider>().setUserStatus(u.id, v);
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to update status: $e')),
+          SnackBar(content: Text(l10n.failedToUpdateStatus(e.toString()))),
         );
       }
     }

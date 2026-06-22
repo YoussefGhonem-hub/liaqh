@@ -36,3 +36,33 @@ String payStatusLabel(AppLocalizations l10n, String? status) {
       return status ?? '';
   }
 }
+
+/// Localized label for a manual payment-request status (Pending/Accepted/Rejected).
+String payRequestStatusLabel(AppLocalizations l10n, String? status) {
+  switch ((status ?? '').toLowerCase()) {
+    case 'pending':
+      return l10n.subStatusPending;
+    case 'accepted':
+      return l10n.statusAccepted;
+    case 'rejected':
+      return l10n.statusRejected;
+    default:
+      return status ?? '';
+  }
+}
+
+/// Localized label for a user role (PlatformOwner/GymAdmin/Coach/Trainee).
+String roleLabel(AppLocalizations l10n, String? role) {
+  switch ((role ?? '').toLowerCase()) {
+    case 'platformowner':
+      return l10n.rolePlatformOwner;
+    case 'gymadmin':
+      return l10n.roleGymAdmin;
+    case 'coach':
+      return l10n.roleCoach;
+    case 'trainee':
+      return l10n.roleTrainee;
+    default:
+      return role ?? '';
+  }
+}

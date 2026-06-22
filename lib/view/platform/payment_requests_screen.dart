@@ -1,8 +1,10 @@
 import 'package:fitnessapp/data/models/payment_method_models.dart';
 import 'package:fitnessapp/common_widgets/liaqh_loaders.dart';
+import 'package:fitnessapp/l10n/app_localizations.dart';
 import 'package:fitnessapp/providers/payment_methods_provider.dart';
 import 'package:fitnessapp/utils/app_colors.dart';
 import 'package:fitnessapp/utils/app_theme.dart';
+import 'package:fitnessapp/utils/status_l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -55,36 +57,38 @@ class _PaymentRequestsScreenState extends State<PaymentRequestsScreen> {
   }
 
   Future<void> _accept(ManualPaymentModel r) async {
+    final l10n = AppLocalizations.of(context);
     final ok = await context
         .read<PaymentMethodsProvider>()
         .review(r.id, true, status: _status);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(ok ? 'Payment approved — subscription activated.' : 'Failed.'),
+        content: Text(ok ? l10n.paymentApprovedActivated : l10n.failedGeneric),
         backgroundColor: ok ? AppColors.successColor : AppColors.errorColor,
       ));
     }
   }
 
   Future<void> _reject(ManualPaymentModel r) async {
+    final l10n = AppLocalizations.of(context);
     final noteCtrl = TextEditingController();
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Reject payment?'),
+        title: Text(l10n.rejectPaymentTitle),
         content: TextField(
           controller: noteCtrl,
-          decoration: const InputDecoration(labelText: 'Reason (optional)'),
+          decoration: InputDecoration(labelText: l10n.reasonOptional),
         ),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel')),
+              child: Text(l10n.cancel)),
           ElevatedButton(
               style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.errorColor),
               onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Reject')),
+              child: Text(l10n.reject)),
         ],
       ),
     );
@@ -97,6 +101,7 @@ class _PaymentRequestsScreenState extends State<PaymentRequestsScreen> {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final l10n = AppLocalizations.of(context);
     final provider = context.watch<PaymentMethodsProvider>();
 
     return Scaffold(
@@ -105,7 +110,7 @@ class _PaymentRequestsScreenState extends State<PaymentRequestsScreen> {
         backgroundColor: colors.bg,
         foregroundColor: colors.fg,
         elevation: 0,
-        title: Text('Payment Requests',
+        title: Text(l10n.dashPaymentRequests,
             style: TextStyle(color: colors.fg, fontWeight: FontWeight.w700)),
       ),
       body: Column(
@@ -119,7 +124,7 @@ class _PaymentRequestsScreenState extends State<PaymentRequestsScreen> {
                 return Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: ChoiceChip(
-                    label: Text(s),
+                    label: Text(payRequestStatusLabel(l10n, s)),
                     selected: selected,
                     selectedColor: AppColors.primaryColor1,
                     labelStyle: TextStyle(
@@ -140,7 +145,9 @@ class _PaymentRequestsScreenState extends State<PaymentRequestsScreen> {
                 ? const LiaqhPageLoader()
                 : provider.requests.isEmpty
                     ? Center(
-                        child: Text('No $_status requests.',
+                        child: Text(
+                            l10n.noRequestsForStatus(
+                                payRequestStatusLabel(l10n, _status)),
                             style: TextStyle(color: colors.subFg)))
                     : RefreshIndicator(
                         onRefresh: () async => _load(),
@@ -190,6 +197,7 @@ class _RequestCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final fmt = DateFormat('MMM d, yyyy · h:mm a');
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -217,7 +225,7 @@ class _RequestCard extends StatelessWidget {
                   color: statusColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Text(r.status,
+                child: Text(payRequestStatusLabel(l10n, r.status),
                     style: TextStyle(
                         color: statusColor,
                         fontWeight: FontWeight.w700,
@@ -227,15 +235,15 @@ class _RequestCard extends StatelessWidget {
           ),
           Text(r.userEmail, style: TextStyle(color: colors.subFg, fontSize: 12)),
           const SizedBox(height: 10),
-          _row(colors, 'Method', r.methodCode),
-          _row(colors, 'Account name', r.fullAccountName),
-          _row(colors, 'Account', r.accountIdentifier),
+          _row(colors, l10n.methodLabel, r.methodCode),
+          _row(colors, l10n.accountNameLabel, r.fullAccountName),
+          _row(colors, l10n.accountLabel, r.accountIdentifier),
           if (r.referenceNumber != null && r.referenceNumber!.isNotEmpty)
-            _row(colors, 'Reference', r.referenceNumber!),
-          _row(colors, 'Amount', 'EGP ${r.amount.toStringAsFixed(0)}'),
-          _row(colors, 'Submitted', fmt.format(r.createdAt.toLocal())),
+            _row(colors, l10n.referenceLabel, r.referenceNumber!),
+          _row(colors, l10n.amount, 'EGP ${r.amount.toStringAsFixed(0)}'),
+          _row(colors, l10n.submittedLabel, fmt.format(r.createdAt.toLocal())),
           if (r.reviewNote != null && r.reviewNote!.isNotEmpty)
-            _row(colors, 'Note', r.reviewNote!),
+            _row(colors, l10n.noteLabel, r.reviewNote!),
           if (r.isPending) ...[
             const SizedBox(height: 12),
             Row(
@@ -246,7 +254,7 @@ class _RequestCard extends StatelessWidget {
                     style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.errorColor,
                         side: const BorderSide(color: AppColors.errorColor)),
-                    child: const Text('Reject'),
+                    child: Text(l10n.reject),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -256,7 +264,7 @@ class _RequestCard extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.successColor,
                         foregroundColor: Colors.white),
-                    child: const Text('Accept'),
+                    child: Text(l10n.accept),
                   ),
                 ),
               ],

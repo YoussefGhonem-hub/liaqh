@@ -2729,4 +2729,273 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get deleteAccountFailed =>
       'Could not delete account. Please try again.';
+
+  @override
+  String get pickFromContacts => 'Pick from contacts';
+
+  @override
+  String get noPhoneInContact => 'This contact has no phone number.';
+
+  @override
+  String get chooseNumber => 'Choose a number';
+
+  @override
+  String get couldNotOpenWhatsapp => 'Could not open WhatsApp.';
+
+  @override
+  String get sendOnWhatsapp => 'Send on WhatsApp';
+
+  @override
+  String get whatsappWelcomeTitle => 'Trainee added 🎉';
+
+  @override
+  String whatsappWelcomeBody(String name) {
+    return 'Send $name their login details and the app link on WhatsApp?';
+  }
+
+  @override
+  String whatsappWelcomeTemplate(
+      String name, String username, String password, String link) {
+    return 'Welcome to Liaqh, $name! 🏋️\n\nYour coach created an account for you. Here are your login details:\n\n👤 Username: $username\n🔑 Password: $password\n\n📲 Download the app: $link\n\nLog in and let\'s get started! 💪';
+  }
+
+  @override
+  String get rolePlatformOwner => 'Platform Owner';
+
+  @override
+  String get roleGymAdmin => 'Gym Admin';
+
+  @override
+  String get roleCoach => 'Coach';
+
+  @override
+  String get roleTrainee => 'Trainee';
+
+  @override
+  String get statusAccepted => 'Accepted';
+
+  @override
+  String get statusRejected => 'Rejected';
+
+  @override
+  String get paymentApprovedActivated =>
+      'Payment approved — subscription activated.';
+
+  @override
+  String get rejectPaymentTitle => 'Reject payment?';
+
+  @override
+  String get reasonOptional => 'Reason (optional)';
+
+  @override
+  String noRequestsForStatus(String status) {
+    return 'No $status requests.';
+  }
+
+  @override
+  String get methodLabel => 'Method';
+
+  @override
+  String get accountNameLabel => 'Account name';
+
+  @override
+  String get accountLabel => 'Account';
+
+  @override
+  String get referenceLabel => 'Reference';
+
+  @override
+  String get submittedLabel => 'Submitted';
+
+  @override
+  String get noteLabel => 'Note';
+
+  @override
+  String get accept => 'Accept';
+
+  @override
+  String editNamed(String name) {
+    return 'Edit $name';
+  }
+
+  @override
+  String get receiverNumber => 'Receiver number';
+
+  @override
+  String get instructionsHint => 'Instructions / hint';
+
+  @override
+  String get couldNotUpdateSetting => 'Could not update setting';
+
+  @override
+  String get requireSystemSubscription => 'Require system subscription';
+
+  @override
+  String get requireSystemOnDesc =>
+      'Trainees must pay the system subscription AND their coach.';
+
+  @override
+  String get requireSystemOffDesc =>
+      'System payment is OFF — trainees only need to pay their coach.';
+
+  @override
+  String get manualNeedsApproval => 'Manual · needs approval';
+
+  @override
+  String get onlinePaddle => 'Online (Paddle)';
+
+  @override
+  String receiverWithNumber(String number) {
+    return 'Receiver: $number';
+  }
+
+  @override
+  String get usersTitle => 'Users';
+
+  @override
+  String get allUsersSubtitle => 'All users across the platform';
+
+  @override
+  String get searchUsers => 'Search users...';
+
+  @override
+  String get noUsersFound => 'No users found';
+
+  @override
+  String get deleteAccountQ => 'Delete account?';
+
+  @override
+  String deleteUserConfirmBody(String name) {
+    return 'This permanently deletes $name\'s account. They will be logged out and unable to sign in. Historical records are kept. This cannot be undone.';
+  }
+
+  @override
+  String get userAccountDeleted => 'Account deleted';
+
+  @override
+  String get couldNotDeleteAccount => 'Could not delete account';
+
+  @override
+  String failedToUpdateStatus(String error) {
+    return 'Failed to update status: $error';
+  }
+
+  @override
+  String get coachProfile => 'Coach Profile';
+
+  @override
+  String get editCoachProfile => 'Edit Profile';
+
+  @override
+  String get viewProfile => 'View profile';
+
+  @override
+  String get coachProfileEmpty =>
+      'This coach hasn\'t added profile details yet.';
+
+  @override
+  String get headlineLabel => 'Headline';
+
+  @override
+  String get headlineHint => 'e.g. Certified Strength & Nutrition Coach';
+
+  @override
+  String get aboutLabel => 'About';
+
+  @override
+  String get yearsExperienceLabel => 'Years of experience';
+
+  @override
+  String get specialtiesLabel => 'Specialties';
+
+  @override
+  String get specialtiesHint =>
+      'Comma-separated (e.g. Weight loss, Bodybuilding)';
+
+  @override
+  String get instagramLabel => 'Instagram';
+
+  @override
+  String get whatsappLabel => 'WhatsApp number';
+
+  @override
+  String get messageOnWhatsapp => 'Message on WhatsApp';
+
+  @override
+  String get certifications => 'Certifications';
+
+  @override
+  String get addCertification => 'Add certification';
+
+  @override
+  String get certTitleLabel => 'Certification title';
+
+  @override
+  String get issuerLabel => 'Issuer';
+
+  @override
+  String get yearLabel => 'Year';
+
+  @override
+  String get transformationsTitle => 'Transformations';
+
+  @override
+  String get addTransformation => 'Add transformation';
+
+  @override
+  String get beforeLabel => 'Before';
+
+  @override
+  String get afterLabel => 'After';
+
+  @override
+  String get captionLabel => 'Caption';
+
+  @override
+  String get durationResultLabel => 'Duration / result';
+
+  @override
+  String get documentsTitle => 'Documents';
+
+  @override
+  String get uploadDocument => 'Upload PDF / document';
+
+  @override
+  String get reviewsTitle => 'Reviews';
+
+  @override
+  String get noReviewsYet => 'No reviews yet';
+
+  @override
+  String get rateYourCoach => 'Rate your coach';
+
+  @override
+  String get writeReviewOptional => 'Write a review (optional)';
+
+  @override
+  String get submitReview => 'Submit review';
+
+  @override
+  String get yourReview => 'Your review';
+
+  @override
+  String get reviewSubmitted => 'Review submitted';
+
+  @override
+  String get statTrainees => 'Trainees';
+
+  @override
+  String get statTransformations => 'Transformations';
+
+  @override
+  String get statYears => 'Years';
+
+  @override
+  String get statRating => 'Rating';
+
+  @override
+  String get addPhoto => 'Add photo';
+
+  @override
+  String get profileSaved => 'Profile saved';
 }

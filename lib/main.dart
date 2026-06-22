@@ -19,6 +19,7 @@ import 'package:fitnessapp/providers/trainee_provider.dart';
 import 'package:fitnessapp/providers/workout_provider.dart';
 import 'package:fitnessapp/providers/daily_workout_log_provider.dart';
 import 'package:fitnessapp/providers/coaching_provider.dart';
+import 'package:fitnessapp/providers/coach_profile_provider.dart';
 import 'package:fitnessapp/data/repositories/auth_repository.dart';
 import 'package:fitnessapp/data/repositories/dashboard_repository.dart';
 import 'package:fitnessapp/data/repositories/inbody_repository.dart';
@@ -35,6 +36,7 @@ import 'package:fitnessapp/data/repositories/trainee_repository.dart';
 import 'package:fitnessapp/data/repositories/workout_repository.dart';
 import 'package:fitnessapp/data/repositories/daily_workout_log_repository.dart';
 import 'package:fitnessapp/data/repositories/coaching_repository.dart';
+import 'package:fitnessapp/data/repositories/coach_profile_repository.dart';
 import 'package:fitnessapp/data/services/api_service.dart';
 import 'package:fitnessapp/data/services/notification_service.dart';
 import 'package:fitnessapp/routes.dart';
@@ -111,6 +113,10 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (_) => CoachingProvider(CoachingRepository(apiService)),
+        ),
+        ChangeNotifierProvider(
+          create: (_) =>
+              CoachProfileProvider(CoachProfileRepository(apiService)),
         ),
         ChangeNotifierProvider(
           create: (_) => MealProvider(MealRepository(apiService)),

@@ -1,4 +1,5 @@
 import 'package:fitnessapp/data/models/payment_method_models.dart';
+import 'package:fitnessapp/l10n/app_localizations.dart';
 import 'package:fitnessapp/common_widgets/liaqh_loaders.dart';
 import 'package:fitnessapp/providers/payment_methods_provider.dart';
 import 'package:fitnessapp/utils/app_colors.dart';
@@ -29,6 +30,7 @@ class _PaymentMethodsManagementScreenState
   }
 
   Future<void> _edit(PaymentMethodModel m) async {
+    final l10n = AppLocalizations.of(context);
     final colors = context.colors;
     final receiverCtrl = TextEditingController(text: m.receiverNumber ?? '');
     final instrCtrl = TextEditingController(text: m.instructions ?? '');
@@ -37,20 +39,20 @@ class _PaymentMethodsManagementScreenState
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: colors.card,
-        title: Text('Edit ${m.name}', style: TextStyle(color: colors.fg)),
+        title: Text(l10n.editNamed(m.name), style: TextStyle(color: colors.fg)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: receiverCtrl,
               style: TextStyle(color: colors.fg),
-              decoration: const InputDecoration(labelText: 'Receiver number'),
+              decoration: InputDecoration(labelText: l10n.receiverNumber),
             ),
             const SizedBox(height: 8),
             TextField(
               controller: instrCtrl,
               style: TextStyle(color: colors.fg),
-              decoration: const InputDecoration(labelText: 'Instructions / hint'),
+              decoration: InputDecoration(labelText: l10n.instructionsHint),
               maxLines: 2,
             ),
           ],
@@ -58,10 +60,10 @@ class _PaymentMethodsManagementScreenState
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel')),
+              child: Text(l10n.cancel)),
           ElevatedButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Save')),
+              child: Text(l10n.save)),
         ],
       ),
     );
@@ -77,6 +79,7 @@ class _PaymentMethodsManagementScreenState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final colors = context.colors;
     final provider = context.watch<PaymentMethodsProvider>();
 
@@ -86,7 +89,7 @@ class _PaymentMethodsManagementScreenState
         backgroundColor: colors.bg,
         foregroundColor: colors.fg,
         elevation: 0,
-        title: Text('Payment Methods',
+        title: Text(l10n.dashPaymentMethods,
             style: TextStyle(color: colors.fg, fontWeight: FontWeight.w700)),
       ),
       body: provider.loading && provider.methods.isEmpty
@@ -106,7 +109,7 @@ class _PaymentMethodsManagementScreenState
                           .setRequireSystemSubscription(v);
                       if (!ok && context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Could not update setting')),
+                          SnackBar(content: Text(l10n.couldNotUpdateSetting)),
                         );
                       }
                     },
@@ -143,6 +146,7 @@ class _RequireSystemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -162,7 +166,7 @@ class _RequireSystemCard extends StatelessWidget {
                   color: AppColors.primaryColor1),
               const SizedBox(width: 10),
               Expanded(
-                child: Text('Require system subscription',
+                child: Text(l10n.requireSystemSubscription,
                     style: TextStyle(
                         color: colors.fg,
                         fontWeight: FontWeight.w700,
@@ -178,8 +182,8 @@ class _RequireSystemCard extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             value
-                ? 'Trainees must pay the system subscription AND their coach.'
-                : 'System payment is OFF — trainees only need to pay their coach.',
+                ? l10n.requireSystemOnDesc
+                : l10n.requireSystemOffDesc,
             style: TextStyle(color: colors.subFg, fontSize: 12, height: 1.4),
           ),
         ],
@@ -204,6 +208,7 @@ class _MethodCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Opacity(
       opacity: enabled ? 1 : 0.5,
       child: Container(
@@ -229,7 +234,7 @@ class _MethodCard extends StatelessWidget {
                             fontWeight: FontWeight.w700,
                             fontSize: 15)),
                     Text(
-                      method.isManual ? 'Manual · needs approval' : 'Online (Paddle)',
+                      method.isManual ? l10n.manualNeedsApproval : l10n.onlinePaddle,
                       style: TextStyle(color: colors.subFg, fontSize: 12),
                     ),
                   ],
@@ -245,7 +250,7 @@ class _MethodCard extends StatelessWidget {
           if (method.receiverNumber != null &&
               method.receiverNumber!.isNotEmpty) ...[
             const SizedBox(height: 6),
-            Text('Receiver: ${method.receiverNumber}',
+            Text(l10n.receiverWithNumber(method.receiverNumber!),
                 style: TextStyle(color: colors.subFg, fontSize: 13)),
           ],
           if (onEdit != null)
@@ -254,7 +259,7 @@ class _MethodCard extends StatelessWidget {
               child: TextButton.icon(
                 onPressed: enabled ? onEdit : null,
                 icon: const Icon(Icons.edit, size: 16),
-                label: const Text('Edit'),
+                label: Text(l10n.edit),
               ),
             ),
         ],

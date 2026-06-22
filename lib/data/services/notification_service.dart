@@ -106,7 +106,13 @@ class NotificationService {
         importance: Importance.high,
         priority: Priority.high,
       ),
-      iOS: DarwinNotificationDetails(),
+      iOS: DarwinNotificationDetails(
+        presentAlert: true,
+        presentBanner: true,
+        presentList: true,
+        presentBadge: true,
+        presentSound: true,
+      ),
     );
 
     await _local.zonedSchedule(
@@ -437,6 +443,8 @@ class NotificationService {
         ),
         iOS: const DarwinNotificationDetails(
           presentAlert: true,
+          presentBanner: true, // show as a banner on iOS 14+ (foreground)
+          presentList: true,
           presentBadge: true,
           presentSound: true,
         ),

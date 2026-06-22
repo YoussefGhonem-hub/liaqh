@@ -746,7 +746,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get skip => 'تخطّي';
+  String get skip => 'تخطٍّ';
 
   @override
   String get mealPlans => 'خطط التغذية';
@@ -2699,4 +2699,271 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get deleteAccountFailed => 'تعذّر حذف الحساب. حاول مرة أخرى.';
+
+  @override
+  String get pickFromContacts => 'اختر من جهات الاتصال';
+
+  @override
+  String get noPhoneInContact => 'جهة الاتصال هذه لا تحتوي على رقم هاتف.';
+
+  @override
+  String get chooseNumber => 'اختر رقمًا';
+
+  @override
+  String get couldNotOpenWhatsapp => 'تعذّر فتح واتساب.';
+
+  @override
+  String get sendOnWhatsapp => 'إرسال عبر واتساب';
+
+  @override
+  String get whatsappWelcomeTitle => 'تمت إضافة المتدرب 🎉';
+
+  @override
+  String whatsappWelcomeBody(String name) {
+    return 'هل تريد إرسال بيانات الدخول ورابط التطبيق إلى $name عبر واتساب؟';
+  }
+
+  @override
+  String whatsappWelcomeTemplate(
+      String name, String username, String password, String link) {
+    return 'أهلاً بك في لياقة يا $name! 🏋️\n\nأنشأ لك مدربك حسابًا. إليك بيانات تسجيل الدخول:\n\n👤 اسم المستخدم: $username\n🔑 كلمة المرور: $password\n\n📲 حمّل التطبيق: $link\n\nسجّل الدخول ولنبدأ! 💪';
+  }
+
+  @override
+  String get rolePlatformOwner => 'مالك المنصة';
+
+  @override
+  String get roleGymAdmin => 'مدير الصالة';
+
+  @override
+  String get roleCoach => 'مدرب';
+
+  @override
+  String get roleTrainee => 'متدرب';
+
+  @override
+  String get statusAccepted => 'مقبول';
+
+  @override
+  String get statusRejected => 'مرفوض';
+
+  @override
+  String get paymentApprovedActivated =>
+      'تمت الموافقة على الدفع — تم تفعيل الاشتراك.';
+
+  @override
+  String get rejectPaymentTitle => 'رفض الدفع؟';
+
+  @override
+  String get reasonOptional => 'السبب (اختياري)';
+
+  @override
+  String noRequestsForStatus(String status) {
+    return 'لا توجد طلبات $status.';
+  }
+
+  @override
+  String get methodLabel => 'الطريقة';
+
+  @override
+  String get accountNameLabel => 'اسم الحساب';
+
+  @override
+  String get accountLabel => 'الحساب';
+
+  @override
+  String get referenceLabel => 'المرجع';
+
+  @override
+  String get submittedLabel => 'تاريخ الإرسال';
+
+  @override
+  String get noteLabel => 'ملاحظة';
+
+  @override
+  String get accept => 'قبول';
+
+  @override
+  String editNamed(String name) {
+    return 'تعديل $name';
+  }
+
+  @override
+  String get receiverNumber => 'رقم المستلم';
+
+  @override
+  String get instructionsHint => 'التعليمات / تلميح';
+
+  @override
+  String get couldNotUpdateSetting => 'تعذّر تحديث الإعداد';
+
+  @override
+  String get requireSystemSubscription => 'اشتراط اشتراك النظام';
+
+  @override
+  String get requireSystemOnDesc =>
+      'يجب على المتدربين دفع اشتراك النظام ومدربهم معًا.';
+
+  @override
+  String get requireSystemOffDesc =>
+      'دفع النظام مُعطّل — يكفي أن يدفع المتدربون لمدربهم فقط.';
+
+  @override
+  String get manualNeedsApproval => 'يدوي · يحتاج موافقة';
+
+  @override
+  String get onlinePaddle => 'إلكتروني (Paddle)';
+
+  @override
+  String receiverWithNumber(String number) {
+    return 'المستلم: $number';
+  }
+
+  @override
+  String get usersTitle => 'المستخدمون';
+
+  @override
+  String get allUsersSubtitle => 'جميع المستخدمين عبر المنصة';
+
+  @override
+  String get searchUsers => 'ابحث عن المستخدمين...';
+
+  @override
+  String get noUsersFound => 'لا يوجد مستخدمون';
+
+  @override
+  String get deleteAccountQ => 'حذف الحساب؟';
+
+  @override
+  String deleteUserConfirmBody(String name) {
+    return 'سيؤدي هذا إلى حذف حساب $name نهائيًا. سيتم تسجيل خروجه ولن يتمكن من الدخول. تُحفظ السجلات التاريخية. لا يمكن التراجع عن هذا.';
+  }
+
+  @override
+  String get userAccountDeleted => 'تم حذف الحساب';
+
+  @override
+  String get couldNotDeleteAccount => 'تعذّر حذف الحساب';
+
+  @override
+  String failedToUpdateStatus(String error) {
+    return 'فشل تحديث الحالة: $error';
+  }
+
+  @override
+  String get coachProfile => 'ملف المدرب';
+
+  @override
+  String get editCoachProfile => 'تعديل الملف';
+
+  @override
+  String get viewProfile => 'عرض الملف';
+
+  @override
+  String get coachProfileEmpty => 'لم يُضف هذا المدرب تفاصيل ملفه بعد.';
+
+  @override
+  String get headlineLabel => 'العنوان المهني';
+
+  @override
+  String get headlineHint => 'مثال: مدرب قوة وتغذية معتمد';
+
+  @override
+  String get aboutLabel => 'نبذة';
+
+  @override
+  String get yearsExperienceLabel => 'سنوات الخبرة';
+
+  @override
+  String get specialtiesLabel => 'التخصصات';
+
+  @override
+  String get specialtiesHint => 'مفصولة بفواصل (مثال: خسارة وزن، كمال أجسام)';
+
+  @override
+  String get instagramLabel => 'إنستغرام';
+
+  @override
+  String get whatsappLabel => 'رقم واتساب';
+
+  @override
+  String get messageOnWhatsapp => 'مراسلة عبر واتساب';
+
+  @override
+  String get certifications => 'الشهادات';
+
+  @override
+  String get addCertification => 'إضافة شهادة';
+
+  @override
+  String get certTitleLabel => 'اسم الشهادة';
+
+  @override
+  String get issuerLabel => 'الجهة المانحة';
+
+  @override
+  String get yearLabel => 'السنة';
+
+  @override
+  String get transformationsTitle => 'التحولات';
+
+  @override
+  String get addTransformation => 'إضافة تحول';
+
+  @override
+  String get beforeLabel => 'قبل';
+
+  @override
+  String get afterLabel => 'بعد';
+
+  @override
+  String get captionLabel => 'وصف';
+
+  @override
+  String get durationResultLabel => 'المدة / النتيجة';
+
+  @override
+  String get documentsTitle => 'المستندات';
+
+  @override
+  String get uploadDocument => 'رفع ملف PDF / مستند';
+
+  @override
+  String get reviewsTitle => 'التقييمات';
+
+  @override
+  String get noReviewsYet => 'لا توجد تقييمات بعد';
+
+  @override
+  String get rateYourCoach => 'قيّم مدربك';
+
+  @override
+  String get writeReviewOptional => 'اكتب تقييمًا (اختياري)';
+
+  @override
+  String get submitReview => 'إرسال التقييم';
+
+  @override
+  String get yourReview => 'تقييمك';
+
+  @override
+  String get reviewSubmitted => 'تم إرسال التقييم';
+
+  @override
+  String get statTrainees => 'المتدربون';
+
+  @override
+  String get statTransformations => 'التحولات';
+
+  @override
+  String get statYears => 'سنوات';
+
+  @override
+  String get statRating => 'التقييم';
+
+  @override
+  String get addPhoto => 'إضافة صورة';
+
+  @override
+  String get profileSaved => 'تم حفظ الملف';
 }
