@@ -7,11 +7,14 @@ on:
 
 jobs:
   test-build:
-    runs-on: macos-14
+    runs-on: macos-15
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Select Xcode 16
+        run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -20,11 +23,14 @@ jobs:
           channel: 'stable'
           cache: true
 
+      - name: Flutter precache
+        run: flutter precache --ios
+
       - name: Flutter pub get
         run: flutter pub get
 
       - name: Install CocoaPods
-        run: cd ios && pod install --repo-update
+        run: cd ios && pod install
 
       - name: Build iOS (no codesign)
         run: flutter build ios --release --no-codesign
