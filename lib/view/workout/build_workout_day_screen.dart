@@ -35,6 +35,7 @@ class _BuildWorkoutDayScreenState extends State<BuildWorkoutDayScreen> {
   final _dayNameCtrl = TextEditingController();
   final _notesCtrl = TextEditingController();
   int _dayNumber = 1;
+  bool _isRestDay = false;
   final Set<String> _muscleFocus = {'Chest'};
   final List<_ExerciseDraft> _exerciseDrafts = [];
 
@@ -119,6 +120,7 @@ class _BuildWorkoutDayScreenState extends State<BuildWorkoutDayScreen> {
 
   void _resetForm() {
     _editingDayId = null;
+    _isRestDay = false;
     _dayNameCtrl.clear();
     _notesCtrl.clear();
     _exerciseDrafts.clear();
@@ -132,6 +134,7 @@ class _BuildWorkoutDayScreenState extends State<BuildWorkoutDayScreen> {
     setState(() {
       _editingDayId = d.id;
       _error = null;
+      _isRestDay = d.isRestDay;
       _dayNameCtrl.text = d.dayName;
       // muscleGroupFocus is stored as a comma-separated list of muscles.
       final parsed = d.muscleGroupFocus
@@ -182,7 +185,8 @@ class _BuildWorkoutDayScreenState extends State<BuildWorkoutDayScreen> {
         dayName: name,
         muscleGroupFocus: _muscleFocusValue,
         notes: notes,
-        exercises: _exercisePayload(),
+        exercises: _isRestDay ? const [] : _exercisePayload(),
+        isRestDay: _isRestDay,
       );
     } else {
       final id = await provider.addWorkoutDay(
@@ -191,7 +195,8 @@ class _BuildWorkoutDayScreenState extends State<BuildWorkoutDayScreen> {
         dayName: name,
         muscleGroupFocus: _muscleFocusValue,
         notes: notes,
-        exercises: _exercisePayload(),
+        exercises: _isRestDay ? const [] : _exercisePayload(),
+        isRestDay: _isRestDay,
       );
       ok = id != null;
     }
@@ -291,6 +296,42 @@ class _BuildWorkoutDayScreenState extends State<BuildWorkoutDayScreen> {
               icon: 'assets/icons/user_icon.png',
               textInputType: TextInputType.text,
             ),
+            const SizedBox(height: 16),
+            // Rest / break day toggle.
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+              decoration: BoxDecoration(
+                color: colors.listTile,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.bedtime_outlined,
+                      color: AppColors.primaryColor1, size: 20),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(l10n.restDay,
+                            style: TextStyle(
+                                color: colors.fg,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 14)),
+                        Text(l10n.restDayHint,
+                            style:
+                                TextStyle(color: colors.subFg, fontSize: 11)),
+                      ],
+                    ),
+                  ),
+                  Switch(
+                    value: _isRestDay,
+                    onChanged: (v) => setState(() => _isRestDay = v),
+                  ),
+                ],
+              ),
+            ),
+            if (!_isRestDay) ...[
             const SizedBox(height: 16),
             Text(l10n.muscleFocus,
                 style: TextStyle(
@@ -395,7 +436,7 @@ class _BuildWorkoutDayScreenState extends State<BuildWorkoutDayScreen> {
                   onChanged: () => setState(() {}),
                 ),
               ),
-
+            ],
             const SizedBox(height: 16),
             RoundTextField(
               textEditingController: _notesCtrl,

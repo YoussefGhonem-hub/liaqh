@@ -1043,7 +1043,6 @@
   "whatsappWelcomeTitle": "تمت إضافة المتدرب 🎉",
   "whatsappWelcomeBody": "هل تريد إرسال بيانات الدخول ورابط التطبيق إلى {name} عبر واتساب؟",
   "@whatsappWelcomeBody": { "placeholders": { "name": { "type": "String" } } },
-  "skip": "تخطٍّ",
   "whatsappWelcomeTemplate": "أهلاً بك في لياقة يا {name}! 🏋️\n\nأنشأ لك مدربك حسابًا. إليك بيانات تسجيل الدخول:\n\n👤 اسم المستخدم: {username}\n🔑 كلمة المرور: {password}\n\n📲 حمّل التطبيق: {link}\n\nسجّل الدخول ولنبدأ! 💪",
   "@whatsappWelcomeTemplate": { "placeholders": { "name": { "type": "String" }, "username": { "type": "String" }, "password": { "type": "String" }, "link": { "type": "String" } } },
 
@@ -1130,5 +1129,18 @@
   "statYears": "سنوات",
   "statRating": "التقييم",
   "addPhoto": "إضافة صورة",
-  "profileSaved": "تم حفظ الملف"
+  "profileSaved": "تم حفظ الملف",
+  "registeredOn": "مسجَّل في {date}",
+  "@registeredOn": { "placeholders": { "date": { "type": "String" } } },
+  "nutritionTodayQuestion": "هل التزمت بنظامك الغذائي اليوم؟",
+  "followedNutrition": "التزمت",
+  "missedNutrition": "لم ألتزم",
+  "watchVideo": "مشاهدة الفيديو",
+  "exerciseVideo": "فيديو التمرين",
+  "videoUrlLabel": "رابط الفيديو (يوتيوب)",
+  "uploadVideo": "رفع فيديو",
+  "videoTooLarge": "حجم الفيديو كبير جدًا (الحد الأقصى {mb} ميجابايت).",
+  "@videoTooLarge": { "placeholders": { "mb": { "type": "int" } } },
+  "halfYear": "6 أشهر",
+  "restDayHint": "يوم استراحة — بدون تمرين"
 }

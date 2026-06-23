@@ -66,6 +66,16 @@ class WorkoutProvider extends ChangeNotifier {
     }
   }
 
+  /// Uploads a workout demo video and returns its URL (null on failure).
+  Future<String?> uploadWorkoutVideo(File file) async {
+    try {
+      return await _repo.uploadWorkoutVideo(file);
+    } catch (e) {
+      _setError(e.toString());
+      return null;
+    }
+  }
+
   /// Fetch a program/template (with days + exercises) without storing it as the
   /// current trainee program — used by the template day editor.
   Future<WorkoutProgram?> fetchProgram(String programId) async {
@@ -83,6 +93,7 @@ class WorkoutProvider extends ChangeNotifier {
     required String muscleGroupFocus,
     String? notes,
     required List<Map<String, dynamic>> exercises,
+    bool isRestDay = false,
   }) async {
     try {
       await _repo.updateWorkoutDay(
@@ -91,6 +102,7 @@ class WorkoutProvider extends ChangeNotifier {
         muscleGroupFocus: muscleGroupFocus,
         notes: notes,
         exercises: exercises,
+        isRestDay: isRestDay,
       );
       return true;
     } catch (e) {
@@ -247,6 +259,7 @@ class WorkoutProvider extends ChangeNotifier {
     required String muscleGroupFocus,
     String? notes,
     required List<Map<String, dynamic>> exercises,
+    bool isRestDay = false,
     String traineeId = '',
     String coachName = '',
   }) async {
@@ -255,7 +268,7 @@ class WorkoutProvider extends ChangeNotifier {
       final id = await _repo.addWorkoutDay(
         programId: programId, dayNumber: dayNumber,
         dayName: dayName, muscleGroupFocus: muscleGroupFocus,
-        notes: notes, exercises: exercises,
+        notes: notes, exercises: exercises, isRestDay: isRestDay,
       );
       _setLoading(false);
       if (traineeId.isNotEmpty && coachName.isNotEmpty) {

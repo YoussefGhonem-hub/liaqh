@@ -12,6 +12,8 @@ class DailyWorkoutLogProvider extends ChangeNotifier {
 
   /// Status per day keyed by yyyy-MM-dd → true/false (worked out or not).
   final Map<String, bool> _status = {};
+  /// Nutrition-followed status per day (null = not answered).
+  final Map<String, bool?> _nutrition = {};
   List<DailyWorkoutLog> history = [];
 
   String _key(DateTime d) =>
@@ -19,6 +21,9 @@ class DailyWorkoutLogProvider extends ChangeNotifier {
 
   /// Returns the logged status for a day, or null if not logged yet.
   bool? statusFor(DateTime day) => _status[_key(day)];
+
+  /// Returns whether the trainee followed nutrition on a day (null = unanswered).
+  bool? nutritionFor(DateTime day) => _nutrition[_key(day)];
 
   /// Loads the current week + recent history (last ~60 days) for a trainee.
   Future<void> load(String traineeId) async {
@@ -31,8 +36,10 @@ class DailyWorkoutLogProvider extends ChangeNotifier {
           .subtract(const Duration(days: 60));
       final logs = await _repo.range(traineeId, from, now);
       _status.clear();
+      _nutrition.clear();
       for (final l in logs) {
         _status[_key(l.date)] = l.didWorkout;
+        _nutrition[_key(l.date)] = l.followedNutrition;
       }
       history = logs; // already newest-first from the server
     } catch (e) {
@@ -43,12 +50,18 @@ class DailyWorkoutLogProvider extends ChangeNotifier {
   }
 
   /// Trainee logs today's (or any day's) status; updates local state.
-  Future<bool> log(DateTime day, bool didWorkout) async {
+  /// Pass [followedNutrition] to record the nutrition check-in too; omit it to
+  /// keep the day's existing nutrition value.
+  Future<bool> log(DateTime day, bool didWorkout,
+      {bool? followedNutrition}) async {
     saving = true;
     notifyListeners();
     try {
-      final saved = await _repo.log(day, didWorkout);
+      final nutrition = followedNutrition ?? _nutrition[_key(day)];
+      final saved =
+          await _repo.log(day, didWorkout, followedNutrition: nutrition);
       _status[_key(saved.date)] = saved.didWorkout;
+      _nutrition[_key(saved.date)] = saved.followedNutrition;
       // Refresh history entry.
       history.removeWhere((l) => _key(l.date) == _key(saved.date));
       history.insert(0, saved);

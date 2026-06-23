@@ -10,6 +10,7 @@ import 'package:fitnessapp/utils/app_colors.dart';
 import 'package:fitnessapp/utils/app_theme.dart';
 import 'package:fitnessapp/utils/status_l10n.dart';
 import 'package:fitnessapp/view/chat/chat_room_screen.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -243,6 +244,24 @@ class _PlatformUsersScreenState extends State<PlatformUsersScreen> {
                       overflow: TextOverflow.ellipsis,
                       style:
                           TextStyle(color: colors.mutedFg, fontSize: 11)),
+                if (u.createdAt != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Row(
+                      children: [
+                        Icon(Icons.event_outlined,
+                            size: 11, color: colors.mutedFg),
+                        const SizedBox(width: 4),
+                        Text(
+                          l10n.registeredOn(
+                              DateFormat.yMMMd(l10n.localeName)
+                                  .format(u.createdAt!.toLocal())),
+                          style:
+                              TextStyle(color: colors.mutedFg, fontSize: 11),
+                        ),
+                      ],
+                    ),
+                  ),
               ],
             ),
           ),

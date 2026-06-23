@@ -5708,6 +5708,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Profile saved'**
   String get profileSaved;
+
+  /// No description provided for @registeredOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Registered {date}'**
+  String registeredOn(String date);
+
+  /// No description provided for @nutritionTodayQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Did you follow your nutrition today?'**
+  String get nutritionTodayQuestion;
+
+  /// No description provided for @followedNutrition.
+  ///
+  /// In en, this message translates to:
+  /// **'Followed'**
+  String get followedNutrition;
+
+  /// No description provided for @missedNutrition.
+  ///
+  /// In en, this message translates to:
+  /// **'Missed'**
+  String get missedNutrition;
+
+  /// No description provided for @watchVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch video'**
+  String get watchVideo;
+
+  /// No description provided for @exerciseVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Exercise video'**
+  String get exerciseVideo;
+
+  /// No description provided for @videoUrlLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Video URL (YouTube)'**
+  String get videoUrlLabel;
+
+  /// No description provided for @uploadVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload video'**
+  String get uploadVideo;
+
+  /// No description provided for @videoTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'Video is too large (max {mb} MB).'**
+  String videoTooLarge(int mb);
+
+  /// No description provided for @halfYear.
+  ///
+  /// In en, this message translates to:
+  /// **'6 Months'**
+  String get halfYear;
+
+  /// No description provided for @restDayHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Break day — no workout'**
+  String get restDayHint;
 }
 
 class _AppLocalizationsDelegate

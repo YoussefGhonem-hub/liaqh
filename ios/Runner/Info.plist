@@ -30,6 +30,10 @@
 	<string>This app needs access to your media library to select files and attachments from your device.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>This app needs camera access to take photos for profile, workout, and progress updates.</string>
+	<key>NSContactsUsageDescription</key>
+	<string>This app lets coaches pick a trainee's phone number from your contacts when adding a new trainee.</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>This app needs microphone access to record videos when using the camera.</string>
 	<key>NSPhotoLibraryUsageDescription</key>

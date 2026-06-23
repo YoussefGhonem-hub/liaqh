@@ -2,8 +2,10 @@ import 'dart:io';
 import 'package:fitnessapp/common_widgets/liaqh_loaders.dart';
 import 'package:fitnessapp/l10n/app_localizations.dart';
 import 'package:fitnessapp/providers/workout_provider.dart';
+import 'package:fitnessapp/utils/app_alerts.dart';
 import 'package:fitnessapp/utils/app_colors.dart';
 import 'package:fitnessapp/utils/app_theme.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -47,6 +49,27 @@ class _AddCustomExerciseScreenState extends State<AddCustomExerciseScreen> {
     final picked = await picker.pickImage(
         source: ImageSource.gallery, imageQuality: 85, maxWidth: 800);
     if (picked != null) setState(() => _imageFile = File(picked.path));
+  }
+
+  /// Picks a video (≤ 50 MB), uploads it, and fills the video URL field.
+  Future<void> _uploadVideo() async {
+    final l10n = AppLocalizations.of(context);
+    final result =
+        await FilePicker.platform.pickFiles(type: FileType.video);
+    if (result == null || result.files.single.path == null) return;
+    final file = File(result.files.single.path!);
+    if (await file.length() > 50 * 1024 * 1024) {
+      if (mounted) AppAlerts.error(context, l10n.videoTooLarge(50));
+      return;
+    }
+    if (!mounted) return;
+    final url = await LiaqhLoading.during(
+        context, () => context.read<WorkoutProvider>().uploadWorkoutVideo(file));
+    if (url != null) {
+      setState(() => _videoCtrl.text = url);
+    } else if (mounted) {
+      AppAlerts.error(context, l10n.uploadFailed);
+    }
   }
 
   Future<void> _submit() async {
@@ -205,6 +228,17 @@ class _AddCustomExerciseScreenState extends State<AddCustomExerciseScreen> {
               hintText: l10n.videoUrl,
               icon: 'assets/icons/message_icon.png',
               textInputType: TextInputType.url,
+            ),
+            const SizedBox(height: 8),
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: TextButton.icon(
+                onPressed: _uploadVideo,
+                icon: const Icon(Icons.upload_rounded,
+                    size: 18, color: AppColors.primaryColor1),
+                label: Text(l10n.uploadVideo,
+                    style: const TextStyle(color: AppColors.primaryColor1)),
+              ),
             ),
             if (_error != null) ...[
               const SizedBox(height: 12),

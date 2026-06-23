@@ -31,7 +31,7 @@ class _CreateProgramScreenState extends State<CreateProgramScreen> {
   DateTime _startDate = DateTime.now();
   String? _error;
 
-  static const _periods = ['Week', 'Month', 'Quarter'];
+  static const _periods = ['Week', 'Month', 'Quarter', 'HalfYear'];
 
   @override
   void dispose() {
@@ -128,8 +128,20 @@ class _CreateProgramScreenState extends State<CreateProgramScreen> {
             Row(
               children: _periods.map((p) {
                 final selected = _periodType == p;
-                final label = p == 'Week' ? l10n.week : p == 'Month' ? l10n.month : l10n.quarter;
-                final days = p == 'Week' ? '7 days' : p == 'Month' ? '30 days' : '90 days';
+                final label = p == 'Week'
+                    ? l10n.week
+                    : p == 'Month'
+                        ? l10n.month
+                        : p == 'Quarter'
+                            ? l10n.quarter
+                            : l10n.halfYear;
+                final days = p == 'Week'
+                    ? '7d'
+                    : p == 'Month'
+                        ? '1mo'
+                        : p == 'Quarter'
+                            ? '3mo'
+                            : '6mo';
                 return Expanded(
                   child: GestureDetector(
                     onTap: () => setState(() => _periodType = p),

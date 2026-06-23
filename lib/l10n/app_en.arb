@@ -1043,7 +1043,6 @@
   "whatsappWelcomeTitle": "Trainee added 🎉",
   "whatsappWelcomeBody": "Send {name} their login details and the app link on WhatsApp?",
   "@whatsappWelcomeBody": { "placeholders": { "name": { "type": "String" } } },
-  "skip": "Skip",
   "whatsappWelcomeTemplate": "Welcome to Liaqh, {name}! 🏋️\n\nYour coach created an account for you. Here are your login details:\n\n👤 Username: {username}\n🔑 Password: {password}\n\n📲 Download the app: {link}\n\nLog in and let's get started! 💪",
   "@whatsappWelcomeTemplate": { "placeholders": { "name": { "type": "String" }, "username": { "type": "String" }, "password": { "type": "String" }, "link": { "type": "String" } } },
 
@@ -1130,5 +1129,18 @@
   "statYears": "Years",
   "statRating": "Rating",
   "addPhoto": "Add photo",
-  "profileSaved": "Profile saved"
+  "profileSaved": "Profile saved",
+  "registeredOn": "Registered {date}",
+  "@registeredOn": { "placeholders": { "date": { "type": "String" } } },
+  "nutritionTodayQuestion": "Did you follow your nutrition today?",
+  "followedNutrition": "Followed",
+  "missedNutrition": "Missed",
+  "watchVideo": "Watch video",
+  "exerciseVideo": "Exercise video",
+  "videoUrlLabel": "Video URL (YouTube)",
+  "uploadVideo": "Upload video",
+  "videoTooLarge": "Video is too large (max {mb} MB).",
+  "@videoTooLarge": { "placeholders": { "mb": { "type": "int" } } },
+  "halfYear": "6 Months",
+  "restDayHint": "Break day — no workout"
 }

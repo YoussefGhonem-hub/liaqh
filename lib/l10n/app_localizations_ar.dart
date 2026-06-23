@@ -746,7 +746,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get skip => 'تخطٍّ';
+  String get skip => 'تخطّي';
 
   @override
   String get mealPlans => 'خطط التغذية';
@@ -2966,4 +2966,41 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get profileSaved => 'تم حفظ الملف';
+
+  @override
+  String registeredOn(String date) {
+    return 'مسجَّل في $date';
+  }
+
+  @override
+  String get nutritionTodayQuestion => 'هل التزمت بنظامك الغذائي اليوم؟';
+
+  @override
+  String get followedNutrition => 'التزمت';
+
+  @override
+  String get missedNutrition => 'لم ألتزم';
+
+  @override
+  String get watchVideo => 'مشاهدة الفيديو';
+
+  @override
+  String get exerciseVideo => 'فيديو التمرين';
+
+  @override
+  String get videoUrlLabel => 'رابط الفيديو (يوتيوب)';
+
+  @override
+  String get uploadVideo => 'رفع فيديو';
+
+  @override
+  String videoTooLarge(int mb) {
+    return 'حجم الفيديو كبير جدًا (الحد الأقصى $mb ميجابايت).';
+  }
+
+  @override
+  String get halfYear => '6 أشهر';
+
+  @override
+  String get restDayHint => 'يوم استراحة — بدون تمرين';
 }

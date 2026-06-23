@@ -72,6 +72,7 @@ class WorkoutDay {
   final String dayName;
   final String muscleGroupFocus;
   final String? notes;
+  final bool isRestDay;
   final List<WorkoutExerciseItem> exercises;
 
   WorkoutDay({
@@ -80,6 +81,7 @@ class WorkoutDay {
     required this.dayName,
     required this.muscleGroupFocus,
     this.notes,
+    this.isRestDay = false,
     required this.exercises,
   });
 
@@ -89,6 +91,7 @@ class WorkoutDay {
         dayName: j['dayName'],
         muscleGroupFocus: j['muscleGroupFocus'],
         notes: j['notes'],
+        isRestDay: j['isRestDay'] ?? false,
         exercises: (j['exercises'] as List? ?? [])
             .map((e) => WorkoutExerciseItem.fromJson(e))
             .toList(),

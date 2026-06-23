@@ -7,6 +7,16 @@ class WorkoutRepository {
   final ApiService _api;
   WorkoutRepository(this._api);
 
+  /// Uploads a workout demo video (≤ 50 MB) and returns its URL.
+  Future<String> uploadWorkoutVideo(File file) async {
+    final form = FormData.fromMap({
+      'video': await MultipartFile.fromFile(file.path,
+          filename: file.path.split(RegExp(r'[/\\]')).last),
+    });
+    final res = await _api.uploadFile('/workout-media/video', form);
+    return res.data['url'] as String;
+  }
+
   Future<WorkoutProgram> getProgram(String programId) async {
     final res = await _api.get('/workout-programs/$programId');
     return WorkoutProgram.fromJson(res.data);
@@ -55,6 +65,7 @@ class WorkoutRepository {
     required String muscleGroupFocus,
     String? notes,
     required List<Map<String, dynamic>> exercises,
+    bool isRestDay = false,
   }) async {
     final res = await _api.post('/workout-programs/$programId/days', data: {
       'dayNumber': dayNumber,
@@ -62,6 +73,7 @@ class WorkoutRepository {
       'muscleGroupFocus': muscleGroupFocus,
       if (notes != null) 'notes': notes,
       'exercises': exercises,
+      'isRestDay': isRestDay,
     });
     return res.data['id'].toString();
   }
@@ -72,12 +84,14 @@ class WorkoutRepository {
     required String muscleGroupFocus,
     String? notes,
     required List<Map<String, dynamic>> exercises,
+    bool isRestDay = false,
   }) async {
     await _api.put('/workout-programs/days/$dayId', data: {
       'dayName': dayName,
       'muscleGroupFocus': muscleGroupFocus,
       if (notes != null) 'notes': notes,
       'exercises': exercises,
+      'isRestDay': isRestDay,
     });
   }
 

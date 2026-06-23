@@ -19,10 +19,11 @@ class DailyWorkoutLogRepository {
 
   /// Trainee logs whether they worked out on [date].
   Future<DailyWorkoutLog> log(DateTime date, bool didWorkout,
-      {String? note}) async {
+      {bool? followedNutrition, String? note}) async {
     final res = await _api.post('/daily-workout-logs', data: {
       'date': _d(date),
       'didWorkout': didWorkout,
+      if (followedNutrition != null) 'followedNutrition': followedNutrition,
       if (note != null && note.isNotEmpty) 'note': note,
     });
     return DailyWorkoutLog.fromJson(res.data as Map<String, dynamic>);

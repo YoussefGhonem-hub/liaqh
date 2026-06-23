@@ -86,18 +86,18 @@ class _ExerciseLibraryScreenState extends State<ExerciseLibraryScreen> {
         elevation: 0,
         foregroundColor: colors.fg,
       ),
-      floatingActionButton: widget.selectionMode
-          ? null
-          : FloatingActionButton.extended(
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const AddCustomExerciseScreen()),
-              ).then((_) => context.read<WorkoutProvider>().loadExercises()),
-              icon: const Icon(Icons.add),
-              label: Text(l10n.addCustom),
-              backgroundColor: AppColors.primaryColor1,
-              foregroundColor: Colors.white,
-            ),
+      // Available in both browse and selection mode: the coach can create a
+      // custom exercise on the spot if it isn't in the library.
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const AddCustomExerciseScreen()),
+        ).then((_) => context.read<WorkoutProvider>().loadExercises()),
+        icon: const Icon(Icons.add),
+        label: Text(l10n.addCustom),
+        backgroundColor: AppColors.primaryColor1,
+        foregroundColor: Colors.white,
+      ),
       body: Column(
         children: [
           Padding(

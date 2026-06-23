@@ -8,6 +8,7 @@ import 'package:fitnessapp/utils/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// Shows a workout day's exercises with the coach's prescription and the
 /// per-exercise coach comments. Coaches can add/remove comments; trainees read.
@@ -83,6 +84,18 @@ class _ExerciseCommentCard extends StatelessWidget {
     required this.programId,
     required this.l10n,
   });
+
+  Future<void> _watchVideo(BuildContext context, String url) async {
+    final uri = Uri.tryParse(url.trim());
+    if (uri == null) return;
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not open the video.')),
+        );
+      }
+    }
+  }
 
   Future<void> _addComment(BuildContext context) async {
     final ctrl = TextEditingController();
@@ -277,6 +290,27 @@ class _ExerciseCommentCard extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text('${exercise.sets} × ${exercise.repsTarget}$weight',
                           style: TextStyle(color: colors.subFg, fontSize: 12)),
+                      if (exercise.videoUrl != null &&
+                          exercise.videoUrl!.trim().isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: InkWell(
+                            onTap: () => _watchVideo(context, exercise.videoUrl!),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.play_circle_fill_rounded,
+                                    size: 16, color: AppColors.primaryColor1),
+                                const SizedBox(width: 4),
+                                Text(AppLocalizations.of(context).watchVideo,
+                                    style: const TextStyle(
+                                        color: AppColors.primaryColor1,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700)),
+                              ],
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 ),

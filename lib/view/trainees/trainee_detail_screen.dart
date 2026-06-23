@@ -1,5 +1,6 @@
 import 'package:fitnessapp/common_widgets/attachments_view.dart';
 import 'package:fitnessapp/view/coaching/coach_profile_view_screen.dart';
+import 'package:fitnessapp/view/reports/trainee_report_screen.dart';
 import 'package:fitnessapp/common_widgets/liaqh_loaders.dart';
 import 'package:fitnessapp/common_widgets/user_avatar.dart';
 import 'package:fitnessapp/view/workout/workout_templates_screen.dart';
@@ -271,6 +272,21 @@ class _TraineeDetailScreenState extends State<TraineeDetailScreen>
             ),
             foregroundColor: Colors.white,
             actions: [
+              if (!widget.readOnly)
+                IconButton(
+                  icon: const Icon(Icons.description_outlined,
+                      color: Colors.white),
+                  tooltip: 'Generate report',
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => TraineeReportScreen(
+                        traineeId: widget.traineeId,
+                        traineeName: widget.traineeName,
+                      ),
+                    ),
+                  ),
+                ),
               IconButton(
                 icon: const _PulsingChatIcon(),
                 tooltip: 'Open chat',
@@ -1961,8 +1977,14 @@ class _WorkoutDayCard extends StatelessWidget {
                               fontSize: 14,
                               color: colors.fg)),
                       Text(
-                          '${day.muscleGroupFocus}  ·  ${day.exercises.length} exercises',
-                          style: TextStyle(fontSize: 12, color: colors.subFg)),
+                          day.isRestDay == true
+                              ? AppLocalizations.of(context).restDay
+                              : '${day.muscleGroupFocus}  ·  ${day.exercises.length} exercises',
+                          style: TextStyle(
+                              fontSize: 12,
+                              color: day.isRestDay == true
+                                  ? AppColors.primaryColor1
+                                  : colors.subFg)),
                     ],
                   ),
                 ),
@@ -2363,6 +2385,69 @@ class _DailyLogTabState extends State<_DailyLogTab> {
                 ],
               ),
             ),
+          // ── Nutrition confirm (trainee only) ──────────────────────────
+          if (widget.readOnly) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: colors.card,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: colors.divider),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.restaurant_rounded,
+                          color: AppColors.successColor, size: 20),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(l10n.nutritionTodayQuestion,
+                            style: TextStyle(
+                                color: colors.fg,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w800)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _confirmBtn(
+                          label: l10n.followedNutrition,
+                          icon: Icons.check_circle,
+                          selected: provider.nutritionFor(todayKey) == true,
+                          onTap: provider.saving
+                              ? null
+                              : () => context
+                                  .read<DailyWorkoutLogProvider>()
+                                  .log(todayKey, todayStatus ?? false,
+                                      followedNutrition: true),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _confirmBtn(
+                          label: l10n.missedNutrition,
+                          icon: Icons.cancel,
+                          selected: provider.nutritionFor(todayKey) == false,
+                          onTap: provider.saving
+                              ? null
+                              : () => context
+                                  .read<DailyWorkoutLogProvider>()
+                                  .log(todayKey, todayStatus ?? false,
+                                      followedNutrition: false),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: 24),
 
           // ── Workout reminder (trainee only) ───────────────────────────

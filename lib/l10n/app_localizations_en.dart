@@ -2998,4 +2998,41 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileSaved => 'Profile saved';
+
+  @override
+  String registeredOn(String date) {
+    return 'Registered $date';
+  }
+
+  @override
+  String get nutritionTodayQuestion => 'Did you follow your nutrition today?';
+
+  @override
+  String get followedNutrition => 'Followed';
+
+  @override
+  String get missedNutrition => 'Missed';
+
+  @override
+  String get watchVideo => 'Watch video';
+
+  @override
+  String get exerciseVideo => 'Exercise video';
+
+  @override
+  String get videoUrlLabel => 'Video URL (YouTube)';
+
+  @override
+  String get uploadVideo => 'Upload video';
+
+  @override
+  String videoTooLarge(int mb) {
+    return 'Video is too large (max $mb MB).';
+  }
+
+  @override
+  String get halfYear => '6 Months';
+
+  @override
+  String get restDayHint => 'Break day — no workout';
 }
