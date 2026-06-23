@@ -21,6 +21,9 @@ jobs:
           channel: 'stable'
           cache: true
 
+      - name: Disable Swift Package Manager (use CocoaPods only)
+        run: flutter config --no-enable-swift-package-manager
+
       - name: Flutter precache
         run: flutter precache --ios
 
