@@ -62,6 +62,21 @@ jobs:
           echo "$PROVISIONING_PROFILE_BASE64" | base64 --decode > "$PP_PATH"
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           cp "$PP_PATH" ~/Library/MobileDevice/Provisioning\ Profiles/
+          # Discover the actual profile name/UUID embedded in the profile
+          PLIST=$RUNNER_TEMP/profile.plist
+          security cms -D -i "$PP_PATH" > "$PLIST"
+          PROFILE_NAME=$(/usr/libexec/PlistBuddy -c 'Print :Name' "$PLIST")
+          PROFILE_UUID=$(/usr/libexec/PlistBuddy -c 'Print :UUID' "$PLIST")
+          echo "Provisioning profile name: $PROFILE_NAME (UUID: $PROFILE_UUID)"
+          echo "PROFILE_NAME=$PROFILE_NAME" >> "$GITHUB_ENV"
+
+      - name: Apply provisioning profile to project and export options
+        run: |
+          BUNDLE_ID=com.hypeteq.fitnesstracker
+          # Set the manual provisioning profile in the Xcode project (Release config)
+          /usr/bin/sed -i '' "s|PROVISIONING_PROFILE_SPECIFIER = \".*\"|PROVISIONING_PROFILE_SPECIFIER = \"$PROFILE_NAME\"|g" ios/Runner.xcodeproj/project.pbxproj
+          # Keep ExportOptions.plist in sync with the real profile name
+          /usr/libexec/PlistBuddy -c "Set :provisioningProfiles:$BUNDLE_ID $PROFILE_NAME" ios/ExportOptions.plist
 
       - name: Build IPA
         run: |
