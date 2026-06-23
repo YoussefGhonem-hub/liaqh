@@ -73,8 +73,12 @@ jobs:
       - name: Apply provisioning profile to project and export options
         run: |
           BUNDLE_ID=com.hypeteq.fitnesstracker
-          # Set the manual provisioning profile in the Xcode project (Release config)
-          /usr/bin/sed -i '' "s|PROVISIONING_PROFILE_SPECIFIER = \".*\"|PROVISIONING_PROFILE_SPECIFIER = \"$PROFILE_NAME\"|g" ios/Runner.xcodeproj/project.pbxproj
+          # Set the manual provisioning profile in the Xcode project (Release config).
+          # Use perl reading the name literally from env so special chars (|, spaces,
+          # non-ASCII) in the profile name don't break the replacement.
+          PROFILE_NAME="$PROFILE_NAME" perl -i -pe \
+            's/PROVISIONING_PROFILE_SPECIFIER = ".*"/"PROVISIONING_PROFILE_SPECIFIER = \"$ENV{PROFILE_NAME}\""/e' \
+            ios/Runner.xcodeproj/project.pbxproj
           # Keep ExportOptions.plist in sync with the real profile name
           /usr/libexec/PlistBuddy -c "Set :provisioningProfiles:$BUNDLE_ID $PROFILE_NAME" ios/ExportOptions.plist
 
